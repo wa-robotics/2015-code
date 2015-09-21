@@ -15,16 +15,6 @@
 
 void displayEncoders()
 {
-	//Setup the VEX LCD for displaying encoder values
-clearLCDLine(0);
-clearLCDLine(1);
-displayLCDString(0, 0, "R: ");
-displayLCDString(1, 0, "L: ");
-
-//Clear the encoders associated with the left and right motors
-nMotorEncoder[RFfly] = 0;
-nMotorEncoder[LFfly] = 0;
-
 while(vexRT[Btn6D] == 1)
 {
 //Display the right and left motor encoder values
@@ -41,10 +31,21 @@ task main()
 {
   while(1 == 1)
   {
+  //Setup the VEX LCD for displaying encoder values
+	clearLCDLine(0);
+	clearLCDLine(1);
+	displayLCDString(0, 0, "R: ");
+	displayLCDString(1, 0, "L: ");
+
+	//Clear the encoders associated with the left and right motors
+	nMotorEncoder[RFfly] = 0;
+	nMotorEncoder[LFfly] = 0;
+
   	motor[LBdrive] = vexRT[Ch3];
   	motor[LFdrive] = vexRT[Ch3];
   	motor[RBdrive] = vexRT[Ch2];
   	motor[RFdrive] = vexRT[Ch2];
+
     if(vexRT[Btn5U] == 1)
     {
     		motor[Lintake] = 120;
@@ -62,17 +63,17 @@ task main()
 
     if(vexRT[Btn6U] == 1)
     {
-      	motor[LBfly] = 63.5;
-				motor[RBfly] = 63.5;
-				motor[LFfly] = 63.5;
-				motor[RFfly] = 63.5;
+      	motor[LBfly] = 101.6;
+				motor[RBfly] = 101.6;
+				motor[LFfly] = 101.6;
+				motor[RFfly] = 101.6;
     }
     if(vexRT[Btn6D] == 1)
     {
-      	motor[LBfly] = -63.5;
-				motor[RBfly] = -63.5;
-				motor[LFfly] = -63.5;
-				motor[RFfly] = -63.5;
+      	motor[LBfly] = -101.6;
+				motor[RBfly] = -101.6;
+				motor[LFfly] = -101.6;
+				motor[RFfly] = -101.6;
 				displayEncoders();
     }
     else
