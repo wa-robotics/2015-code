@@ -4,7 +4,7 @@
 #pragma config(Sensor, dgtl4,  PneuB2,        sensorDigitalOut)
 #pragma config(Motor,  port1,           LBdrive,       tmotorVex393_HBridge, openLoop, reversed)
 #pragma config(Motor,  port2,           LFdrive,       tmotorVex393_MC29, openLoop, reversed)
-#pragma config(Motor,  port3,           ramp1,         tmotorVex393_MC29, openLoop, reversed)
+#pragma config(Motor,  port3,           ramp1,         tmotorVex393_MC29, openLoop)
 #pragma config(Motor,  port4,           ramp2,         tmotorVex393_MC29, openLoop)
 #pragma config(Motor,  port7,           intake1,       tmotorVex393_MC29, openLoop)
 #pragma config(Motor,  port8,           intake2,       tmotorVex393_MC29, openLoop, reversed)
@@ -36,33 +36,21 @@ task main()
     	motor[intake1] = 0;
     	motor[intake2] = 0;
     }
-    bool ramp;											//creates ramp boolean
     if(vexRT[Btn7L] == 1)						//lowers ramp
     {
-    	ramp = false;
     	motor[ramp1] = 110;
     	motor[ramp2] = 110;
     }
     if(vexRT[Btn8R] == 1)						//pulls back ramp
     {
-    	ramp = true;
     	motor[ramp1] = -120;
     	motor[ramp2] = -120;
     }
     else
     {
-    	if(ramp)											//holds ramp in place
-    	{
-    	motor[ramp1] = -30;
-    	motor[ramp2] = -30;
-      }
-      if(!ramp)
-      {
-      	motor[ramp1] = 30;
-      	motor[ramp2] = 30;
-      }
+    	motor[ramp1] = 0;
+    	motor[ramp2] = 0;
     }
-
     if(vexRT[Btn6D] == 1)
     {
     	SensorValue[PneuF1] = 1;
