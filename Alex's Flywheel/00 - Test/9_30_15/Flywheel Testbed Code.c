@@ -11,20 +11,8 @@
 
 task main()
 {
-	//Setup the VEX LCD for displaying encoder values
-	clearLCDLine(0);
-	clearLCDLine(1);
-	displayLCDString(0, 0, "L: ");
-	displayLCDString(1, 0, "R: ");
-	//Clear the encoders associated with the left and right motors
-	SensorValue[Encoder] = 0;
-	SensorValue[Encoder2] = 0;
-  while(1 == 1)
-  {
-	//Display the encoder value
-	displayLCDNumber(0, 3, SensorValue[Encoder], 6);
-	displayLCDNumber(1, 3, SensorValue[Encoder2], 6);
-
+while(true)
+{
     if(vexRT[Btn5U] == 1)
     {
       	motor[Fly1] = 100;
