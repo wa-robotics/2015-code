@@ -59,7 +59,7 @@ void accelerateFlyWheel (float targetSpeed)
 			setLeftSpeed(lSpeed); //set left side speed to 10
 			setRightSpeed(rSpeed); //set right side to 10
 
-			while(!lAtTarget && !rAtTarget) { //only accelerate if one side needs to
+			while(!lAtTarget || !rAtTarget) { //only accelerate if at least one side needs to
 
 				//determine how far each side of the flywheel has traveled in .5 sec, so we can approximate RPM
 				SensorValue[I2C_1] = 0;
