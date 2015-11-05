@@ -17,14 +17,14 @@
 float CLICKS_PER_REV = 627.2;
 //float CLICKS_PER_METER = ;
 
-void setLeftSpeed (int speed)
+void setLeftSpeed (float speed) //sets speed of left flywheel
 {
 	motor[Fly1] = speed;
 	motor[Fly2] = speed;
 	motor[Fly3] = speed;
 }
 
-void setRightSpeed (int speed)
+void setRightSpeed (float speed) //sets speed of right flywheel
 {
 	motor[Fly4] = speed;
 	motor[Fly5] = speed;
@@ -32,7 +32,7 @@ void setRightSpeed (int speed)
 }
 
 
-void accelerateFlyWheel (float targetSpeed)
+void accelerateFlyWheel (float targetSpeed) //gradually increases speed of flywheel
 {
 	/*while we need to accelerate
 	get the current motor speed
@@ -45,14 +45,12 @@ void accelerateFlyWheel (float targetSpeed)
 	float leftRPM;
 	float rightRPM;
 	float lSpeed = 10;
-	float rSpeed = 10;
+	float rSpeed = 10; //both left and right speed have to start at 10 to begin the acceleration proccess
 	float targetlRPM = lSpeed/127*100; //convert motor speed to RPM
 	float targetrRPM = rSpeed/127*100; //convert motor speed to RPM
 	bool lAtTarget = false;
 	bool rAtTarget = false;
-	while(true)
-	{
-		accelerateOn = vexRT[Btn5D] == 1 ? true : false;
+		accelerateOn = vexRT[Btn5D] == 1 ? true : false; //ternary to only switch on when the button is being pressed
 		while(accelerateOn)
 		{
 
@@ -80,11 +78,12 @@ void accelerateFlyWheel (float targetSpeed)
 				}
 				else {
 					if(lSpeed == targetSpeed){
-						lAtTarget = true;
+						lAtTarget = true; //this indicates that the left flywheel has reached its target speed
 					}
 				}
 
 			}
+<<<<<<< HEAD
 			if(rightRPM >= targetrRPM && rSpeed < targetSpeed) //if the right side is done accelerating from previous loop and is below target speed
 			{
 				rSpeed += 10; //increase the target speed
@@ -102,22 +101,36 @@ void accelerateFlyWheel (float targetSpeed)
 		}
 	}
 }
+=======
+				if(rightRPM >= targetrRPM && rSpeed < targetSpeed) //if the right side is done accelerating from previous loop and is below target speed
+				{
+						rSpeed += 10; //increase the target speed
+						targetrRPM = rSpeed/127*100; //calculate new target RPM
+				}
+				else {
+					rAtTarget = true;  //this indicates that the right flywheel has reached its target speed
+				}
+			}
+		}
+>>>>>>> origin/master
 
-task accelerate() {
+task accelerate() { //This task allows us to accelerate the flywheel. It needs to be a seperate task so that we can drive and run the flywheel simultaneously
 	while(1)
 	{
-		if(vexRT[Btn5D] == 1) {
-			accelerateFlyWheel(100); //or whatever value... could be set by global variable or something (because there's no other way to get a parameter there)
+		if(vexRT[Btn5D] == 1) 
+		{
+			accelerateFlyWheel(80); //or whatever value... could be set by global variable or something (because there's no other way to get a parameter there)
 		}
 	}
 }
 
 task main()
 {
-	startTask(accelerate);
+	startTask(accelerate); //starts the flywheel movement code
 	while(true)
 	{
 		motor[leftDrive] = vexRT[Ch3];
+<<<<<<< HEAD
 		motor[rightDrive] = vexRT[Ch2];
 		if(vexRT[Btn5D] == 1 && vexRT[Btn7D] == 1) {
 			setLeftSpeed(80);
@@ -133,6 +146,25 @@ task main()
 			setRightSpeed(75);
 		}
 		else if (vexRT[Btn5U] == 1) {
+=======
+		motor[rightDrive] = vexRT[Ch2]; //drive train code
+    if(vexRT[Btn5D] == 1 && vexRT[Btn7D] == 1) //only activates flywheel speed 80 is both buttons are pressed 
+    {
+    	setLeftSpeed(80);
+    	setRightSpeed(80);
+  }
+  else if(vexRT[Btn5U] == 1 && vexRT[Btn7U] == 1) //both buttons pressed activates the speed 65
+  {
+  		setLeftSpeed(65);
+  		setRightSpeed(65);
+  }
+  else if(vexRT[Btn8U] == 1)
+  {
+    setLeftSpeed(75);
+    setRightSpeed(75);
+  }
+  else if (vexRT[Btn5U] == 1) {
+>>>>>>> origin/master
 			setLeftSpeed(60);
 			setRightSpeed(60);
 		}
