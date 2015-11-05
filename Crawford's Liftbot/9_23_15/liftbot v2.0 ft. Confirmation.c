@@ -60,7 +60,11 @@ task main()
     	SensorValue[PneuB1] = 1;
     	SensorValue[PneuB2] = 1;
     }
-
+		else if(vexRT[Btn6U] == 1)
+		{
+			SensorValue[PneuF1] = 1;
+			SensorValue[PneuF2] = 1;
+		}
     else
     {
     	SensorValue[PneuF1] = 0;

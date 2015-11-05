@@ -19,16 +19,16 @@ float CLICKS_PER_REV = 627.2;
 
 void setLeftSpeed (int speed)
 {
-	    motor[Fly1] = speed;
-			motor[Fly2] = speed;
-			motor[Fly3] = speed;
+	motor[Fly1] = speed;
+	motor[Fly2] = speed;
+	motor[Fly3] = speed;
 }
 
 void setRightSpeed (int speed)
 {
-		motor[Fly4] = speed;
-		motor[Fly5] = speed;
-		motor[Fly6] = speed;
+	motor[Fly4] = speed;
+	motor[Fly5] = speed;
+	motor[Fly6] = speed;
 }
 
 
@@ -37,7 +37,7 @@ void accelerateFlyWheel (float targetSpeed)
 	/*while we need to accelerate
 	get the current motor speed
 	if speed < desired speed
-		increase motor power by 10 or (desired speed - speed if that is less than 10)
+	increase motor power by 10 or (desired speed - speed if that is less than 10)
 	continue when motor power = new target speed*/
 	bool accelerateOn = false;
 	float leftEncVal;
@@ -75,8 +75,8 @@ void accelerateFlyWheel (float targetSpeed)
 				//change motor speed as needed for each side
 				if(leftRPM >= targetlRPM && lSpeed < targetSpeed) //if the left side is done accelerating from previous loop and is below target speed
 				{
-						lSpeed += 10; //increase the target speed
-						targetlRPM = lSpeed/127*100; //calculate new target RPM
+					lSpeed += 10; //increase the target speed
+					targetlRPM = lSpeed/127*100; //calculate new target RPM
 				}
 				else {
 					if(lSpeed == targetSpeed){
@@ -85,17 +85,23 @@ void accelerateFlyWheel (float targetSpeed)
 				}
 
 			}
-				if(rightRPM >= targetrRPM && rSpeed < targetSpeed) //if the right side is done accelerating from previous loop and is below target speed
-				{
-						rSpeed += 10; //increase the target speed
-						targetrRPM = rSpeed/127*100; //calculate new target RPM
-				}
-				else {
-					rAtTarget = true;
-				}
+			if(rightRPM >= targetrRPM && rSpeed < targetSpeed) //if the right side is done accelerating from previous loop and is below target speed
+			{
+				rSpeed += 10; //increase the target speed
+				targetrRPM = rSpeed/127*100; //calculate new target RPM
+			}
+			else {
+				rAtTarget = true;
 			}
 		}
+
+
+		if(vexRT[Btn5D] == 0) { //stop accelerating if the button is released and reset variables
+			accelerateOn = false;
+			//either reset variables here or do an initial RPM calculation at the start of all accelerations to determine current motor speeds, and then accelerate from there
+		}
 	}
+}
 
 task accelerate() {
 	while(1)
@@ -113,42 +119,42 @@ task main()
 	{
 		motor[leftDrive] = vexRT[Ch3];
 		motor[rightDrive] = vexRT[Ch2];
-    if(vexRT[Btn5D] == 1 && vexRT[Btn7D] == 1) {
-    	setLeftSpeed(80);
-    	setRightSpeed(80);
-  	}
-  	else if(vexRT[Btn5U] == 1 && vexRT[Btn7U] == 1) {
-  		setLeftSpeed(65);
-  		setRightSpeed(65);
-  	}
+		if(vexRT[Btn5D] == 1 && vexRT[Btn7D] == 1) {
+			setLeftSpeed(80);
+			setRightSpeed(80);
+		}
+		else if(vexRT[Btn5U] == 1 && vexRT[Btn7U] == 1) {
+			setLeftSpeed(65);
+			setRightSpeed(65);
+		}
 		else if(vexRT[Btn5D] == 1)
-  	{
-    	setLeftSpeed(75);
+		{
+			setLeftSpeed(75);
 			setRightSpeed(75);
 		}
 		else if (vexRT[Btn5U] == 1) {
 			setLeftSpeed(60);
 			setRightSpeed(60);
-	  }
-    else
-    {
-      setLeftSpeed(0);
-      setRightSpeed(0);
-    }
-    if(vexRT[Btn6U] == 1)
-    {
-    	motor[intake1] = 125;
-    	motor[intake2] = 125;
-    }
-    else if(vexRT[Btn6D] == 1)
-    {
-    	motor[intake1] = -125;
-    	motor[intake2] = -125;
-    }
-    else
-    {
-    	motor[intake1] = 0;
-    	motor[intake2] = 0;
-    }
-  }
+		}
+		else
+		{
+			setLeftSpeed(0);
+			setRightSpeed(0);
+		}
+		if(vexRT[Btn6U] == 1)
+		{
+			motor[intake1] = 125;
+			motor[intake2] = 125;
+		}
+		else if(vexRT[Btn6D] == 1)
+		{
+			motor[intake1] = -125;
+			motor[intake2] = -125;
+		}
+		else
+		{
+			motor[intake1] = 0;
+			motor[intake2] = 0;
+		}
+	}
 }
