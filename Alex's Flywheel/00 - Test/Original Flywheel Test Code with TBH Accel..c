@@ -216,7 +216,7 @@ task
 leftFwControlTask()
 {
 	// Set the gain
-	gain = 0.0006;
+	gain = 0.0007;
 
 	// We are using Speed geared motors
 	// Set the encoder ticks per revolution
@@ -365,7 +365,7 @@ task
 rightFwControlTask()
 {
 	// Set the gain
-	gain = 0.007;
+	gain = 0.0007;
 
 	// We are using Speed geared motors
 	// Set the encoder ticks per revolution
@@ -398,36 +398,32 @@ rightFwControlTask()
 
 
 //for flywheel acceleration; the separate task lets the acceleration code run concurently with other robot functions
-task flywheels() {
-	//start flywheel control
-
-	startTask( leftFwControlTask );
-	startTask( rightFwControlTask );
-	int rpm = 95;
-	bool pressed = false;
+task flywheelController() { //manages flywheel starts and stops
 	while(1)
 	{
 		//activate/deactivate flywheel on joystick button press
-			if( vexRT[ Btn5D ] == 1 ){
-				leftFwMotorSet(40);
-				rightFwMotorSet(40);
-				wait1Msec(1000);
-				leftFwMotorSet(60);
-				rightFwMotorSet(60);
-				wait1Msec(1000);
-				leftFwMotorSet(75);
-				rightFwMotorSet(75);
-				wait1Msec(1000);
-				leftFwVelocitySet(100, 0.66);
-				rightFwVelocitySet(100,0.66); }
-			else if (vexRT[Btn7D] == 1 && vexRT[Btn8D] == 1) {
-				leftFwVelocitySet(0, 0);
-				rightFwVelocitySet(0,0);
-			}
-
-
-		//no else statement needed because the acceleration code looks for when it needs to stop itself
-}
+		if(vexRT[Btn5D] == 1 && !flywheelRunning){
+			leftFwMotorSet(40);
+			rightFwMotorSet(40);
+			wait1Msec(750);
+			leftFwMotorSet(70);
+			rightFwMotorSet(70);
+			wait1Msec(750);
+			leftFwMotorSet(75);
+			rightFwMotorSet(75);
+			wait1Msec(500);
+			startTask(leftFwControlTask); //this is ok to run every time because stopping the flywheel also stops the flywheel control tasks
+			startTask(rightFwControlTask);
+			leftFwVelocitySet(100,1);
+			rightFwVelocitySet(100,1);
+		}
+		else if (vexRT[Btn7D] == 1 && vexRT[Btn8D] == 1) {
+			stopTask(leftFwControlTask);
+			stopTask(rightFwControlTask);
+			leftFwVelocitySet(0,0);
+			rightFwVelocitySet(0,0);
+		}
+	}
 }
 task main()
 {
@@ -441,7 +437,7 @@ task main()
 	bLCDBacklight = true;
 
 	// Start the flywheel control task
-	startTask(flywheels);
+	startTask(flywheelController);
 
 	while(true)
 	{
