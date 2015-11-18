@@ -20,6 +20,231 @@
 #pragma userControlDuration(120)
 
 #include "Vex_Competition_Includes.c"   //Main competition background code...do not modify!
+int time = 0;
+int play = 0;
+int LCDselect = 1;
+void waitForRelease(){
+	while(nLCDButtons != 0){}
+	wait1Msec(5);
+}
+task LCD()
+{
+	//Declare count variable to keep track of our choice
+	int count = 0;
+	int screen = 0;
+	int selected = 0;
+	LCDselect = 0;
+	//------------- Beginning of User Interface Code ---------------
+	//Clear LCD
+	clearLCDLine(0);
+	clearLCDLine(1);
+	//Loop while center button is not pressed
+	while(LCDselect == 0 && nSysTime < 20000)
+	{
+		//Switch case that allows the user to choose from 4 different options
+		while(count == 0 && nSysTime < 20000){
+			//Display first choice
+			displayLCDCenteredString(0, "No Wait");
+			displayLCDCenteredString(1, "<		 Enter		>");
+			//Increment or decrement "count" based on button press
+			if(nLCDButtons == leftButton)
+			{
+				waitForRelease();
+				count = 5;
+			}
+			else if(nLCDButtons == rightButton)
+			{
+				waitForRelease();
+				count++;
+			}
+			else if(nLCDButtons == centerButton){
+				time = 1;
+				LCDselect = 1;
+				selected++;
+				break;
+				waitForRelease();
+
+			}
+		}
+		while(count == 1 && nSysTime < 20000){
+			//Display second choice
+			displayLCDCenteredString(0, "1");
+			displayLCDCenteredString(1, "<		 Enter		>");
+			//Increment or decrement "count" based on button press
+			if(nLCDButtons == leftButton)
+			{
+				waitForRelease();
+				count--;
+			}
+			else if(nLCDButtons == rightButton)
+			{
+				waitForRelease();
+				count++;
+			}
+			else if(nLCDButtons == centerButton){
+				OoT = 1;
+				BoR = 2;
+				LCDselect = 1;
+				selected++;
+				break;
+				waitForRelease();
+
+			}
+		}
+		while(count == 2 && nSysTime < 20000){
+			//Display third choice
+			displayLCDCenteredString(0, "2 Seconds");
+			displayLCDCenteredString(1, "<		 Enter		>");
+			//Increment or decrement "count" based on button press
+			if(nLCDButtons == leftButton)
+			{
+				waitForRelease();
+				count--;
+			}
+			else if(nLCDButtons == rightButton)
+			{
+				waitForRelease();
+				count++;
+			}
+			else if(nLCDButtons == centerButton){
+				OoT = 2;
+				BoR = 1;
+				LCDselect = 1;
+				selected++;
+				break;
+				waitForRelease();
+
+			}
+		}
+		while(count == 3 && nSysTime <20000){
+			//Display fourth choice
+			displayLCDCenteredString(0, "3 Seconds");
+			displayLCDCenteredString(1, "<		 Enter		>");
+			//Increment or decrement "count" based on button press
+			if(nLCDButtons == leftButton)
+			{
+				waitForRelease();
+				count--;
+			}
+			else if(nLCDButtons == rightButton)
+			{
+				waitForRelease();
+				count = 4;
+			}
+			else if(nLCDButtons == centerButton){
+				OoT = 2;
+				BoR = 2;
+				LCDselect = 1;
+				selected++;
+				break;
+				waitForRelease();
+			}
+		}
+		while(count == 4 && nSysTime <20000){
+			//Display fourth choice
+			displayLCDCenteredString(0, "4 Seconds");
+			displayLCDCenteredString(1, "<		 Enter		>");
+			//Increment or decrement "count" based on button press
+			if(nLCDButtons == leftButton)
+			{
+				waitForRelease();
+				count--;
+			}
+			else if(nLCDButtons == rightButton)
+			{
+				waitForRelease();
+				count++;
+			}
+			else if(nLCDButtons == centerButton){
+				OoT = 0;
+				BoR = 1;
+				LCDselect = 1;
+				selected++;
+				break;
+				waitForRelease();
+			}
+		}
+		while(count == 5 && nSysTime <20000){
+			//Display fourth choice
+			displayLCDCenteredString(0, "5 Seconds");
+			displayLCDCenteredString(1, "<		 Enter		>");
+			//Increment or decrement "count" based on button press
+			if(nLCDButtons == leftButton)
+			{
+				waitForRelease();
+				count--;
+			}
+			else if(nLCDButtons == rightButton)
+			{
+				waitForRelease();
+				count = 0;
+			}
+			else if(nLCDButtons == centerButton){
+				OoT = 0;
+				BoR = 2;
+				LCDselect = 1;
+				selected++;
+				break;
+				waitForRelease();
+			}
+
+		}
+	}
+	while(selected == 1 && LCDselect == 0 && nSysTime < 20000)
+	{
+
+	}
+	clearLCDLine(0);
+	clearLCDLine(1);
+}
+
+//------------- End of User Interface Code ---------------------
+
+//------------- Beginning of Robot Movement Code ---------------
+//Clear LCD
+//Switch Case that actually runs the user choice
+
+
+
+//------------- End of Robot Movement Code -----------------------
+
+
+
+void LCDselection(){
+
+	if(OoT == 1 && BoR == 1){
+		startTask(compensation);
+		startTask(autonomous2);
+		wait1Msec(15000);
+		stopTask(compensation);
+		stopTask(autonomous2);
+	}
+
+	else if(OoT == 1 && BoR == 2){
+		startTask(compensation);
+		startTask(autonomous3);
+		wait1Msec(15000);
+		stopTask(compensation);
+		stopTask(autonomous3);
+
+	}
+
+	else if(OoT == 2 && BoR == 1){
+		startTask(compensation);
+		startTask(autonomous3);
+		wait1Msec(15000);
+		stopTask(compensation);
+		stopTask(autonomous3);
+	}
+
+	else if(OoT == 2 && BoR == 2){
+		startTask(compensation);
+		startTask(autonomous2);
+		wait1Msec(15000);
+		stopTask(compensation);
+		stopTask(autonomous2);
+	}
+}
 
 /////////////////////////////////////////////////////////////////////////////////////////
 //
