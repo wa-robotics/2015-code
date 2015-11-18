@@ -50,6 +50,9 @@ void checkLED (float lRPM, float rRPM) {
 	if (lRPM >= 88 && lRPM <= 91 && rRPM >= 79 && rRPM <= 82) {
 		SensorValue[readyLED] = true; //turn on the ready (green LED)
 	}
+	else {
+		SensorValue[readyLED] = false; //turn off ready (green) LED if RPM is out of range
+	}
 }
 
 void accelerateFlywheel (float targetSpeed) //gradually increases speed of flywheel
@@ -144,17 +147,18 @@ void accelerateFlywheel (float targetSpeed) //gradually increases speed of flywh
 			//check RPM difference to determine when a ball passes through the flywheel and compensate
 			lRPMDiff = leftRPM - lPrevRPM;
 			rRPMDiff = rightRPM - rPrevRPM;
+			writeDebugStreamLine("lRPMDiff = %d, rRPMDiff = %d",lRPMDiff, rRPMDiff);
 			//store the current RPM for the next iteration's calculation
 			lPrevRPM = leftRPM;
 			rPrevRPM = rightRPM;
 
-			if(lRPMDiff >= 9 && rRPMDiff >= 9) { //difference of 9 will indicate a ball launch
-
+			if(abs(lRPMDiff) >= 4 && abs(lRPMDiff) <= 12) { //difference of 8 will indicate a ball launch
+				writeDebugStreamLine("Ball launch detected");
 			}
 
 			//change motor speed as needed for each side
 			writeDebugStreamLine("Left RPM is %d before if check; targetlRPM is %d, lSpeed is %d, targetSpeed is %d",leftRPM,targetlRPM,lSpeed,targetSpeed);
-			if(leftRPM >= targetlRPM*.9 && lSpeed < targetSpeed) //if the left side is 70% done accelerating from previous loop (90% adds an error tolerance) and is below target speed
+			if(leftRPM >= targetlRPM*.8 && lSpeed < targetSpeed) //if the left side is 70% done accelerating from previous loop (90% adds an error tolerance) and is below target speed
 			{
 				calcSpeed = ((targetSpeed-(lSpeed-40))/targetSpeed)*15;
 				accelSpeed = calcSpeed > 10 ? calcSpeed : 10;
@@ -168,7 +172,7 @@ void accelerateFlywheel (float targetSpeed) //gradually increases speed of flywh
 			}
 
 			writeDebugStreamLine("Right RPM is %d before if check; targetrRPM is %d, rSpeed is %d, targetSpeed is %d",rightRPM,targetrRPM,rSpeed,targetSpeed);
-			if(rightRPM >= targetrRPM*.9 && rSpeed < targetSpeed) //if the right side is 70% done accelerating from previous loop (90% adds an error tolerance) and is below target speed
+			if(rightRPM >= targetrRPM*.8 && rSpeed < targetSpeed) //if the right side is 70% done accelerating from previous loop (90% adds an error tolerance) and is below target speed
 			{
 				calcSpeed = ((targetSpeed-(rSpeed-40))/targetSpeed)*15;
 				accelSpeed = calcSpeed > 10 ? calcSpeed : 10;
@@ -197,7 +201,7 @@ void accelerateFlywheel (float targetSpeed) //gradually increases speed of flywh
 task accelerate() {
 	while(1)
 	{
-		if(vexRT[Btn5D] == 1 && !flywheelRunning)
+		if(/*vexRT[Btn5D] == 1 &&*/ !flywheelRunning)
 		{
 			accelerateFlywheel(77);
 		}
