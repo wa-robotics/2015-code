@@ -41,7 +41,7 @@
 
 //Global variables
 bool flywheelRunning = false; //global variable to keep track of flywheel status - this will allow us to prevent the acceleration function from being called more than once
-
+int LCDselect;
 // Update inteval (in mS) for the flywheel control loop
 #define FW_LOOP_SPEED              50
 
@@ -475,7 +475,7 @@ task LCD()
 	clearLCDLine(0);
 	clearLCDLine(1);
 }
-
+}
 
 
 void LCDselection(){
