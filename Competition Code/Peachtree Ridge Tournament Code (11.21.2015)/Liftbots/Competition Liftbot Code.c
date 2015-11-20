@@ -318,12 +318,12 @@ task usercontrol()
     	motor[intake2] = 0;
     }
 
-    if(vexRT[Btn7U] == 1 && vexRT[Btn8U] == 1)						//lowers ramp
+    if(vexRT[Btn8D])						//lowers ramp
     {
     	motor[ramp1] = 110;
     	motor[ramp2] = 110;
     }
-    else if(vexRT[Btn7D] == 1 && vexRT[Btn8D] == 1)						//pulls in ramp pushers
+    else if(vexRT[Btn8U])						//pulls in ramp pushers
     {
     	motor[ramp1] = -110;
     	motor[ramp2] = -110;
@@ -348,14 +348,14 @@ task usercontrol()
     	motor[flywheel1] = 0;
     	motor[flywheel2] = 0;
     }
-    if(vexRT[Btn7R] == 1)
+    if(vexRT[Btn7U] == 1)
     {
     	SensorValue[PneuF1] = 1;
     	SensorValue[PneuF2] = 1;
     	SensorValue[PneuB1] = 1;
     	SensorValue[PneuB2] = 1;
     }
-		else if(vexRT[Btn8L] == 1)
+		else if(vexRT[Btn7D] == 1)
 		{
 			SensorValue[PneuF1] = 1;
 			SensorValue[PneuF2] = 1;
