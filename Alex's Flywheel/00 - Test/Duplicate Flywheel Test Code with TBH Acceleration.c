@@ -400,11 +400,28 @@ task flashYellowLED() {
 	while(1)
 	{
 		if(l_motor_velocity >= 78 && r_motor_velocity >= 78) { //were both 88
-		SensorValue[yellowLED] = 1;
-		wait1Msec(125);
-		SensorValue[yellowLED] = 0;
+			SensorValue[yellowLED] = 1;
+			wait1Msec(125);
+			SensorValue[yellowLED] = 0;
 		}
 		wait1Msec(125);
+	}
+}
+
+task flywheelWatchDog() {
+	int badEncoders = 0;
+	while(1){
+		if(flywheelRunning && (nMotorEncoder[Fly2] == 0 || nMotorEncoder[Fly5] == 0)) { //if the flywheel is running and either encoder is giving a value of 0 (which means the encoder is not working properly
+			//TODO: fall back to another encoder
+			//TODO: allow joystick velocity control if necessary
+			badEncoders++;
+		}
+		if(badEncoders > 0) {
+			SensorValue[redLED] = 1;
+			wait1Msec(125/badEncoders); //flash faster if both encoders are not giving readings
+			SensorValue[redLED] = 0;
+			wait1Msec(125/badEncoders); //flash faster if both encoders are not giving readings
+		}
 	}
 }
 
@@ -427,23 +444,25 @@ task flywheelController() { //manages flywheel starts and stops
 			startTask(rightFwControlTask);
 			leftFwVelocitySet(80,.59);//was at 92
 			rightFwVelocitySet(80,.61);//was at 92
+			flywheelRunning = true;
+			startTask(flywheelWatchDog); //verify that flywheel encoders are working properly and alert the user if not
 			startTask(flashYellowLED);
 		}
 		else if (vexRT[Btn7D] == 1 && vexRT[Btn8D] == 1) {
-			stopTask(leftFwControlTask);
+			flywheelRunning = false;
+			stopTask(leftFwControlTask); //need to stop these tasks before manually setting flywheel motor speed
 			stopTask(rightFwControlTask);
 			leftFwMotorSet(0);
 			rightFwMotorSet(0);
 			stopTask(flashYellowLED); //stop flashing yellow LED
-			SensorValue[greenLED] = 0; //make sure LEDs are off
-			SensorValue[yellowLED] = 0;
-			SensorValue[redLED] = 1;
+			stopTask(flywheelWatchDog);
+			SensorValue[yellowLED] = 0;  //make sure LEDs are off
+			SensorValue[redLED] = 1; //show red LED to confirm shutdown
 			wait1Msec(3000);
 			SensorValue[redLED] = 0;
 		}
 	}
 }
-
 
 task main()
 {
@@ -467,10 +486,10 @@ task main()
 		sprintf( str, "%4.2f %4.2f ", l_drive, l_drive_at_zero );
 		displayLCDString(1, 0, str );
 
-		direction = vexRT[Btn8U] == 1 ? -1 : 1;
+	direction = vexRT[Btn8U] == 1 ? -1 : 1;
 		//intake
-		motor[intake1] = vexRT[Btn6U] == 1 ? 125*direction : 0;
-		motor[intake2] = vexRT[Btn6D] == 1 ? 125*direction : 0;
+	motor[intake1] = vexRT[Btn6U] == 1 ? 125*direction : 0;
+	motor[intake2] = vexRT[Btn6D] == 1 ? 125*direction : 0;
 		wait1Msec(10); //so we don't overload the CPU
 	}
 }
