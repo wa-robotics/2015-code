@@ -23,6 +23,7 @@
 int time = 0;
 int play = 0;
 int LCDselect = 1;
+/*
 void waitForRelease(){
 	while(nLCDButtons != 0){}
 	wait1Msec(5);
@@ -245,7 +246,7 @@ void LCDselection(){
 		stopTask(autonomous2);
 	}
 }
-
+*/
 /////////////////////////////////////////////////////////////////////////////////////////
 //
 //                          Pre-Autonomous Functions
