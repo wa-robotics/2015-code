@@ -395,16 +395,7 @@ rightFwControlTask()
 }
 //end of right side functions
 
-task flashGreenLED() { //flash yellow LED twice per second
-	while(1)
-	{
-		SensorValue[greenLED] = 1;
-		wait1Msec(250);
-		SensorValue[greenLED] = 0;
-		wait1Msec(250);
-	}
-}
-
+//LED controller task
 task flashYellowLED() {
 	while(1)
 	{
@@ -434,7 +425,6 @@ task flywheelController() { //manages flywheel starts and stops
 			wait1Msec(500);
 			startTask(leftFwControlTask); //this is ok to run every time because stopping the flywheel also stops the flywheel control tasks
 			startTask(rightFwControlTask);
-			startTask(flashGreenLED);
 			leftFwVelocitySet(80,.59);//was at 92
 			rightFwVelocitySet(80,.61);//was at 92
 			startTask(flashYellowLED);
@@ -444,8 +434,7 @@ task flywheelController() { //manages flywheel starts and stops
 			stopTask(rightFwControlTask);
 			leftFwMotorSet(0);
 			rightFwMotorSet(0);
-			stopTask(flashGreenLED); //stop flashing yellow LED
-			stopTask(flashYellowLED);
+			stopTask(flashYellowLED); //stop flashing yellow LED
 			SensorValue[greenLED] = 0; //make sure LEDs are off
 			SensorValue[yellowLED] = 0;
 			SensorValue[redLED] = 1;
