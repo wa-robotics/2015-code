@@ -446,9 +446,9 @@ task main()
 		motor[leftDrive] = vexRT[Ch3];
 		motor[rightDrive] = vexRT[Ch2];
 
-		sprintf( str, "%4d %4d  %5.2f", r_target_velocity,  r_motor_velocity, nImmediateBatteryLevel/1000.0 );
+		sprintf( str, "%4d %4d  %5.2f", l_target_velocity,  l_motor_velocity, nImmediateBatteryLevel/1000.0 );
 		displayLCDString(0, 0, str );
-		sprintf( str, "%4.2f %4.2f ", r_drive, r_drive_at_zero );
+		sprintf( str, "%4.2f %4.2f ", l_drive, l_drive_at_zero );
 		displayLCDString(1, 0, str );
 
 		//intake
