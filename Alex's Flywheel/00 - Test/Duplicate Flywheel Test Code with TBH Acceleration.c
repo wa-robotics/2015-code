@@ -399,7 +399,7 @@ rightFwControlTask()
 task flashYellowLED() {
 	while(1)
 	{
-		if(l_motor_velocity >= 78 && r_motor_velocity >= 78) { //were both 88
+		if(l_motor_velocity >= 76.5 && r_motor_velocity >= 76.5) { //were both 88
 			SensorValue[yellowLED] = 1;
 			wait1Msec(125);
 			SensorValue[yellowLED] = 0;
