@@ -174,25 +174,25 @@ leftFwVelocitySet( int velocity, float predicted_drive )
 void
 leftFwCalculateSpeed()
 {
-	int     delta_ms;
-	int     delta_enc;
+	int     l_delta_ms;
+	int     l_delta_enc;
 
 	// Get current encoder value
 	l_encoder_counts = leftFwMotorEncoderGet();
 
 	// This is just used so we don't need to know how often we are called
 	// how many mS since we were last here
-	delta_ms = nSysTime - l_nSysTime_last;
+	l_delta_ms = nSysTime - l_nSysTime_last;
 	l_nSysTime_last = nSysTime;
 
 	// Change in encoder count
-	delta_enc = (l_encoder_counts - l_encoder_counts_last);
+	l_delta_enc = (l_encoder_counts - l_encoder_counts_last);
 
 	// save last position
 	l_encoder_counts_last = l_encoder_counts;
 
 	// Calculate velocity in rpm
-	l_motor_velocity = (1000.0 / delta_ms) * delta_enc * 60.0 / l_ticks_per_rev;
+	l_motor_velocity = (1000.0 / l_delta_ms) * l_delta_enc * 60.0 / l_ticks_per_rev;
 }
 
 /*-----------------------------------------------------------------------------*/
@@ -242,7 +242,7 @@ task
 leftFwControlTask()
 {
 	// Set the gain
-	gain = 0.00085;
+	gain = 0.00125;
 
 	// We are using Speed geared motors
 	// Set the encoder ticks per revolution
@@ -323,25 +323,26 @@ rightFwVelocitySet( int velocity, float predicted_drive )
 void
 rightFwCalculateSpeed()
 {
-	int     delta_ms;
-	int     delta_enc;
+	int     r_delta_ms;
+	int     r_delta_enc;
 
 	// Get current encoder value
 	r_encoder_counts = rightFwMotorEncoderGet();
 
 	// This is just used so we don't need to know how often we are called
 	// how many mS since we were last here
-	delta_ms = nSysTime - r_nSysTime_last;
+	r_delta_ms = nSysTime - r_nSysTime_last;
 	r_nSysTime_last = nSysTime;
 
 	// Change in encoder count
-	delta_enc = (r_encoder_counts - r_encoder_counts_last);
+	r_delta_enc = (r_encoder_counts - r_encoder_counts_last);
 
 	// save last position
 	r_encoder_counts_last = r_encoder_counts;
 
 	// Calculate velocity in rpm
-	r_motor_velocity = (1000.0 / delta_ms) * delta_enc * 60.0 / r_ticks_per_rev;
+	r_motor_velocity = (1000.0 / r_delta_ms) * r_delta_enc * 60.5 / r_ticks_per_rev;
+	wait1Msec(10); //make sure that the time difference is always greater than 0 to counter a problem in which "divide by 0" errors were occurring
 }
 
 /*-----------------------------------------------------------------------------*/
@@ -391,7 +392,7 @@ task
 rightFwControlTask()
 {
 	// Set the gain
-	gain = 0.00085;
+	gain = 0.00125;
 
 	// We are using Speed geared motors
 	// Set the encoder ticks per revolution
@@ -453,8 +454,8 @@ task flywheelController() { //manages flywheel starts and stops
 			wait1Msec(500);
 			startTask(leftFwControlTask); //this is ok to run every time because stopping the flywheel also stops the flywheel control tasks
 			startTask(rightFwControlTask);
-			leftFwVelocitySet(79,0.63);//was 100
-			rightFwVelocitySet(79,0.63);//was 100
+			leftFwVelocitySet(74,0.59);//was 100
+			rightFwVelocitySet(74,0.59);//was 100
 			startTask(flashYellowLED);
 		}
 		else if (vexRT[Btn7D] == 1 && vexRT[Btn8D] == 1) {
@@ -487,8 +488,8 @@ task flywheelsForAutonomous() {
 
 	while(1)
 	{
-		leftFwVelocitySet(85, 0.63);
-		rightFwVelocitySet(85,0.63);
+		leftFwVelocitySet(75, 0.58);
+		rightFwVelocitySet(75,0.58);
 
 
 		//no else statement needed because the acceleration code looks for when it needs to stop itself
@@ -542,28 +543,25 @@ task autonomouscode()
 	wait10Msec(600);
 	motor[intake1] = 127;
 	motor[intake2] = 127;
-	wait10Msec(150);
+	wait10Msec(85);
 	motor[intake1] = 0;
 	motor[intake2] = 0;
-	wait10Msec(150);
+	wait10Msec(85);
+
 	motor[intake1] = 127;
 	motor[intake2] = 127;
-	wait10Msec(150);
+	wait10Msec(85);
 	motor[intake1] = 0;
 	motor[intake2] = 0;
-	wait10Msec(150);
+	wait10Msec(75);
+
 	motor[intake1] = 127;
 	motor[intake2] = 127;
-	wait10Msec(150);
+	wait10Msec(85);
 	motor[intake1] = 0;
 	motor[intake2] = 0;
 	wait10Msec(150);
-	motor[intake1] = 127;
-	motor[intake2] = 127;
-	wait10Msec(150);
-	motor[intake1] = 0;
-	motor[intake2] = 0;
-	wait10Msec(150);
+
 }
 void LCDselection(){
 
@@ -594,7 +592,7 @@ void pre_auton()
 	SensorValue[I2C_1] = 0;
 	// All activities that occur before the competition starts
 	// Example: clearing encoders, setting servo positions, ...
-	startTask(LCD);
+	//startTask(LCD);
 	// All activities that occur before the competition starts
 	// Example: clearing encoders, setting servo positions, ...
 }
@@ -610,7 +608,10 @@ void pre_auton()
 
 task autonomous()
 {
-	LCDselection();
+	startTask(autonomouscode);
+	wait1Msec(15000);
+	stopTask(autonomouscode);
+	//LCDselection();
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
