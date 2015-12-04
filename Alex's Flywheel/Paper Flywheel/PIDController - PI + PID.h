@@ -43,14 +43,14 @@ float pidFilteredOutput(PID &pid)
 }
 
 //closed loop PI algorithm feeds into the open loop
-float pidExecuteClosedLoop(PID &pid) {
+float pidExecuteClosedLoop(PID &pid, float error) {
 
 }
 
 //Execute the control loop and return its output
 float pidExecuteOpenLoop(PID &pid, float error)
 {
-	pidExecuteClosedLoop(pid);
+	k = pidExecuteClosedLoop(pid, error); //the output of the closed loop algorithm
 	pid.lastError = pid.error;
 	pid.error = error;
 
@@ -67,10 +67,11 @@ float pidExecuteOpenLoop(PID &pid, float error)
 	if(abs(error) > pid.epsilon)
 		pid.errorSum += error*pid.dT;
 
-	pid.output = error * pid.kP +
-								 pid.errorSum * pid.kI +
-								 rate * pid.kD;
+	//pid.output = error * pid.kP +
+	//							 pid.errorSum * pid.kI +
+	//							 rate * pid.kD;
 
+	pid.output = /*CO(k-1) - */ pid.kP(pid.error*k - pid.error*(k-1)) - pid.kI /*to be continued*/
 	return pidFilteredOutput(pid);
 }
 
