@@ -55,13 +55,22 @@ float rpmAvgR = 0;
 float dT; //delta T in seconds
 float outL, outR;
 float sp = 500;
+float l_ep; //estimated motor power necessary
+float r_ep;
+float lkP = 19.8,
+			lkI = 0.235, //Tu = 47ms
+			lkD = 0.157,
+			rkP = 23.1,
+			rkI = 0.195, //Tu = 43ms
+			rkD = 0.13;
 bool set = false;
+bool bHighSp = false;
 
 task usercontrol()
 {
 	startTask(flashLED);
-	pidInit(flyWheelL, 33, 45, 0, 200, 10);
-	pidInit(flyWheelR, 33, 45, 0, 200, 10);
+	pidInit(flyWheelL, lkP, lkI, lkD, 200, 10);
+	pidInit(flyWheelR, rkP, rkI, rkD, 200, 10);
 	unsigned long lastTime = nPgmTime;
 	resetMotorEncoder(flyWheelL2);
 	resetMotorEncoder(flyWheelR2);
@@ -70,8 +79,11 @@ task usercontrol()
 	float rpmL, lastRpmL1, lastRpmL2, lastRpmL3, lastRpmL4;
 	float rpmR, lastRpmR1, lastRpmR2, lastRpmR3, lastRpmR4;
 	int counter = 0;
+
 	while (true)
 	{
+		pidChangeConstant(flyWheelL, lkP, lkI, lkD);
+		pidChangeConstant(flyWheelR, rkP, rkI, rkD);
 		dT = (float)(nPgmTime - lastTime)/1000;
 		lastTime = nPgmTime;
 
@@ -118,10 +130,24 @@ task usercontrol()
 		if(runFlyWheel)
 		{
 			sp = 4000;
+			l_ep = 90;
+			r_ep = 100;
 		}
-		else
+		/*else if (nPgmTime >= 30000 && nPgmTime <=60000)
 		{
+			sp = 4500;
+			l_ep = 85;
+			r_ep = 90;
+		}
+		else if(nPgmTime >= 90000) {
+			sp = 0;
+			l_ep = 0;
+			r_ep = 0;
+		}*/
+		else {
 			sp = 4050;
+			l_ep = 76;
+			r_ep = 72;
 		}
 
 		if(flyWheelL.errorSum > 20500)
@@ -143,14 +169,14 @@ task usercontrol()
 		outL = pidExecuteOpenLoop(flyWheelL, sp - rpmAvgL);
 		outR = pidExecuteOpenLoop(flyWheelR, sp - rpmAvgR);
 
-		if(outL < 1)
+		if(l_ep + outL < 1)
 			outL = 1;
-		driveFlywheelLeft(outL);
+		driveFlywheelLeft(l_ep + outL);
 
-		if(outR < 1)
+		if(r_ep + outR < 1)
 			outR = 1;
-		driveFlywheelRight(outR);
+		driveFlywheelRight(r_ep + outR);
 
-		writeDebugStreamLine("%f,%f,%f,%f,%f",sp,rpmAvgL,outL,rpmAvgR,outR);
+		writeDebugStreamLine("%f,%f,%f,%f,%f,%f",nPgmTime,sp,rpmAvgL,outL,rpmAvgR,outR);
 	}
 }
