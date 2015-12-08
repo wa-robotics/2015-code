@@ -10,6 +10,12 @@ typedef struct Controller{
 }
 PID;
 
+void pidChangeConstant(PID &pid, float newkP, float newkI, float newkD) {
+	pid.kP = newkP;
+	pid.kI = newkI;
+	pid.kD = newkD;
+}
+
 //initialize the PID controller with desired constants
 void pidInit(PID &pid, float kP, float kI, float kD, float epsilon, float slewRate)
 {
@@ -44,13 +50,13 @@ float pidFilteredOutput(PID &pid)
 
 //closed loop PI algorithm feeds into the open loop
 float pidExecuteClosedLoop(PID &pid, float error) {
-
+	return error * pid.kP;
 }
 
 //Execute the control loop and return its output
 float pidExecuteOpenLoop(PID &pid, float error)
 {
-	k = pidExecuteClosedLoop(pid, error); //the output of the closed loop algorithm
+	//k = pidExecuteClosedLoop(pid, error); //the output of the closed loop algorithm
 	pid.lastError = pid.error;
 	pid.error = error;
 
@@ -71,7 +77,8 @@ float pidExecuteOpenLoop(PID &pid, float error)
 	//							 pid.errorSum * pid.kI +
 	//							 rate * pid.kD;
 
-	pid.output = /*CO(k-1) - */ pid.kP(pid.error*k - pid.error*(k-1)) - pid.kI /*to be continued*/
+	pid.output = /*CO(k-1) - */// pid.kP(pid.error*k - pid.error*(k-1)) - pid.kI /*to be continued*/
+	pid.output = pid.kP * error + pid.errorSum * pid.kI + rate * pid.kD;
 	return pidFilteredOutput(pid);
 }
 
