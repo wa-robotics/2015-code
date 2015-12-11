@@ -57,12 +57,12 @@ float outL, outR;
 float sp = 500;
 float l_ep; //estimated motor power necessary
 float r_ep;
-float lkP = 19.8,
-			lkI = 0.235, //Tu = 47ms
-			lkD = 0.157,
-			rkP = 23.1,
-			rkI = 0.195, //Tu = 43ms
-			rkD = 0.13;
+float lkP = 21.5,
+			lkI = 2.7818, //Tu = 47ms
+			lkD = 0,
+			rkP = 21.5,
+			rkI = 4.035, //Tu = 43ms
+			rkD = 0;
 bool set = false;
 bool bHighSp = false;
 
@@ -145,7 +145,7 @@ task usercontrol()
 			r_ep = 0;
 		}*/
 		else {
-			sp = 4250;
+			sp = 4300;
 			l_ep = 80;
 			r_ep = 76;
 		}
