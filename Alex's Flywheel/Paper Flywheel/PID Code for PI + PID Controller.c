@@ -145,9 +145,9 @@ task usercontrol()
 			r_ep = 0;
 		}*/
 		else {
-			sp = 4050;
-			l_ep = 76;
-			r_ep = 72;
+			sp = 4250;
+			l_ep = 80;
+			r_ep = 76;
 		}
 
 		if(flyWheelL.errorSum > 20500)
