@@ -57,11 +57,11 @@ float outL, outR;
 float sp = 500;
 float l_ep; //estimated motor power necessary
 float r_ep;
-float lkP = 21.5,
-			lkI = 2.7818, //Tu = 47ms
+float lkP = 1,
+			lkI = 0, //Tu = 47ms
 			lkD = 0,
-			rkP = 21.5,
-			rkI = 4.035, //Tu = 43ms
+			rkP = 1,
+			rkI = 0, //Tu = 43ms
 			rkD = 0;
 bool set = false;
 bool bHighSp = false;
@@ -130,8 +130,8 @@ task usercontrol()
 		if(runFlyWheel)
 		{
 			sp = 4000;
-			l_ep = 90;
-			r_ep = 100;
+			//l_ep = 90;
+			//r_ep = 100;
 		}
 		/*else if (nPgmTime >= 30000 && nPgmTime <=60000)
 		{
@@ -146,8 +146,6 @@ task usercontrol()
 		}*/
 		else {
 			sp = 4300;
-			l_ep = 80;
-			r_ep = 76;
 		}
 
 		if(flyWheelL.errorSum > 20500)
