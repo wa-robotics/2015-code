@@ -199,7 +199,7 @@ void showQuestion(int type) {
 
 
 
-task main()
+task selectionController ()
 {
 	bLCDBacklight = true;
 	while (nPgmTime <= 20000 && !selectionDone) {
@@ -217,7 +217,7 @@ task main()
 			showQuestion(SKILLS_SELECT);
 			break;
 		}
-
+		wait1Msec(25); //don't hog the CPU
 	}
 	if(!selectionDone) {
 		resetSelections(); //if no selection is confirmed, make sure nothing runs during autonomous
