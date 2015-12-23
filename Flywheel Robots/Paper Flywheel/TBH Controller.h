@@ -71,7 +71,7 @@ typedef struct _fw_controller {
 
     // velocity measurement
     float           v_current;              ///< current velocity in rpm
-    int							termsInAvg = 0;					///< number of terms included in the average; the exponential weighted average calculation changes slightly if this value is less than 10
+    int							termsInAvg;					///< number of terms included in the average; the exponential weighted average calculation changes slightly if this value is less than 10
     float						v_last10[10];						///< array holding last 10 RPM calculations
     float						v_avg;									///< weighted exponential average of the last 10 RPM measurements that is used to calculate error
     long            v_time;                 ///< Time of last velocity calculation
@@ -123,7 +123,7 @@ FwVelocitySet( fw_controller *fw, int velocity, float predicted_drive )
 }
 
 void
-updateRPMAverage(fw_controller *fw, float array, float newRPM) {
+updateRPMAverage(fw_controller *fw, float *array, float newRPM) {
 
 	//shift values up one; a side effect will be that the oldest value will be removed if there are more than 10 RPM values
 	for (int i = 1; i <= 9; i++) {
