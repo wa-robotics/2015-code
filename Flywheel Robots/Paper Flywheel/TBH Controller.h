@@ -71,9 +71,6 @@ typedef struct _fw_controller {
 
     // velocity measurement
     float           v_current;              ///< current velocity in rpm
-    int							termsInAvg;							///< number of terms included in the average; the exponential weighted average calculation changes slightly if this value is less than 10
-    float						v_last10[10];						///< array holding last 10 RPM calculations
-    float						v_avg;									///< weighted exponential average of the last 10 RPM measurements that is used to calculate error
     long            v_time;                 ///< Time of last velocity calculation
 
     // TBH control algorithm variables
@@ -94,10 +91,8 @@ typedef struct _fw_controller {
     } fw_controller;
 
 void tbhInit (fw_controller *fw, float MOTOR_TPR, float gain) {
-	fw->ticks_per_rev = MOTOR_TPR;
 	fw->MOTOR_TPR = MOTOR_TPR;
 	fw->gain = gain;
-	fw->termsInAvg = 0;
 }
 
 /*-----------------------------------------------------------------------------*/
@@ -122,30 +117,6 @@ FwVelocitySet( fw_controller *fw, int velocity, float predicted_drive )
     fw->first_cross   = 1;
     // clear tbh variable
     fw->drive_at_zero = 0;
-}
-
-void
-updateRPMAverage(fw_controller *fw, float *array, float newRPM) {
-
-	//shift values up one; a side effect will be that the oldest value will be removed if there are more than 10 RPM values
-	for (int i = 1; i <= 9; i++) {
-			array[i - 1] = array[i];
-	}
-
-	//set the newest RPM value to index 9 of the array
-	array[9] = newRPM;
-
-	float sum = 0;
-	int weightedNumTerms = 0; //number to divide by
-	int stopIndex = fw->termsInAvg == 10 ? 0 : 9 - fw->termsInAvg;
-	//computed the new weighted average
-	for (int i = 9; i >= stopIndex; i--) {
-		sum += pow(array[i], i + 1);
-		weightedNumTerms += i + 1; //if i is 9, then array[i] is included in the average 10 times to weight it; thus, we need to divide i by 10
-	}
-	fw->termsInAvg = fw->termsInAvg + 1 > 10 ? 10 : fw->termsInAvg + 1;
-	fw->v_avg = sum / (float) weightedNumTerms; //cast weightedNumTerms as a float so we don't mistakenly end up with integer division
-	writeDebugStreamLine("array %f  weighted avg  %f   termsinavg %f", array[i], fw->v_avg, fw->termsInAvg);
 }
 
 /*-----------------------------------------------------------------------------*/
@@ -174,7 +145,6 @@ FwCalculateSpeed( fw_controller *fw, long encoderValue )
 
     // Calculate velocity in rpm
     fw->v_current = (1000.0 / delta_ms) * delta_enc * 60.0 / fw->ticks_per_rev;
-    updateRPMAverage(fw, fw->v_last10, fw->v_current);
 }
 
 /*-----------------------------------------------------------------------------*/
@@ -187,7 +157,7 @@ FwControlUpdateVelocityTbh( fw_controller *fw )
     // calculate error in velocity
     // target is desired velocity
     // current is measured velocity
-    fw->error = fw->target - fw->v_avg;
+    fw->error = fw->target - fw->current;
 
     // Use Kp as gain
     fw->drive =  fw->drive + (fw->error * fw->gain);
