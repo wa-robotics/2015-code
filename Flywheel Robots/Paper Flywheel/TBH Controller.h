@@ -92,6 +92,7 @@ typedef struct _fw_controller {
 
 void tbhInit (fw_controller *fw, float MOTOR_TPR, float gain) {
 	fw->MOTOR_TPR = MOTOR_TPR;
+	fw->ticks_per_rev = MOTOR_TPR;
 	fw->gain = gain;
 }
 
