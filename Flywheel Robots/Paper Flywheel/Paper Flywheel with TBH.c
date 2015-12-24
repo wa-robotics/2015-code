@@ -75,7 +75,7 @@ task leftFwControlTask()
         FwCalculateSpeed(fw, nMotorEncoder[lFlyBottom]);
 
         // Set current speed for the tbh calculation code
-        fw->current = fw->v_current;
+        fw->current = fw->v_avg;
 
         // Do the velocity TBH calculations
         FwControlUpdateVelocityTbh( fw ) ;
@@ -118,7 +118,7 @@ task rightFwControlTask()
         FwCalculateSpeed(fw, nMotorEncoder[rFlyBottom]);
 
         // Set current speed for the tbh calculation code
-        fw->current = fw->v_current;
+        fw->current = fw->v_avg;
 
         // Do the velocity TBH calculations
         FwControlUpdateVelocityTbh( fw ) ;
