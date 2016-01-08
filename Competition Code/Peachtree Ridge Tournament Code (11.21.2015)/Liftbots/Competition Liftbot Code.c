@@ -490,16 +490,27 @@ task usercontrol()
 	// User control code here, inside the loop
 	while(1 == 1)
 	{
-		if(vexRT[Ch3] > 6.3) //prevents controller ghosting
+		if(vexRT[Ch3] > 5 || vexRT[Ch3] < 5) //prevents controller ghosting
 		{
 			motor[LBdrive] = vexRT[Ch3]*3;		//sets drive motor speeds to joysticks
 			motor[LFdrive] = vexRT[Ch3]*3;
 		}
-		if(vexRT[Ch2] > 6.3)
+		else
+		{
+			motor[LFdrive] = 0;
+			motor[LBdrive] = 0;
+		}
+		if(vexRT[Ch2] > 5 || vexRT[Ch2] < 5)
 		{
 			motor[RBdrive] = vexRT[Ch2]*3;
 			motor[RFdrive] = vexRT[Ch2]*3;
 		}
+		else
+		{
+			motor[RBdrive] = 0;
+			motor[RFdrive] = 0;
+		}
+
 		if(vexRT[Btn5U] == 1)						//intakes balls
 		{
 			motor[intake1] = 117;
@@ -572,6 +583,5 @@ task usercontrol()
 			SensorValue[PneuB1] = 0;
 			SensorValue[PneuB2] = 0;
 		}
-
 	}
 }
