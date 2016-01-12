@@ -1,7 +1,9 @@
 #pragma config(UART_Usage, UART1, uartVEXLCD, baudRate19200, IOPins, None, None)
 #pragma config(UART_Usage, UART2, uartNotUsed, baudRate4800, IOPins, None, None)
 #pragma config(I2C_Usage, I2C1, i2cSensors)
-#pragma config(Sensor, dgtl1,  readyLED,       sensorLEDtoVCC)
+#pragma config(Sensor, dgtl1,  yellowLED,      sensorLEDtoVCC)
+#pragma config(Sensor, dgtl2,  greenLED,       sensorLEDtoVCC)
+#pragma config(Sensor, dgtl3,  redLED,         sensorLEDtoVCC)
 #pragma config(Sensor, I2C_1,  ,               sensorQuadEncoderOnI2CPort,    , AutoAssign)
 #pragma config(Sensor, I2C_2,  ,               sensorQuadEncoderOnI2CPort,    , AutoAssign)
 #pragma config(Motor,  port1,           Fly5,          tmotorVex393_HBridge, openLoop, encoderPort, I2C_2)
@@ -37,7 +39,7 @@
 
 //Global variables
 bool flywheelRunning = false; //global variable to keep track of flywheel status - this will allow us to prevent the acceleration function from being called more than once
-
+bool flywheelHasRun = false; //global variable to track if the flywheel tasks have ever been started so they aren't started multiple times
 // Update inteval (in mS) for the flywheel control loop
 #define FW_LOOP_SPEED              50
 
@@ -209,13 +211,13 @@ leftFwControlUpdateVelocityTbh()
 }
 
 /*-----------------------------------------------------------------------------*/
-/** @brief     Task to control the velocity of the flywheel                    */
+/** @brief     Task t\o control the velocity of the flywheel                    */
 /*-----------------------------------------------------------------------------*/
 task
 leftFwControlTask()
 {
 	// Set the gain
-	gain = 0.00035;
+	gain = 0.000725;
 
 	// We are using Speed geared motors
 	// Set the encoder ticks per revolution
@@ -363,7 +365,7 @@ task
 rightFwControlTask()
 {
 	// Set the gain
-	gain = 0.00035;
+	gain = 0.0007;
 
 	// We are using Speed geared motors
 	// Set the encoder ticks per revolution
@@ -393,54 +395,83 @@ rightFwControlTask()
 }
 //end of right side functions
 
+//LED controller task
+task flashYellowLED() {
+	while(1)
+	{
+		if(l_motor_velocity >= 76.5 && r_motor_velocity >= 76.5) { //were both 88
+			SensorValue[yellowLED] = 1;
+			wait1Msec(125);
+			SensorValue[yellowLED] = 0;
+		}
+		wait1Msec(125);
+	}
+}
 
+task flywheelWatchDog() {
+	int badEncoders = 0;
+	while(1){
+		if(flywheelRunning && (nMotorEncoder[Fly2] == 0 || nMotorEncoder[Fly5] == 0)) { //if the flywheel is running and either encoder is giving a value of 0 (which means the encoder is not working properly
+			//TODO: fall back to another encoder
+			//TODO: allow joystick velocity control if necessary
+			badEncoders++;
+		}
+		if(badEncoders > 0) {
+			SensorValue[redLED] = 1;
+			wait1Msec(125/badEncoders); //flash faster if both encoders are not giving readings
+			SensorValue[redLED] = 0;
+			wait1Msec(125/badEncoders); //flash faster if both encoders are not giving readings
+		}
+	}
+}
 
 //for flywheel acceleration; the separate task lets the acceleration code run concurently with other robot functions
-task flywheels() {
-	//start flywheel control
-
-	startTask( leftFwControlTask );
-	startTask( rightFwControlTask );
-	int rpm = 95;
-	bool pressed = false;
-	//while(1)
-	//{
+task flywheelController() { //manages flywheel starts and stops
+	while(1)
+	{
 		//activate/deactivate flywheel on joystick button press
-			//if( vexRT[ Btn5D ] == 1 ){
-				leftFwMotorSet(40);
-				rightFwMotorSet(40);
-				wait1Msec(1000);
-				leftFwMotorSet(60);
-				rightFwMotorSet(60);
-				wait1Msec(1000);
-				leftFwMotorSet(75);
-				rightFwMotorSet(75);
-				wait1Msec(1000);
-				leftFwVelocitySet(100, 0.66);
-				rightFwVelocitySet(100,0.66);
-				//}
-			/*else if (vexRT[Btn7D] == 1 && vexRT[Btn8D] == 1) {
-				leftFwVelocitySet(0, 0);
-				rightFwVelocitySet(0,0);
-			}*/
-
-
-		//no else statement needed because the acceleration code looks for when it needs to stop itself
-	//}
+		if(vexRT[Btn5D] == 1 && !flywheelRunning){
+			leftFwMotorSet(40);
+			rightFwMotorSet(40);
+			wait1Msec(750);
+			leftFwMotorSet(70);
+			rightFwMotorSet(70);
+			wait1Msec(750);
+			leftFwMotorSet(75);
+			rightFwMotorSet(75);
+			wait1Msec(500);
+			startTask(leftFwControlTask); //this is ok to run every time because stopping the flywheel also stops the flywheel control tasks
+			startTask(rightFwControlTask);
+			leftFwVelocitySet(80,.59);//was at 92
+			rightFwVelocitySet(80,.61);//was at 92
+			flywheelRunning = true;
+			startTask(flywheelWatchDog); //verify that flywheel encoders are working properly and alert the user if not
+			startTask(flashYellowLED);
+		}
+		else if (vexRT[Btn7D] == 1 && vexRT[Btn8D] == 1) {
+			flywheelRunning = false;
+			stopTask(leftFwControlTask); //need to stop these tasks before manually setting flywheel motor speed
+			stopTask(rightFwControlTask);
+			leftFwMotorSet(0);
+			rightFwMotorSet(0);
+			stopTask(flashYellowLED); //stop flashing yellow LED
+			stopTask(flywheelWatchDog);
+			SensorValue[yellowLED] = 0;  //make sure LEDs are off
+			SensorValue[redLED] = 1; //show red LED to confirm shutdown
+			wait1Msec(3000);
+			SensorValue[redLED] = 0;
+		}
+	}
 }
+
 task main()
 {
-	//startTask(accelerate); //controls flywheel acceleration so that the flywheel can accelerate concurrently with drivetrain and intake motors
-
+	startTask(flywheelController); //controls flywheel acceleration so that the flywheel can accelerate concurrently with drivetrain and intake motors
+	int direction; //controls intake direction
 	clearLCDLine(0);
 	clearLCDLine(1);
 	bLCDBacklight = true;
 	char  str[32];
-
-	bLCDBacklight = true;
-
-	// Start the flywheel control task
-	startTask(flywheels);
 
 	while(true)
 	{
@@ -455,22 +486,10 @@ task main()
 		sprintf( str, "%4.2f %4.2f ", l_drive, l_drive_at_zero );
 		displayLCDString(1, 0, str );
 
+	direction = vexRT[Btn8U] == 1 ? -1 : 1;
 		//intake
-		if(vexRT[Btn6U] == 1)
-		{
-			motor[intake1] = 125;
-			motor[intake2] = 125;
-		}
-		else if(vexRT[Btn6D] == 1)
-		{
-			motor[intake1] = -125;
-			motor[intake2] = -125;
-		}
-		else
-		{
-			motor[intake1] = 0;
-			motor[intake2] = 0;
-		}
+	motor[intake1] = vexRT[Btn6U] == 1 ? 125*direction : 0;
+	motor[intake2] = vexRT[Btn6D] == 1 ? 125*direction : 0;
 		wait1Msec(10); //so we don't overload the CPU
 	}
 }

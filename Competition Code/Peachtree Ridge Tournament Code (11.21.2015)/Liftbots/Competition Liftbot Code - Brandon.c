@@ -77,8 +77,8 @@ void turnLeft(int amount,int power)
 
 void moveForward(int amount,int power)
 {
-	nMotorEncoder[RFdrive] = 0;
-	while(abs(nMotorEncoder[RFdrive]) < amount)
+	nMotorEncoder[LFdrive] = 0;
+	while(abs(nMotorEncoder[LFdrive]) < amount)
 	{
 		motor[RBdrive] = power;
 		motor[RFdrive] = power;
@@ -90,12 +90,12 @@ void moveForward(int amount,int power)
 	motor[RFdrive] = 0;
 	motor[LFdrive] = 0;
 	motor[LBdrive] = 0;
-	nMotorEncoder[RFdrive] = 0;
+	nMotorEncoder[LFdrive] = 0;
 }
 void moveBackward(int amount,int power)
 {
-	nMotorEncoder[RFdrive] = 0;
-	while(abs(nMotorEncoder[RFdrive]) < amount)
+	nMotorEncoder[LFdrive] = 0;
+	while(abs(nMotorEncoder[LFdrive]) < amount)
 	{
 		motor[RBdrive] = -power;
 		motor[RFdrive] = -power;
@@ -106,50 +106,36 @@ void moveBackward(int amount,int power)
 	motor[RFdrive] = 0;
 	motor[LFdrive] = 0;
 	motor[LBdrive] = 0;
-	nMotorEncoder[RFdrive] = 0;
+	nMotorEncoder[LFdrive] = 0;
 }
-
-void moveBackwardByTime(int amount, int power)
-{
-	motor[RBdrive] = -power;
-	motor[RFdrive] = -power;
-	motor[LFdrive] = -power;
-	motor[LBdrive] = -power;
-	wait1Msec(amount);
-	motor[RBdrive] = 0;
-	motor[RFdrive] = 0;
-	motor[LFdrive] = 0;
-	motor[LBdrive] = 0;
-}
-
 task lautonomousCodew()
 {
 	wait10Msec(500);
-	moveBackward(3119,50); 	// moves to goal
+  moveBackward(3360,50); 	// moves to goal
 
-	wait10Msec(50);
-	turnLeft(150,50);				//faces goal
-	wait10Msec(50);
-
-
-	motor[flywheel1] = -127;//starts flywheel
-	motor[flywheel2] = -127;
+  wait10Msec(50);
+  turnLeft(150,50);				//faces goal
+  wait10Msec(50);
 
 
-	wait10Msec(200);
-	motor[intake1] = -117;
-	motor[intake2] = -117;		//launches 1st ball
-	wait10Msec(50);
-	motor[intake1] = 0;
-	motor[intake2] = 0;
+  motor[flywheel1] = -127;//starts flywheel
+  motor[flywheel2] = -127;
 
 
-	wait10Msec(50);
-	motor[intake1] = -117;		//lauches 2nd ball
-	motor[intake2] = -117;
-	wait10Msec(50);
-	motor[intake1] = 0;
-	motor[intake2] = 0;
+  wait10Msec(200);
+  motor[intake1] = -117;
+  motor[intake2] = -117;		//launches 1st ball
+  wait10Msec(50);
+  motor[intake1] = 0;
+  motor[intake2] = 0;
+
+
+  wait10Msec(50);
+  motor[intake1] = -117;		//lauches 2nd ball
+  motor[intake2] = -117;
+  wait10Msec(50);
+  motor[intake1] = 0;
+  motor[intake2] = 0;
 
 
 
@@ -157,57 +143,60 @@ task lautonomousCodew()
 task lautonomousCode()
 {
 
-	moveBackward(3319,50); 	// moves to goal
+  moveBackward(3360,50); 	// moves to goal 5260 3360
 
-	wait10Msec(50);
-	turnLeft(150,50);				//faces goal
-	wait10Msec(50);
-
-
-	motor[flywheel1] = -127;//starts flywheel
-	motor[flywheel2] = -127;
+  wait10Msec(50);
+  turnLeft(150,50);				//faces goal
+  wait10Msec(50);
 
 
-	wait10Msec(200);
-	motor[intake1] = -117;
-	motor[intake2] = -117;		//launches 1st ball
-	wait10Msec(50);
-	motor[intake1] = 0;
-	motor[intake2] = 0;
+  motor[flywheel1] = -127;//starts flywheel
+  motor[flywheel2] = -127;
 
 
-	wait10Msec(50);
-	motor[intake1] = -117;		//lauches 2nd ball
-	motor[intake2] = -117;
-	wait10Msec(50);
-	motor[intake1] = 0;
-	motor[intake2] = 0;
+  wait10Msec(150);
+  motor[intake1] = -107;
+  motor[intake2] = -107;		//launches 1st ball
+  wait10Msec(50);
+  motor[intake1] = 0;
+  motor[intake2] = 0;
+
+
+  wait10Msec(50);
+  motor[intake1] = -107;		//lauches 2nd ball
+  motor[intake2] = -107;
+  wait10Msec(50);
+  motor[intake1] = 0;
+  motor[intake2] = 0;
 }
 task rautonomousCode()
 {
 
-	//moveBackward(3267,50); 	// moves to goal
-	moveBackwardByTime(5000, 50);
-	//turnRight(150,50);				//faces goal
+  moveBackward(3360,50); 	// moves to goal
 
-	motor[flywheel1] = -127;//starts flywheel
-	motor[flywheel2] = -127;
-
-
-	wait10Msec(200);
-	motor[intake1] = -117;
-	motor[intake2] = -117;		//launches 1st ball
-	wait10Msec(50);
-	motor[intake1] = 0;
-	motor[intake2] = 0;
+  wait10Msec(50);
+  turnRight(150,50);				//faces goal
+  wait10Msec(50);
 
 
-	wait10Msec(50);
-	motor[intake1] = -117;		//lauches 2nd ball
-	motor[intake2] = -117;
-	wait10Msec(50);
-	motor[intake1] = 0;
-	motor[intake2] = 0;
+  motor[flywheel1] = -127;//starts flywheel
+  motor[flywheel2] = -127;
+
+
+  wait10Msec(200);
+  motor[intake1] = -117;
+  motor[intake2] = -117;		//launches 1st ball
+  wait10Msec(50);
+  motor[intake1] = 0;
+  motor[intake2] = 0;
+
+
+  wait10Msec(50);
+  motor[intake1] = -117;		//lauches 2nd ball
+  motor[intake2] = -117;
+  wait10Msec(50);
+  motor[intake1] = 0;
+  motor[intake2] = 0;
 
 
 }
@@ -215,31 +204,11 @@ task rautonomousCode()
 task rautonomousCodew()
 {
 	wait10Msec(500);
-	moveBackward(3267,50); 	// moves to goal
+  moveBackward(3360,50); 	// moves to goal
 
-	wait10Msec(50);
-	turnRight(150,50);				//faces goal
-	wait10Msec(50);
-
-
-	motor[flywheel1] = -127;//starts flywheel
-	motor[flywheel2] = -127;
-
-
-	wait10Msec(200);
-	motor[intake1] = -117;
-	motor[intake2] = -117;		//launches 1st ball
-	wait10Msec(50);
-	motor[intake1] = 0;
-	motor[intake2] = 0;
-
-
-	wait10Msec(50);
-	motor[intake1] = -117;		//lauches 2nd ball
-	motor[intake2] = -117;
-	wait10Msec(50);
-	motor[intake1] = 0;
-	motor[intake2] = 0;
+  wait10Msec(50);
+  turnRight(150,50);				//faces goal
+  wait10Msec(50);
 
 
 }
@@ -307,8 +276,8 @@ task LCD()
 				waitForRelease();
 
 			}
-		}
-		while(count == 2 && nSysTime < 20000){
+	}
+	while(count == 2 && nSysTime < 20000){
 			//Display first choice
 			displayLCDCenteredString(0, "No Wait Right");
 			displayLCDCenteredString(1, "<		 Enter		>");
@@ -331,8 +300,8 @@ task LCD()
 				waitForRelease();
 
 			}
-		}
-		while(count == 3 && nSysTime < 20000){
+	}
+	while(count == 3 && nSysTime < 20000){
 			//Display first choice
 			displayLCDCenteredString(0, "5 Second Wait Right");
 			displayLCDCenteredString(1, "<		 Enter		>");
@@ -355,51 +324,51 @@ task LCD()
 				waitForRelease();
 
 			}
-		}
+	}
 	}
 }
 /*task LCD()
 {
-//Declare count variable to keep track of our choice
-int screen = 0;
-int selected = 0;
-LCDselect = 0;
-//------------- Beginning of User Interface Code ---------------
-//Clear LCD
-clearLCDLine(0);
-clearLCDLine(1);
-//Loop while center button is not pressed
-while(LCDselect == 0)
-{
-//Switch case that allows the user to choose from 4 different options
-while(LCDselect == 0){
-//Display first choice
-displayLCDChar(0, 5, time);
-//Increment or decrement "count" based on button press
-if(nLCDButtons == leftButton)
-{
-if(time >= 0)
-{
-waitForRelease();
-time--;
-}
-}
-else if(nLCDButtons == rightButton)
-{
-waitForRelease();
-time++;
-}
-else if(nLCDButtons == centerButton){
-LCDselect = 1;
-selected++;
-break;
-waitForRelease();
-count = 1;
-}
-}
-}
-clearLCDLine(0);
-clearLCDLine(1);
+	//Declare count variable to keep track of our choice
+	int screen = 0;
+	int selected = 0;
+	LCDselect = 0;
+	//------------- Beginning of User Interface Code ---------------
+	//Clear LCD
+	clearLCDLine(0);
+	clearLCDLine(1);
+	//Loop while center button is not pressed
+	while(LCDselect == 0)
+	{
+		//Switch case that allows the user to choose from 4 different options
+		while(LCDselect == 0){
+			//Display first choice
+			displayLCDChar(0, 5, time);
+			//Increment or decrement "count" based on button press
+			if(nLCDButtons == leftButton)
+			{
+				if(time >= 0)
+				{
+				waitForRelease();
+				time--;
+			}
+			}
+			else if(nLCDButtons == rightButton)
+			{
+				waitForRelease();
+				time++;
+			}
+			else if(nLCDButtons == centerButton){
+				LCDselect = 1;
+				selected++;
+				break;
+				waitForRelease();
+				count = 1;
+			}
+		}
+	}
+	clearLCDLine(0);
+	clearLCDLine(1);
 }
 */
 //------------- End of User Interface Code ---------------------
@@ -441,17 +410,17 @@ void LCDselection(){
 	}
 }
 /////////////////////////////////////////////////////////////////////////////////////////
-//																																										 //
-//                          Pre-Autonomous Functions																	 //
-//																																										 //
-// You may want to perform some actions before the competition starts. Do them in the  //
-// following function.																																 //
-//																																										 //
+//
+//                          Pre-Autonomous Functions
+//
+// You may want to perform some actions before the competition starts. Do them in the
+// following function.
+//
 /////////////////////////////////////////////////////////////////////////////////////////
 
 void pre_auton()
 {
-	bLCDBacklight=true;
+  bLCDBacklight=true;
 	bStopTasksBetweenModes = true;
 	SensorValue[I2C_2] = 0;
 	nMotorEncoder[RFdrive] = 0;
@@ -463,12 +432,12 @@ void pre_auton()
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
-//																																										 //
-//                                 Autonomous Task																		 //
-//																																										 //
-// This task is used to control your robot during the autonomous phase of a VEX Competi//tion.
-// You must modify the code to add your own robot specific commands here.							 //
-//																																										 //
+//
+//                                 Autonomous Task
+//
+// This task is used to control your robot during the autonomous phase of a VEX Competition.
+// You must modify the code to add your own robot specific commands here.
+//
 /////////////////////////////////////////////////////////////////////////////////////////
 
 task autonomous()
@@ -488,100 +457,85 @@ task autonomous()
 task usercontrol()
 {
 	// User control code here, inside the loop
-	while(1 == 1)
-	{
-		if(vexRT[Ch3] > 5 || vexRT[Ch3] < 5) //prevents controller ghosting
-		{
-			motor[LBdrive] = vexRT[Ch3]*3;		//sets drive motor speeds to joysticks
-			motor[LFdrive] = vexRT[Ch3]*3;
-		}
-		else
-		{
-			motor[LFdrive] = 0;
-			motor[LBdrive] = 0;
-		}
-		if(vexRT[Ch2] > 5 || vexRT[Ch2] < 5)
-		{
-			motor[RBdrive] = vexRT[Ch2]*3;
-			motor[RFdrive] = vexRT[Ch2]*3;
-		}
-		else
-		{
-			motor[RBdrive] = 0;
-			motor[RFdrive] = 0;
-		}
+  while(1 == 1)
+  {
+  	motor[LBdrive] = vexRT[Ch3];		//sets drive motor speeds to joysticks
+  	motor[LFdrive] = vexRT[Ch3];
+  	motor[RBdrive] = vexRT[Ch2];
+  	motor[RFdrive] = vexRT[Ch2];
 
-		if(vexRT[Btn5U] == 1)						//intakes balls
-		{
-			motor[intake1] = 117;
-			motor[intake2] = 117;
-		}
-		else if (vexRT[Btn5D] == 1)					//outputs balls
-		{
-			motor[intake1] = -117;
-			motor[intake2] = -117;
-		}
-		else														//turns off intake
-		{
-			motor[intake1] = 0;
-			motor[intake2] = 0;
-		}
+    if(vexRT[Btn5U] == 1)						//intakes balls
+    {
+    	motor[intake1] = 117;
+    	motor[intake2] = 117;
+    }
+    else if (vexRT[Btn5D] == 1)					//outputs balls
+    {
+    	motor[intake1] = -117;
+    	motor[intake2] = -117;
+    }
+    else														//turns off intake
+    {
+    	motor[intake1] = 0;
+    	motor[intake2] = 0;
+    }
 
-		if(vexRT[Btn8D])						//lowers ramp
-		{
-			motor[ramp1] = 110;
-			motor[ramp2] = 110;
-		}
-		else if(vexRT[Btn8U])						//pulls in ramp pushers
-		{
-			motor[ramp1] = -110;
-			motor[ramp2] = -110;
-		}
-		else
-		{
-			motor[ramp1] = 0;
-			motor[ramp2] = 0;
-		}
-		if(vexRT[Btn6D] == 1)
-		{
-			motor[flywheel1] = 127;
-			motor[flywheel2] = 127;
-		}
-		else if(vexRT[Btn6U] == 1)
-		{
-			motor[flywheel2] = -127;
-			motor[flywheel1] = -127;
-		}
-		else
-		{
-			motor[flywheel1] = 0;
-			motor[flywheel2] = 0;
-		}
-		if(vexRT[Btn7U] == 1)
-		{
-			SensorValue[PneuF1] = 1;
-			SensorValue[PneuF2] = 1;
-			SensorValue[PneuB1] = 1;
-			SensorValue[PneuB2] = 1;
-		}
+    if(vexRT[Btn8D])						//lowers ramp
+    {
+    	motor[ramp1] = 110;
+    	motor[ramp2] = 110;
+    }
+    else if(vexRT[Btn8U])						//pulls in ramp pushers
+    {
+    	motor[ramp1] = -110;
+    	motor[ramp2] = -110;
+    }
+    else
+    {
+    	motor[ramp1] = 0;
+    	motor[ramp2] = 0;
+    }
+    if(vexRT[Btn6D] == 1)
+    {
+    	motor[flywheel1] = 127;
+    	motor[flywheel2] = 127;
+    }
+    else if(vexRT[Btn6U] == 1)
+    {
+    	motor[flywheel2] = -127;
+    	motor[flywheel1] = -127;
+    }
+    else
+    {
+    	motor[flywheel1] = 0;
+    	motor[flywheel2] = 0;
+    }
+    if(vexRT[Btn7U] == 1)
+    {
+    	SensorValue[PneuF1] = 1;
+    	SensorValue[PneuF2] = 1;
+    	SensorValue[PneuB1] = 1;
+    	SensorValue[PneuB2] = 1;
+    }
 		else if(vexRT[Btn7D] == 1)
 		{
 			SensorValue[PneuF1] = 1;
 			SensorValue[PneuF2] = 1;
 		}
-		else
-		{
-			SensorValue[PneuF1] = 0;
-			SensorValue[PneuF2] = 0;
-			SensorValue[PneuB1] = 0;
-			SensorValue[PneuB2] = 0;
-		}
-		if(!bVEXNETActive)
-		{
-			SensorValue[PneuF1] = 0;
-			SensorValue[PneuF2] = 0;
-			SensorValue[PneuB1] = 0;
-			SensorValue[PneuB2] = 0;
-		}
-	}
+    else
+    {
+    	SensorValue[PneuF1] = 0;
+    	SensorValue[PneuF2] = 0;
+    	SensorValue[PneuB1] = 0;
+    	SensorValue[PneuB2] = 0;
+   	}
+    if(!bVEXNETActive)
+   	{
+   		SensorValue[PneuF1] = 0;
+    	SensorValue[PneuF2] = 0;
+    	SensorValue[PneuB1] = 0;
+    	SensorValue[PneuB2] = 0;
+  	}
+
+   }
 }
