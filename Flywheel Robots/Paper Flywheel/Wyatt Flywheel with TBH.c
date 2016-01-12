@@ -1,14 +1,15 @@
 #pragma config(I2C_Usage, I2C1, i2cSensors)
+#pragma config(Sensor, in1,    powerExpanderStatus, sensorAnalog)
 #pragma config(Sensor, dgtl12, led,            sensorLEDtoVCC)
 #pragma config(Sensor, I2C_1,  ,               sensorQuadEncoderOnI2CPort,    , AutoAssign )
 #pragma config(Sensor, I2C_2,  ,               sensorQuadEncoderOnI2CPort,    , AutoAssign )
 #pragma config(Motor,  port1,           lDrive2,       tmotorVex393_HBridge, openLoop, reversed)
-#pragma config(Motor,  port2,           flyWheelR1,    tmotorVex393_MC29, openLoop, encoderPort, I2C_1)
+#pragma config(Motor,  port2,           rDrive,        tmotorVex393_MC29, openLoop)
 #pragma config(Motor,  port3,           flyWheelL1,    tmotorVex393_MC29, openLoop, reversed, encoderPort, I2C_2)
-#pragma config(Motor,  port4,           flyWheelR2,    tmotorVex393_MC29, openLoop, encoderPort, None)
+#pragma config(Motor,  port4,           lift2,         tmotorVex393_MC29, openLoop, encoderPort, None)
 #pragma config(Motor,  port5,           flyWheelL2,    tmotorVex393_MC29, openLoop)
-#pragma config(Motor,  port6,           lift,          tmotorVex393_MC29, openLoop)
-#pragma config(Motor,  port7,           rDrive,        tmotorVex393_MC29, openLoop)
+#pragma config(Motor,  port6,           flywheelR,     tmotorVex393_MC29, openLoop, encoderPort, I2C_1)
+#pragma config(Motor,  port7,           lift1,         tmotorVex393_MC29, openLoop)
 #pragma config(Motor,  port8,           rollerIntake,  tmotorVex393_MC29, openLoop)
 #pragma config(Motor,  port9,           verticalIntake, tmotorVex393_MC29, openLoop)
 #pragma config(Motor,  port10,          lDrive1,       tmotorVex393_HBridge, openLoop, reversed)
@@ -21,28 +22,13 @@
 #pragma autonomousDuration(20)
 #pragma userControlDuration(120)
 
-#include "Vex_Competition_Includes.c"   //Main competition background code...do not modify!
+#include "..\..\Vex_Competition_Includes_No_LCD.c"   //Main competition background code...do not modify!
 #include "TBH Controller.h" //Contains the TBH algorithm for the flywheels
+#include "..\..\Battery Check (header file).h"
+#include "..\..\LCD Autonomous Play Selection.c"
 
 fw_controller lFly, rFly; //Create a controller for the TBH algorithm for each side of the flywheel
 string str;
-void pre_auton()
-{
-}
-
-task autonomous()
-{
-}
-
-int flashTime = 1000;
-task flashLED() {
-	while(1) {
-		SensorValue[led] = true;
-		wait1Msec(flashTime);
-		SensorValue[led] = false;
-		wait1Msec(flashTime);
-	}
-}
 
 void setLFly(int output)
 {
@@ -52,51 +38,51 @@ void setLFly(int output)
 
 void setRFly(int output)
 {
-	motor[flyWheelR1] = output;
-	motor[flyWheelR2] = output;
+	motor[flyWheelR] = output;
 }
+
 
 /*-----------------------------------------------------------------------------*/
 /** @brief     Task to control the velocity of the left flywheel               */
 /*-----------------------------------------------------------------------------*/
 task leftFwControlTask()
 {
-    fw_controller *fw = lFly;
+	fw_controller *fw = lFly;
 
-    // We are using Speed geared motors
-    // Set the encoder ticks per revolution
-    fw->ticks_per_rev = fw->MOTOR_TPR;
+	// We are using Speed geared motors
+	// Set the encoder ticks per revolution
+	fw->ticks_per_rev = fw->MOTOR_TPR;
 
-    while(1)
-        {
-        // debug counter
-        fw->counter++;
+	while(1)
+	{
+		// debug counter
+		fw->counter++;
 
-        // Calculate velocity
-        FwCalculateSpeed(fw, nMotorEncoder[flyWheelL1]);
+		// Calculate velocity
+		FwCalculateSpeed(fw, nMotorEncoder[flyWheelL2]);
 
-        // Set current speed for the tbh calculation code
-        fw->current = fw->v_current;
+		// Set current speed for the tbh calculation code
+		fw->current = fw->v_current;
 
-        // Do the velocity TBH calculations
-        FwControlUpdateVelocityTbh( fw ) ;
+		// Do the velocity TBH calculations
+		FwControlUpdateVelocityTbh( fw ) ;
 
-        // Scale drive into the range the motors need
-        fw->motor_drive  = (fw->drive * FW_MAX_POWER) + 0.5;
+		// Scale drive into the range the motors need
+		fw->motor_drive  = (fw->drive * FW_MAX_POWER) + 0.5;
 
-        // Final Limit of motor values - don't really need this
-        if( fw->motor_drive >  127 ) fw->motor_drive =  127;
-        if( fw->motor_drive < -127 ) fw->motor_drive = -127;
+		// Final Limit of motor values - don't really need this
+		if( fw->motor_drive >  127 ) fw->motor_drive =  127;
+		if( fw->motor_drive < -127 ) fw->motor_drive = -127;
 
-        // and finally set the motor control value
-        setLFly( fw->motor_drive );
-				str = sprintf( str, "%4d %4d  %5.2f", fw->target,  fw->current, nImmediateBatteryLevel/1000.0 );
-        displayLCDString(0, 0, str );
-        str = sprintf( str, "%4.2f %4.2f ", fw->drive, fw->drive_at_zero );
-        displayLCDString(1, 0, str );
-        // Run at somewhere between 20 and 50mS
-        wait1Msec( FW_LOOP_SPEED );
-        }
+		// and finally set the motor control value
+		setLFly( fw->motor_drive );
+		str = sprintf( str, "%4d %4d  %5.2f", fw->target,  fw->current, nImmediateBatteryLevel/1000.0 );
+		displayLCDString(0, 0, str );
+		str = sprintf( str, "%4.2f %4.2f ", fw->drive, fw->drive_at_zero );
+		displayLCDString(1, 0, str );
+		// Run at somewhere between 20 and 50mS
+		wait1Msec(40);
+	}
 }
 
 /*-----------------------------------------------------------------------------*/
@@ -104,45 +90,67 @@ task leftFwControlTask()
 /*-----------------------------------------------------------------------------*/
 task rightFwControlTask()
 {
-    fw_controller *fw = rFly;
+	fw_controller *fw = rFly;
 
-    // We are using Speed geared motors
-    // Set the encoder ticks per revolution
-    fw->ticks_per_rev = fw->MOTOR_TPR;
+	// We are using Speed geared motors
+	// Set the encoder ticks per revolution
+	fw->ticks_per_rev = fw->MOTOR_TPR;
 
-    while(1)
-        {
-        // debug counter
-        fw->counter++;
+	while(1)
+	{
+		// debug counter
+		fw->counter++;
 
-        // Calculate velocity
-        FwCalculateSpeed(fw, nMotorEncoder[flyWheelR1]);
+		// Calculate velocity
+		FwCalculateSpeed(fw, SensorValue[I2C_1]);
 
-        // Set current speed for the tbh calculation code
-        fw->current = fw->v_current;
+		// Set current speed for the tbh calculation code
+		fw->current = fw->v_current;
 
-        // Do the velocity TBH calculations
-        FwControlUpdateVelocityTbh( fw ) ;
+		// Do the velocity TBH calculations
+		FwControlUpdateVelocityTbh( fw ) ;
 
-        // Scale drive into the range the motors need
-        fw->motor_drive  = (fw->drive * FW_MAX_POWER) + 0.5;
+		// Scale drive into the range the motors need
+		fw->motor_drive  = (fw->drive * FW_MAX_POWER) + 0.5;
 
-        // Final Limit of motor values - don't really need this
-        if( fw->motor_drive >  127 ) fw->motor_drive =  127;
-        if( fw->motor_drive < -127 ) fw->motor_drive = -127;
+		// Final Limit of motor values - don't really need this
+		if( fw->motor_drive >  127 ) fw->motor_drive =  127;
+		if( fw->motor_drive < -127 ) fw->motor_drive = -127;
 
-        // and finally set the motor control value
-        setRFly( fw->motor_drive );
+		// and finally set the motor control value
+		setRFly( fw->motor_drive );
 
-        // Run at somewhere between 20 and 50mS
-        wait1Msec( FW_LOOP_SPEED );
-        }
+		// Run at somewhere between 20 and 50mS
+		wait1Msec( FW_LOOP_SPEED );
+	}
+}
+
+
+task flashLED() {
+	while (1) {
+
+		if(lFly.current >= 70 && lFly.current <= 75 && rFly.current >= 70 && rFly.current <= 75) {
+			SensorValue[led] = true;
+			} else {
+			SensorValue[led] = false;
+		}
+	}
+}
+
+
+void pre_auton()
+{
+	bLCDBacklight = true;
+	checkBatteries();
+	startTask(selectionController);
+
+	bStopTasksBetweenModes = true;
 }
 
 //prepare to use TBH for flywheel velocity control
 void initializeTBH() {
-	tbhInit(lFly, 627.2, 0.00735); //initialize TBH for left side of the flywheel
-	tbhInit(rFly, 627.2, 0.00725); //initialize TBH for the right side of the flywheel
+	tbhInit(lFly, 627.2, 0.01025);//1025); //initialize TBH for left side of the flywheel
+	tbhInit(rFly, 627.2, 0.01000);//1000); //initialize TBH for the right side of the flywheel
 	//motor[intake] = 127;
 	//start the flywheel control tasks
 	startTask(leftFwControlTask);
@@ -153,13 +161,12 @@ void stopFlywheel() {
 	//disable the control tasks to allow manual, programmatic control of the flywheel motors (switch to open-loop control, essentially)
 	stopTask(leftFwControlTask);
 	stopTask(rightFwControlTask);
-
-	//set the motors for both sides of the flywheel to 0 to actually stop the flywheels
-	setLFly(0);
-	setRFly(0);
-	motor[rollerIntake] = 0;
+	stopTask(flashLED);
 }
+task autonomous()
+{
 
+}
 float normalizeMotorPower (float value) {
 	return value/(float) 127;
 }
@@ -168,18 +175,18 @@ task usercontrol()
 {
 	while(1)
 	{
-			motor[rDrive] = vexRT[Ch2];		//sets drive motor speeds to joysticks
+			motor[rDrive] = vexRT[Ch2];
 			motor[lDrive1] = vexRT[Ch3];
 			motor[lDrive2] = vexRT[Ch3];
 			if(vexRT[Btn7D] == 1)
 		{
-			initializeTBH();
-			FwVelocitySet(lFly, 90, normalizeMotorPower(90));
-			FwVelocitySet(rFly, 90, normalizeMotorPower(90));
+			setLFly(100);
+			setRFly(100);
 		}
 		else if(vexRT[Btn8D] == 1)
 		{
-			stopFlywheel();
+			setLFly(0);
+			setRFly(0);
 		}
 		if(vexRT[Btn6U] == 1)
 		{
@@ -207,15 +214,18 @@ task usercontrol()
 		}
 		if(vexRT[Btn7L] == 1)
 		{
-			motor[lift] = 125;
+			motor[lift1] = 125;
+			motor[lift2] = -125;
 		}
 		else if(vexRT[Btn8R] == 1)
 		{
-			motor[lift] = -125;
+			motor[lift1] = -125;
+			motor[lift2] = 125;
 		}
 		else
 		{
-			motor[lift] = 0;
+			motor[lift1] = 0;
+			motor[lift2] = 0;
 		}
 	}
 }
