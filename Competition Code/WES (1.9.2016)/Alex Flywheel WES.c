@@ -29,7 +29,7 @@
 #include "..\..\Vex_Competition_Includes_No_LCD.c"   //Main competition background code...do not modify!
 #include "..\..\Battery Check (header file).h"
 #include "..\..\LCD Autonomous Play Selection.c"
-#include "..\..\Flywheel Robots\Paper Flywheel\TBH Controller.h" //Contains the TBH algorithm for the flywheels
+#include "..\..\Flywheel Robots\Paper Flywheel\TBH Controller - Alex Flywheel.h" //Contains the TBH algorithm for the flywheels
 
 fw_controller lFly, rFly; //Create a controller for the TBH algorithm for each side of the flywheel
 string str;
@@ -86,7 +86,7 @@ task leftFwControlTask()
 		str = sprintf( str, "%4.2f %4.2f ", fw->drive, fw->drive_at_zero );
 		displayLCDString(1, 0, str );
 		// Run at somewhere between 20 and 50mS
-		wait1Msec(40);
+		wait1Msec( FW_LOOP_SPEED );
 	}
 }
 
@@ -133,12 +133,15 @@ task rightFwControlTask()
 
 task flashLED() {
 	while (1) {
-
-		if(lFly.current >= 70 && lFly.current <= 75 && rFly.current >= 70 && rFly.current <= 75) {
-			SensorValue[led] = true;
-			} else {
-			SensorValue[led] = false;
-		}
+		SensorValue[led] = true;
+		wait1Msec(1750);
+		SensorValue[led] = false;
+		wait1Msec(1750);
+		//if(lFly.current >= 70 && lFly.current <= 75 && rFly.current >= 70 && rFly.current <= 75) {
+		//	SensorValue[led] = true;
+		//	} else {
+		//	SensorValue[led] = false;
+		//}
 	}
 }
 
@@ -155,11 +158,22 @@ void pre_auton()
 //prepare to use TBH for flywheel velocity control
 void initializeTBH() {
 	tbhInit(lFly, 627.2, 0.01025);//1025); //initialize TBH for left side of the flywheel
-	tbhInit(rFly, 627.2, 0.01000);//1000); //initialize TBH for the right side of the flywheel
+	tbhInit(rFly, 627.2, 0.01025);//1000); //initialize TBH for the right side of the flywheel
 	//motor[intake] = 127;
 	//start the flywheel control tasks
 	startTask(leftFwControlTask);
 	startTask(rightFwControlTask);
+	startTask(flashLED);
+}
+
+void initializeTBHSkills() {
+	tbhInit(lFly, 627.2, 0.00825);//1025); //initialize TBH for left side of the flywheel
+	tbhInit(rFly, 627.2, 0.00825);//1000); //initialize TBH for the right side of the flywheel
+	//motor[intake] = 127;
+	//start the flywheel control tasks
+	startTask(leftFwControlTask);
+	startTask(rightFwControlTask);
+	startTask(flashLED);
 }
 
 void stopFlywheel() {
@@ -191,8 +205,8 @@ void moveIntakeTop(int time, int power) {
 task autonomous()
 {
 	initializeTBH();
-	FwVelocitySet(lFly, 72, 0.709);
-	FwVelocitySet(rFly, 72, 0.709);
+	FwVelocitySet(lFly, 74, 0.623);
+	FwVelocitySet(rFly, 74, 0.623);
 	wait1Msec(2810); //wait time 1st ball
 	motor[intakeTop] = 125;
 	wait1Msec(1220); //2nd ball wait
@@ -218,24 +232,24 @@ task usercontrol()
 	int RY = 0;
 	int RX = 0;
 	int threshold = 15;
-  while(1)
-  {
-  	//for deadzones; when the joystick value for an axis is below the threshold, the motors controlled by that joystick will not move in that direction
-  	LY = (abs(vexRT[Ch3]) > threshold) ? vexRT[Ch3] : 0;
-  	LX = (abs(vexRT[Ch4]) > threshold) ? vexRT[Ch4] : 0;
-  	RY = (abs(vexRT[Ch2]) > threshold) ? vexRT[Ch2] : 0;
-  	RX = (abs(vexRT[Ch1]) > threshold) ? vexRT[Ch1] : 0;
-    motor[lFrontDrive] = LY + LX;
-  	motor[lBackDrive] = LY - LX;
-  	motor[rFrontDrive] = RY + RX;
-  	motor[rBackDrive] = RY - RX;
+	while(1)
+	{
+		//for deadzones; when the joystick value for an axis is below the threshold, the motors controlled by that joystick will not move in that direction
+		LY = (abs(vexRT[Ch3]) > threshold) ? vexRT[Ch3] : 0;
+		LX = (abs(vexRT[Ch4]) > threshold) ? vexRT[Ch4] : 0;
+		RY = (abs(vexRT[Ch2]) > threshold) ? vexRT[Ch2] : 0;
+		RX = (abs(vexRT[Ch1]) > threshold) ? vexRT[Ch1] : 0;
+		motor[lFrontDrive] = LY + LX;
+		motor[lBackDrive] = LY - LX;
+		motor[rFrontDrive] = RY + RX;
+		motor[rBackDrive] = RY - RX;
 
 		if (vexRT[Btn6U] == 1) {
 			motor[intakeBack] = 125;
-			}
+		}
 		else if (vexRT[Btn6D] == 1) {
 			motor[intakeBack] = -125;
-			}
+		}
 		else
 		{
 			motor[intakeBack] = 0;
@@ -243,26 +257,37 @@ task usercontrol()
 
 		if (vexRT[Btn5U] == 1 && flywheelRunning) {
 			motor[intakeTop] = 125;
-			}
+		}
 		else if (vexRT[Btn5D] == 1) {
 			motor[intakeTop] = -125;
-			}
+		}
 		else
 		{
 			motor[intakeTop] = 0;
 		}
 
-		if (vexRT[Btn7U] == 1 && !flywheelRunning) {
-			initializeTBH();
-			FwVelocitySet(lFly, 72, 0.709);
-			FwVelocitySet(rFly, 72, 0.709);
-			flywheelRunning = true;
+		if (vexRT[Btn7L] == 1) { //matches
+				if (!flywheelRunning) {
+					initializeTBH();
+				}
+				FwVelocitySet(lFly, 74, 0.623);
+				FwVelocitySet(rFly, 74, 0.623);
+				flywheelRunning = true;
+		} else if(vexRT[Btn8R] == 1) {  //skills
+				if (!flywheelRunning) {
+					initializeTBHSkills();
+				}
+				FwVelocitySet(lFly, 56, 0.472);
+				FwVelocitySet(rFly, 56, 0.472);
+				flywheelRunning = true;
 		}
 
-		if (vexRT[Btn8D] == 1 && vexRT[btn7D] == 1 && flywheelRunning) {
+
+
+		if (vexRT[Btn8D] == 1 && vexRT[Btn7D] == 1 && flywheelRunning) {
 			stopFlywheel();
 			flywheelRunning = false;
 		}
-		wait1Msec(25);
+
 	}
 }
