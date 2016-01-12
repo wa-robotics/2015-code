@@ -202,92 +202,44 @@ void moveIntakeTop(int time, int power) {
 	motor[intakeTop] = 0;
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////
+//
+//                                 Autonomous Task
+//
+// This task is used to control your robot during the autonomous phase of a VEX Competition.
+// You must modify the code to add your own robot specific commands here.
+//
+/////////////////////////////////////////////////////////////////////////////////////////
+
 task autonomous()
 {
-	initializeTBH();
+  initializeTBH();
 	FwVelocitySet(lFly, 74, 0.623);
 	FwVelocitySet(rFly, 74, 0.623);
-	wait1Msec(2810); //wait time 1st ball
-	motor[intakeTop] = 125;
-	wait1Msec(1220); //2nd ball wait
-	moveIntake(621, 125);
-	wait1Msec(1220); //3rd
-	moveIntake(921, 125);
-	wait1Msec(1320); //4th
-	moveIntake(921, 125);
 }
 
-
-
-
-float normalizeMotorPower (float value) {
-	return value/(float) 127;
-}
+/////////////////////////////////////////////////////////////////////////////////////////
+//
+//                                 User Control Task
+//
+// This task is used to control your robot during the user control phase of a VEX Competition.
+// You must modify the code to add your own robot specific commands here.
+//
+/////////////////////////////////////////////////////////////////////////////////////////
 
 task usercontrol()
 {
-	bool flywheelRunning = false;
-	int LY = 0;
-	int LX = 0;
-	int RY = 0;
-	int RX = 0;
-	int threshold = 15;
-	while(1)
+	// User control code here, inside the loop
+
+	while (true)
 	{
-		//for deadzones; when the joystick value for an axis is below the threshold, the motors controlled by that joystick will not move in that direction
-		LY = (abs(vexRT[Ch3]) > threshold) ? vexRT[Ch3] : 0;
-		LX = (abs(vexRT[Ch4]) > threshold) ? vexRT[Ch4] : 0;
-		RY = (abs(vexRT[Ch2]) > threshold) ? vexRT[Ch2] : 0;
-		RX = (abs(vexRT[Ch1]) > threshold) ? vexRT[Ch1] : 0;
-		motor[lFrontDrive] = LY + LX;
-		motor[lBackDrive] = LY - LX;
-		motor[rFrontDrive] = RY + RX;
-		motor[rBackDrive] = RY - RX;
+	  // This is the main execution loop for the user control program. Each time through the loop
+	  // your program should update motor + servo values based on feedback from the joysticks.
 
-		if (vexRT[Btn6U] == 1) {
-			motor[intakeBack] = 125;
-		}
-		else if (vexRT[Btn6D] == 1) {
-			motor[intakeBack] = -125;
-		}
-		else
-		{
-			motor[intakeBack] = 0;
-		}
+	  // .....................................................................................
+	  // Insert user code here. This is where you use the joystick values to update your motors, etc.
+	  // .....................................................................................
 
-		if (vexRT[Btn5U] == 1 && flywheelRunning) {
-			motor[intakeTop] = 125;
-		}
-		else if (vexRT[Btn5D] == 1) {
-			motor[intakeTop] = -125;
-		}
-		else
-		{
-			motor[intakeTop] = 0;
-		}
-
-		if (vexRT[Btn7L] == 1) { //matches
-				if (!flywheelRunning) {
-					initializeTBH();
-				}
-				FwVelocitySet(lFly, 74, 0.623);
-				FwVelocitySet(rFly, 74, 0.623);
-				flywheelRunning = true;
-		} else if(vexRT[Btn8R] == 1) {  //skills
-				if (!flywheelRunning) {
-					initializeTBHSkills();
-				}
-				FwVelocitySet(lFly, 56, 0.472);
-				FwVelocitySet(rFly, 56, 0.472);
-				flywheelRunning = true;
-		}
-
-
-
-		if (vexRT[Btn8D] == 1 && vexRT[Btn7D] == 1 && flywheelRunning) {
-			stopFlywheel();
-			flywheelRunning = false;
-		}
-
+	  UserControlCodePlaceholderForTesting(); // Remove this function call once you have "real" code.
 	}
 }
