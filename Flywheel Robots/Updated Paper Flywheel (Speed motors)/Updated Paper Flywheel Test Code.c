@@ -137,8 +137,8 @@ task rightFwControlTask()
 
 //prepare to use TBH for flywheel velocity control
 void initializeTBH() {
-	tbhInit(lFly, 392, 0.00025); //initialize TBH for left side of the flywheel
-	tbhInit(rFly, 392, 0.00025); //initialize TBH for the right side of the flywheel
+	tbhInit(lFly, 392, 0.00045); //initialize TBH for left side of the flywheel
+	tbhInit(rFly, 392, 0.00045); //initialize TBH for the right side of the flywheel
 	//motor[intake] = 127;
 	//start the flywheel control tasks
 	startTask(leftFwControlTask);
@@ -163,11 +163,12 @@ float normalizeMotorPower (float value) {
 task usercontrol()
 {
 	initializeTBH();
-	FwVelocitySet(lFly, 150, normalizeMotorPower(100));
-	FwVelocitySet(rFly, 150, normalizeMotorPower(100));
+	FwVelocitySet(lFly, 135, normalizeMotorPower(85));
+	FwVelocitySet(rFly, 135, normalizeMotorPower(85));
 
 	while(1) {
-		writeDebugStreamLine("%d,%d",lFly.current, rFly.current);
-	}
+		writeDebugStreamLine("%d,%d",nPgmTime, lFly.current, lFly.motor_drive * 127, rFly.current, rFly.motor_drive * 127);
+		wait1Msec(20);
+		}
 
 }
