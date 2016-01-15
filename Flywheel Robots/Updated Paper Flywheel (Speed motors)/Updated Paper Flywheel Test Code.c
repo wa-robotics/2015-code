@@ -3,8 +3,8 @@
 #pragma config(Sensor, I2C_1,  ,               sensorQuadEncoderOnI2CPort,    , AutoAssign )
 #pragma config(Sensor, I2C_2,  ,               sensorQuadEncoderOnI2CPort,    , AutoAssign )
 #pragma config(Sensor, I2C_3,  ,               sensorQuadEncoderOnI2CPort,    , AutoAssign )
-#pragma config(Motor,  port1,           flyWheelL1,    tmotorVex393HighSpeed_HBridge, openLoop, reversed)
-#pragma config(Motor,  port2,           flyWheelL2,    tmotorVex393HighSpeed_MC29, openLoop, encoderPort, I2C_1)
+#pragma config(Motor,  port1,           flyWheelL2,    tmotorVex393HighSpeed_HBridge, openLoop, encoderPort, I2C_1)
+#pragma config(Motor,  port3,           flyWheelL1,    tmotorVex393HighSpeed_MC29, openLoop)
 #pragma config(Motor,  port7,           intake,        tmotorVex393_MC29, openLoop, reversed, encoderPort, I2C_3)
 #pragma config(Motor,  port9,           flyWheelR1,    tmotorVex393HighSpeed_MC29, openLoop)
 #pragma config(Motor,  port10,          flyWheelR2,    tmotorVex393HighSpeed_HBridge, openLoop, reversed, encoderPort, I2C_2)
@@ -18,7 +18,7 @@
 #pragma userControlDuration(120)
 
 #include "Vex_Competition_Includes.c"   //Main competition background code...do not modify!
-#include "..\Paper Flywheel\TBH Controller.h" //Contains the TBH algorithm for the flywheels; only included here to provide RPM output
+#include "TBH Controller with Averaging RPM.h" //Contains the TBH algorithm for the flywheels; only included here to provide RPM output
 
 fw_controller lFly, rFly; //Create a controller for the TBH algorithm for each side of the flywheel
 string str;
@@ -137,8 +137,8 @@ task rightFwControlTask()
 
 //prepare to use TBH for flywheel velocity control
 void initializeTBH() {
-	tbhInit(lFly, 392, 0.000425); //initialize TBH for left side of the flywheel
-	tbhInit(rFly, 392, 0.000375); //initialize TBH for the right side of the flywheel
+	tbhInit(lFly, 392, 0.000325); //initialize TBH for left side of the flywheel
+	tbhInit(rFly, 392, 0.000350); //initialize TBH for the right side of the flywheel
 	//motor[intake] = 127;
 	//start the flywheel control tasks
 	startTask(leftFwControlTask);
@@ -163,11 +163,11 @@ float normalizeMotorPower (float value) {
 task usercontrol()
 {
 	initializeTBH();
-	FwVelocitySet(lFly, 139, normalizeMotorPower(82));
-	FwVelocitySet(rFly, 139, normalizeMotorPower(90));
+	FwVelocitySet(lFly, 136, normalizeMotorPower(82));
+	FwVelocitySet(rFly, 136, normalizeMotorPower(90));
 
 	while(1) {
-		writeDebugStreamLine("%d,%d,%d,%d,%d",nPgmTime, lFly.current, lFly.motor_drive * 127, rFly.current, rFly.motor_drive * 127);
+		writeDebugStreamLine("%d,%d,%d,%d,%d",nPgmTime, lFly.current, lFly.motor_drive, rFly.current, rFly.motor_drive);
 		wait1Msec(20);
 		}
 
