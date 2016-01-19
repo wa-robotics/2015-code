@@ -4,7 +4,7 @@
 #pragma config(Sensor, I2C_2,  ,               sensorQuadEncoderOnI2CPort,    , AutoAssign )
 #pragma config(Sensor, I2C_3,  ,               sensorQuadEncoderOnI2CPort,    , AutoAssign )
 #pragma config(Motor,  port1,           flyWheelL2,    tmotorVex393HighSpeed_HBridge, openLoop, encoderPort, I2C_1)
-#pragma config(Motor,  port3,           flyWheelL1,    tmotorVex393HighSpeed_MC29, openLoop)
+#pragma config(Motor,  port3,           flyWheelL1,    tmotorVex393HighSpeed_MC29, openLoop, reversed)
 #pragma config(Motor,  port7,           intake,        tmotorVex393_MC29, openLoop, reversed, encoderPort, I2C_3)
 #pragma config(Motor,  port9,           flyWheelR1,    tmotorVex393HighSpeed_MC29, openLoop)
 #pragma config(Motor,  port10,          flyWheelR2,    tmotorVex393HighSpeed_HBridge, openLoop, reversed, encoderPort, I2C_2)
@@ -69,7 +69,8 @@ task leftFwControlTask()
         fw->counter++;
 
         // Calculate velocity
-        FwCalculateSpeed(fw, nMotorEncoder[flyWheelL2]);
+        getEncoderAndTimeStamp(flyWheelL2,fw->e_current, fw->encoder_timestamp);
+        FwCalculateSpeed(fw);
 
         // Set current speed for the tbh calculation code
         fw->current = fw->v_current;
@@ -113,7 +114,8 @@ task rightFwControlTask()
         fw->counter++;
 
         // Calculate velocity
-        FwCalculateSpeed(fw, nMotorEncoder[flyWheelR2]);
+        getEncoderAndTimeStamp(flyWheelR2,fw->e_current, fw->encoder_timestamp);
+        FwCalculateSpeed(fw);
 
         // Set current speed for the tbh calculation code
         fw->current = fw->v_current;
@@ -130,6 +132,7 @@ task rightFwControlTask()
 
         // and finally set the motor control value
         setRFly( fw->motor_drive );
+
         // Run at somewhere between 20 and 50mS
         wait1Msec( FW_LOOP_SPEED );
         }
@@ -138,7 +141,7 @@ task rightFwControlTask()
 //prepare to use TBH for flywheel velocity control
 void initializeTBH() {
 	tbhInit(lFly, 392, 0.000325); //initialize TBH for left side of the flywheel
-	tbhInit(rFly, 392, 0.000350); //initialize TBH for the right side of the flywheel
+	tbhInit(rFly, 392, 0.000350); //initialize TBH for right side of the flywheel
 	//motor[intake] = 127;
 	//start the flywheel control tasks
 	startTask(leftFwControlTask);

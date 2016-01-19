@@ -67,11 +67,13 @@ typedef struct _fw_controller {
 
     // Encoder
     long            e_current;              ///< current encoder count
-    long            e_last;                 ///< current encoder count
+    long            e_last;                 ///< last encoder count
+    long						encoder_timestamp;      ///< time of last encoder reading; helps prevent issues relating to I2C timing with multiple IEMs
+		long						encoder_timestamp_last; ///< time of second to last encoder reading
 
     // velocity measurement
     float           v_current;              ///< current velocity in rpm
-    long            v_time;                 ///< Time of last velocity calculation
+    //long            v_time;                 ///< Time of last velocity calculation
 
     // TBH control algorithm variables
     long            target;                 ///< target velocity
@@ -98,7 +100,11 @@ void tbhInit (fw_controller *fw, float MOTOR_TPR, float gain) {
 	fw->MOTOR_TPR = MOTOR_TPR;
 	fw->ticks_per_rev = MOTOR_TPR;
 	fw->gain = gain;
-	fw->alpha = 0.6;
+	fw->alpha = 0.8;
+	//ensure that the variables that store previous values start at 0 (i.e., will have a value and not be null/empty)
+	fw->encoder_timestamp_last = 0;
+	fw->e_last = 0;
+	fw->last_error = 0;
 }
 
 void getNewAverage(fw_controller *fw, float newVal) {
@@ -138,18 +144,17 @@ FwVelocitySet( fw_controller *fw, int velocity, float predicted_drive )
 /** @param[in]  fw pointer to flywheel controller structure                    */
 /*-----------------------------------------------------------------------------*/
 void
-FwCalculateSpeed( fw_controller *fw, long encoderValue )
+FwCalculateSpeed( fw_controller *fw )
 {
     int     delta_ms;
     int     delta_enc;
 
-    // Get current encoder value
-    fw->e_current = encoderValue;
+    //The current encoder value is set by the control task and saved in the fw->e_current variable
 
     // This is just used so we don't need to know how often we are called
     // how many mS since we were last here
-    delta_ms   = nSysTime - fw->v_time;
-    fw->v_time = nSysTime;
+    delta_ms   = fw->encoder_timestamp - fw->encoder_timestamp_last;
+    fw->encoder_timestamp_last = fw->encoder_timestamp;
 
     // Change in encoder count
     delta_enc = (fw->e_current - fw->e_last);
@@ -159,7 +164,10 @@ FwCalculateSpeed( fw_controller *fw, long encoderValue )
 
     // Calculate velocity in rpm
     fw->v_current = (1000.0 / delta_ms) * delta_enc * 60.0 / fw->ticks_per_rev;
-    getNewAverage(fw, fw->v_current);
+
+    getNewAverage(fw, fw->v_current); //this will take the latest calculated RPM average
+    																	//value and factor it into the average, which is then
+   																		//the RPM value used in the TBH calculation
 }
 
 /*-----------------------------------------------------------------------------*/
