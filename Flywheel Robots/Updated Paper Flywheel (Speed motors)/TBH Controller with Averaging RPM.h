@@ -90,6 +90,7 @@ typedef struct _fw_controller {
 
     //for exponential weighted moving average
     float						rpm_average;						///< the current RPM value that TBH should use
+    float						raw_last_rpm;						///< only for debugging the weighted average
     float						alpha;									///< constant for average calculation
 
     // final motor drive
@@ -100,7 +101,7 @@ void tbhInit (fw_controller *fw, float MOTOR_TPR, float gain) {
 	fw->MOTOR_TPR = MOTOR_TPR;
 	fw->ticks_per_rev = MOTOR_TPR;
 	fw->gain = gain;
-	fw->alpha = 0.8;
+	fw->alpha = 0.2;
 	//ensure that the variables that store previous values start at 0 (i.e., will have a value and not be null/empty)
 	fw->encoder_timestamp_last = 0;
 	fw->e_last = 0;
@@ -113,6 +114,7 @@ void getNewAverage(fw_controller *fw, float newVal) {
 	} else {
 	fw->rpm_average = fw->rpm_average*(1 - fw->alpha) + (newVal*fw->alpha);
 	}
+	fw->raw_last_rpm = newVal;
 }
 
 /*-----------------------------------------------------------------------------*/
