@@ -2,7 +2,7 @@
 #pragma config(Sensor, dgtl12, led,            sensorLEDtoVCC)
 #pragma config(Sensor, I2C_1,  ,               sensorQuadEncoderOnI2CPort,    , AutoAssign )
 #pragma config(Sensor, I2C_2,  ,               sensorQuadEncoderOnI2CPort,    , AutoAssign )
-#pragma config(Motor,  port1,           intakeChain,   tmotorVex393HighSpeed_HBridge, openLoop)
+#pragma config(Motor,  port1,           intakeChain,   tmotorVex393HighSpeed_HBridge, openLoop, reversed)
 #pragma config(Motor,  port2,           flyWheelR1,    tmotorVex393HighSpeed_MC29, openLoop)
 #pragma config(Motor,  port3,           flyWheelR2,    tmotorVex393HighSpeed_MC29, openLoop, reversed, encoderPort, I2C_1)
 #pragma config(Motor,  port4,           lDriveFront,   tmotorVex393HighSpeed_MC29, openLoop, reversed)
@@ -170,8 +170,10 @@ float normalizeMotorPower (float value) {
 task usercontrol()
 {
 	initializeTBH();
-	FwVelocitySet(lFly, 136, normalizeMotorPower(82));
-	FwVelocitySet(rFly, 136, normalizeMotorPower(90));
+	FwVelocitySet(lFly, 140, normalizeMotorPower(90));
+	FwVelocitySet(rFly, 140, normalizeMotorPower(94));
+	motor[intakeChain] = 125;
+	motor[intakeRoller] = 125;
 
 	while(1) {
 		writeDebugStreamLine("%d,%d,%d,%d,%d,%d,%d",nPgmTime, lFly.current, lFly.motor_drive, lFly.raw_last_rpm, rFly.current, rFly.motor_drive, rFly.raw_last_rpm);
