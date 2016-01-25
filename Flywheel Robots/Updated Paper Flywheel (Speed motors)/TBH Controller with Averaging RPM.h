@@ -101,7 +101,7 @@ void tbhInit (fw_controller *fw, float MOTOR_TPR, float gain) {
 	fw->MOTOR_TPR = MOTOR_TPR;
 	fw->ticks_per_rev = MOTOR_TPR;
 	fw->gain = gain;
-	fw->alpha = 0.2;
+	fw->alpha = 0.7;
 	//ensure that the variables that store previous values start at 0 (i.e., will have a value and not be null/empty)
 	fw->encoder_timestamp_last = 0;
 	fw->e_last = 0;
