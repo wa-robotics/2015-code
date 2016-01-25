@@ -144,8 +144,8 @@ task rightFwControlTask()
 
 //prepare to use TBH for flywheel velocity control
 void initializeTBH() {
-	tbhInit(lFly, 392, 0.000325); //initialize TBH for left side of the flywheel
-	tbhInit(rFly, 392, 0.000350); //initialize TBH for right side of the flywheel
+	tbhInit(lFly, 392, 0.0003); //initialize TBH for left side of the flywheel
+	tbhInit(rFly, 392, 0.00035); //initialize TBH for right side of the flywheel
 	//motor[intake] = 127;
 	//start the flywheel control tasks
 	startTask(leftFwControlTask);
@@ -166,18 +166,24 @@ void stopFlywheel() {
 float normalizeMotorPower (float value) {
 	return value/(float) 127;
 }
-
+//int rPower=75, lPower=55;
 task usercontrol()
 {
 	initializeTBH();
-	FwVelocitySet(lFly, 140, normalizeMotorPower(90));
-	FwVelocitySet(rFly, 140, normalizeMotorPower(94));
+
+	//ignoring these for a bit because fl
+	//FwVelocitySet(lFly, 125, normalizeMotorPower(55));
+	//FwVelocitySet(rFly, 125, normalizeMotorPower(75));
+	FwVelocitySet(lFly, 146, normalizeMotorPower(75));
+	FwVelocitySet(rFly, 146, normalizeMotorPower(90));
+	//setRFly(rPower)
+	//setLFly(lPower);
 	motor[intakeChain] = 125;
 	motor[intakeRoller] = 125;
 
 	while(1) {
 		writeDebugStreamLine("%d,%d,%d,%d,%d,%d,%d",nPgmTime, lFly.current, lFly.motor_drive, lFly.raw_last_rpm, rFly.current, rFly.motor_drive, rFly.raw_last_rpm);
-		wait1Msec(20);
+		wait1Msec(25);
 		}
 
 }
