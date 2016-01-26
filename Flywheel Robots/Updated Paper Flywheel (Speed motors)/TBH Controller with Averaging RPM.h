@@ -73,6 +73,7 @@ typedef struct _fw_controller {
 
     // velocity measurement
     float           v_current;              ///< current velocity in rpm
+    float						v_last;									///< last velocity in rpm
     //long            v_time;                 ///< Time of last velocity calculation
 
     // TBH control algorithm variables
@@ -101,11 +102,12 @@ void tbhInit (fw_controller *fw, float MOTOR_TPR, float gain) {
 	fw->MOTOR_TPR = MOTOR_TPR;
 	fw->ticks_per_rev = MOTOR_TPR;
 	fw->gain = gain;
-	fw->alpha = 0.7;
+	fw->alpha = 1;
 	//ensure that the variables that store previous values start at 0 (i.e., will have a value and not be null/empty)
 	fw->encoder_timestamp_last = 0;
 	fw->e_last = 0;
 	fw->last_error = 0;
+	fw->v_last = 0;
 }
 
 void getNewAverage(fw_controller *fw, float newVal) {
@@ -165,11 +167,14 @@ FwCalculateSpeed( fw_controller *fw )
     fw->e_last = fw->e_current;
 
     // Calculate velocity in rpm
-    fw->v_current = (1000.0 / delta_ms) * delta_enc * 60.0 / fw->ticks_per_rev;
+    if (delta_ms > 0) { //prevent divide by 0 errors
+    	fw->v_current = (1000.0 / delta_ms) * delta_enc * 60.0 / fw->ticks_per_rev;
 
-    getNewAverage(fw, fw->v_current); //this will take the latest calculated RPM average
+		//only calculate a new average if there was a change in time
+  	getNewAverage(fw, fw->v_current); //this will take the latest calculated RPM average
     																	//value and factor it into the average, which is then
    																		//the RPM value used in the TBH calculation
+   }
 }
 
 /*-----------------------------------------------------------------------------*/
