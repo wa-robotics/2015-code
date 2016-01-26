@@ -365,7 +365,7 @@ task
 rightFwControlTask()
 {
 	// Set the gain
-	gain = 0.0007;
+	gain = 0.000007;///Gain was .0007. I divided by 100. --Crawford
 
 	// We are using Speed geared motors
 	// Set the encoder ticks per revolution
