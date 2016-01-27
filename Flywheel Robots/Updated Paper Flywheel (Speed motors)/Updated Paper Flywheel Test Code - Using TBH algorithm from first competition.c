@@ -4,7 +4,7 @@
 #pragma config(Sensor, I2C_1,  ,               sensorQuadEncoderOnI2CPort,    , AutoAssign )
 #pragma config(Sensor, I2C_2,  ,               sensorQuadEncoderOnI2CPort,    , AutoAssign )
 #pragma config(Sensor, I2C_3,  ,               sensorQuadEncoderOnI2CPort,    , AutoAssign )
-#pragma config(Motor,  port1,           intake1,       tmotorVex393TurboSpeed_HBridge, openLoop, reversed, encoderPort, I2C_3)
+#pragma config(Motor,  port1,           intake1,       tmotorVex393HighSpeed_HBridge, openLoop, reversed, encoderPort, I2C_3)
 #pragma config(Motor,  port2,           Fly6,          tmotorVex393HighSpeed_MC29, openLoop)
 #pragma config(Motor,  port3,           Fly5,          tmotorVex393HighSpeed_MC29, openLoop, reversed, encoderPort, I2C_1)
 #pragma config(Motor,  port4,           Fly3,          tmotorVex393HighSpeed_MC29, openLoop)
@@ -427,7 +427,7 @@ rightFwControlTask()
 task flashYellowLED() {
 	while(1)
 	{
-		if(l_motor_velocity >= 77 && r_motor_velocity >= 77) { //were both 88
+		if(l_motor_velocity >= 134 && r_motor_velocity >= 134) {
 			SensorValue[yellowLED] = 1;
 			wait1Msec(125);
 			SensorValue[yellowLED] = 0;
@@ -455,10 +455,10 @@ task flywheelController() { //manages flywheel starts and stops
 			wait1Msec(500);
 			startTask(leftFwControlTask); //this is ok to run every time because stopping the flywheel also stops the flywheel control tasks
 			startTask(rightFwControlTask);
-			motor[intake1] = 110;
+			motor[intake1] = 105;
 			motor[intake2] = 125;
-			leftFwVelocitySet(133,0.59);//was 100
-			rightFwVelocitySet(133,0.59);//was 100
+			leftFwVelocitySet(136,0.535);//was 100
+			rightFwVelocitySet(136,0.535);//was 100
 			startTask(flashYellowLED);
 			flywheelRunning = true;
 		}
