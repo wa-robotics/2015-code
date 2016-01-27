@@ -243,7 +243,7 @@ task
 leftFwControlTask()
 {
 	// Set the gain
-	gain = 0.0005;
+	gain = 0.0009;
 
 	// We are using Speed geared motors
 	// Set the encoder ticks per revolution
@@ -393,7 +393,7 @@ task
 rightFwControlTask()
 {
 	// Set the gain
-	gain = 0.0005;
+	gain = 0.000950;
 
 	// We are using Speed geared motors
 	// Set the encoder ticks per revolution
@@ -427,12 +427,12 @@ rightFwControlTask()
 task flashYellowLED() {
 	while(1)
 	{
-		if(l_motor_velocity >= 134 && r_motor_velocity >= 134) {
+		if(l_motor_velocity >= 136 && r_motor_velocity >= 136 && l_motor_velocity <= 142 && r_motor_velocity <= 142) {
 			SensorValue[yellowLED] = 1;
-			wait1Msec(125);
+		} else {
 			SensorValue[yellowLED] = 0;
 		}
-		wait1Msec(125);
+		wait1Msec(25);
 	}
 }
 
@@ -452,13 +452,13 @@ task flywheelController() { //manages flywheel starts and stops
 			wait1Msec(750);*/
 			leftFwMotorSet(75);
 			rightFwMotorSet(75);
-			wait1Msec(500);
+			wait1Msec(750);
 			startTask(leftFwControlTask); //this is ok to run every time because stopping the flywheel also stops the flywheel control tasks
 			startTask(rightFwControlTask);
 			motor[intake1] = 105;
 			motor[intake2] = 125;
-			leftFwVelocitySet(136,0.535);//was 100
-			rightFwVelocitySet(136,0.535);//was 100
+			leftFwVelocitySet(138,0.535);//was 100
+			rightFwVelocitySet(138,0.535);//was 100
 			startTask(flashYellowLED);
 			flywheelRunning = true;
 		}
