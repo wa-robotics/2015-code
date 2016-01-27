@@ -5,10 +5,10 @@
 #pragma config(Motor,  port1,           lDriveFront,   tmotorVex393HighSpeed_HBridge, openLoop)
 #pragma config(Motor,  port2,           lDriveBack,    tmotorVex393HighSpeed_MC29, openLoop)
 #pragma config(Motor,  port3,           flywheelL1,    tmotorVex393HighSpeed_MC29, openLoop)
-#pragma config(Motor,  port4,           flywheelR1,    tmotorVex393HighSpeed_MC29, openLoop, reversed, encoderPort, I2C_1)
+#pragma config(Motor,  port4,           flywheelR2,    tmotorVex393HighSpeed_MC29, openLoop, reversed, encoderPort, I2C_1)
 #pragma config(Motor,  port5,           intakeRoller,  tmotorVex393_MC29, openLoop, reversed)
 #pragma config(Motor,  port6,           intakeChain,   tmotorVex393HighSpeed_MC29, openLoop)
-#pragma config(Motor,  port7,           flywheelR2,    tmotorVex393HighSpeed_MC29, openLoop)
+#pragma config(Motor,  port7,           flywheelR1,    tmotorVex393HighSpeed_MC29, openLoop)
 #pragma config(Motor,  port8,           flywheelL2,    tmotorVex393HighSpeed_MC29, openLoop, reversed, encoderPort, I2C_2)
 #pragma config(Motor,  port9,           rDriveBack,    tmotorVex393HighSpeed_MC29, openLoop, reversed)
 #pragma config(Motor,  port10,          rDriveFront,   tmotorVex393HighSpeed_HBridge, openLoop, reversed)
@@ -174,13 +174,13 @@ task usercontrol()
 	//ignoring these for a bit because fl
 	//FwVelocitySet(lFly, 110, normalizeMotorPower(60));
 	//FwVelocitySet(rFly, 110, normalizeMotorPower(75));
-	FwVelocitySet(lFly, 140, normalizeMotorPower(78));
-	FwVelocitySet(rFly, 140, normalizeMotorPower(93));
+	FwVelocitySet(lFly, 143, normalizeMotorPower(83));
+	FwVelocitySet(rFly, 143, normalizeMotorPower(83));
 	//setRFly(rPower)
 	//setLFly(lPower);
 	wait1Msec(750);
-	motor[intakeChain] = 125;
-	motor[intakeRoller] = 125;
+	motor[intakeChain] = 127;
+	motor[intakeRoller] = 127;
 
 	while(1) {
 		writeDebugStreamLine("%d,%d,%d,%d,%d,%d,%d",nPgmTime, lFly.current, lFly.motor_drive, lFly.raw_last_rpm, rFly.current, rFly.motor_drive, rFly.raw_last_rpm);
