@@ -457,7 +457,8 @@ task flashYellowLED() {
 }
 
 
-bool codeTestingOverride = false; //FOR CODE TEST PURPOSES ONLY
+bool codeTestingOverride = true; //FOR CODE TEST PURPOSES ONLY
+bool userIntakeControl = true;
 //for flywheel acceleration; the separate task lets the acceleration code run concurently with other robot functions
 task flywheelController() { //manages flywheel starts and stops
 	while(1) {
@@ -469,16 +470,17 @@ task flywheelController() { //manages flywheel starts and stops
 				wait1Msec(1000);
 				startTask(leftFwControlTask);
 				startTask(rightFwControlTask);
-				motor[intakeChain] = 118;
+				motor[intakeChain] = 116; //118
 				motor[intakeRoller] = 125;
 				L_GAIN = 0.000850; //test this change first
 				R_GAIN = 0.000900;
 				flywheelRunning = true;
 			}
+			userIntakeControl = false;
 			//leftFwVelocitySet(125,0.535);
 			//rightFwVelocitySet(125,0.535);
-			leftFwVelocitySet(126.5,0.535);
-			rightFwVelocitySet(126.5,0.535);
+			leftFwVelocitySet(125,0.535);
+			rightFwVelocitySet(125,0.535);
 			startTask(flashYellowLED);
 		}
 		else if(vexRT[Btn7D] == 1) { //close range
@@ -494,6 +496,7 @@ task flywheelController() { //manages flywheel starts and stops
 					} else {
 					stopTask(flashYellowLED);
 				}
+				userIntakeControl = true;
 				leftFwVelocitySet(80,0.26);
 				rightFwVelocitySet(80,0.26);
 			} else if (vexRT[Btn7L] == 1 && vexRT[Btn8R] == 1) {
@@ -502,6 +505,7 @@ task flywheelController() { //manages flywheel starts and stops
 				leftFwMotorSet(0);
 				rightFwMotorSet(0);
 				flywheelRunning = false;
+				userIntakeControl = true;
 				stopTask(flashYellowLED);
 				SensorValue[yellowLED] = 0; //make sure LEDs are off
 		}
@@ -687,35 +691,36 @@ task usercontrol()
 		writeDebugStreamLine("%d,%d,%d,%d,%d",nPgmTime, l_motor_velocity, l_motor_drive, r_motor_velocity, r_motor_drive);
 		wait1Msec(25);
 
+		if (userIntakeControl) {
+			//intake - chain part
+			if(vexRT[Btn6U] == 1)
+			{
+				motor[intakeChain] = 125;
+			}
+			else if(vexRT[Btn6D] == 1)
+			{
+				motor[intakeChain] = -125;
+			}
+			else
+			{
+				motor[intakeChain] = 0;
+			}
 
-		////intake - chain part
-		//if(vexRT[Btn6U] == 1)
-		//{
-		//	motor[intakeChain] = 125;
-		//}
-		//else if(vexRT[Btn6D] == 1)
-		//{
-		//	motor[intakeChain] = -125;
-		//}
-		//else
-		//{
-		//	motor[intakeChain] = 0;
-		//}
+			//intake - roller
 
-		//intake - roller
-		//if(vexRT[Btn5U] == 1)
-		//{
-		//	motor[intakeRoller] = 125;
-		//}
-		//else if(vexRT[Btn5D] == 1)
-		//{
-		//	motor[intakeRoller] = -125;
-		//}
-		//else
-		//{
-		//	motor[intakeRoller] = 0;
-		//}
-
+			if(vexRT[Btn5U] == 1)
+			{
+				motor[intakeRoller] = 125;
+			}
+			else if(vexRT[Btn5D] == 1)
+			{
+				motor[intakeRoller] = -125;
+			}
+			else
+			{
+				motor[intakeRoller] = 0;
+			}
+	}
 		wait1Msec(25); //so we don't overload the CPU
 	}
 }
