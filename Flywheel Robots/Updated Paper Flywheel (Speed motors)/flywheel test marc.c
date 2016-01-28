@@ -172,10 +172,10 @@ task usercontrol()
 	initializeTBH();
 
 	//ignoring these for a bit because fl
-	//FwVelocitySet(lFly, 110, normalizeMotorPower(60));
-	//FwVelocitySet(rFly, 110, normalizeMotorPower(75));
-	FwVelocitySet(lFly, 143, normalizeMotorPower(83));
-	FwVelocitySet(rFly, 143, normalizeMotorPower(83));
+	//FwVelocitySet(lFly, 110, normalizeMotorPower(67));
+	//FwVelocitySet(rFly, 110, normalizeMotorPower(67));
+	FwVelocitySet(lFly, 154, normalizeMotorPower(82));
+	FwVelocitySet(rFly, 154, normalizeMotorPower(82));
 	//setRFly(rPower)
 	//setLFly(lPower);
 	wait1Msec(750);
