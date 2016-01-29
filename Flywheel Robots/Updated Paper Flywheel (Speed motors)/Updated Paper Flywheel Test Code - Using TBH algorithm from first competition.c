@@ -457,7 +457,7 @@ task flashYellowLED() {
 }
 
 
-bool codeTestingOverride = false; //FOR CODE TEST PURPOSES ONLY
+bool codeTestingOverride = true; //FOR CODE TEST PURPOSES ONLY
 bool userIntakeControl = true;
 //for flywheel acceleration; the separate task lets the acceleration code run concurently with other robot functions
 task flywheelController() { //manages flywheel starts and stops
@@ -470,17 +470,15 @@ task flywheelController() { //manages flywheel starts and stops
 				wait1Msec(1000);
 				startTask(leftFwControlTask);
 				startTask(rightFwControlTask);
-				motor[intakeChain] = 122; //118
-				motor[intakeRoller] = 125;
-				L_GAIN = 0.000900; //test this change first
-				R_GAIN = 0.000900;
 				flywheelRunning = true;
 			}
 			userIntakeControl = false;
-			//leftFwVelocitySet(125,0.535);
-			//rightFwVelocitySet(125,0.535);
-			leftFwVelocitySet(125,0.535);
-			rightFwVelocitySet(125,0.535);
+			L_GAIN = 0.000900; //test this change first
+			R_GAIN = 0.000850;
+			leftFwVelocitySet(120,0.535);
+			rightFwVelocitySet(120,0.535);
+			motor[intakeChain] = 122; //118
+			motor[intakeRoller] = 125;
 			startTask(flashYellowLED);
 		}
 		else if(vexRT[Btn7D] == 1) { //close range
