@@ -457,13 +457,13 @@ task flashYellowLED() {
 }
 
 
-bool codeTestingOverride = true; //FOR CODE TEST PURPOSES ONLY
+int codeTestingOverride = 0; //FOR CODE TEST PURPOSES ONLY; set to 0 to disable, set to 1 for long shooting, 2 for mid-field shooting, and 3 for low goal bar shooting
 bool userIntakeControl = true;
 //for flywheel acceleration; the separate task lets the acceleration code run concurently with other robot functions
 task flywheelController() { //manages flywheel starts and stops
 	while(1) {
 		//activate/deactivate flywheel on joystick button press
-		if(vexRT[Btn7U] == 1 || codeTestingOverride){ //full field
+		if(vexRT[Btn7U] == 1 || codeTestingOverride == 1){ //full field
 			if(!flywheelRunning) {
 				leftFwMotorSet(75);
 				rightFwMotorSet(75);
@@ -481,22 +481,23 @@ task flywheelController() { //manages flywheel starts and stops
 			motor[intakeRoller] = 125;
 			startTask(flashYellowLED);
 		}
-		else if(vexRT[Btn7D] == 1) { //close range
+		else if(vexRT[Btn7D] == 1 || codeTestingOverride == 3) { //close range
 				if(!flywheelRunning) {
-					leftFwMotorSet(40);
-					rightFwMotorSet(40);
-					wait1Msec(1000);
-					L_GAIN = 0.000815;
-					R_GAIN = 0.000865;
+					L_GAIN = 0.000835;
+					R_GAIN = 0.000885;
 					startTask(leftFwControlTask);
 					startTask(rightFwControlTask);
 					flywheelRunning = true;
 					} else {
 					stopTask(flashYellowLED);
 				}
-				userIntakeControl = true;
-				leftFwVelocitySet(80,0.26);
-				rightFwVelocitySet(80,0.26);
+				userIntakeControl = false; //true;
+
+				leftFwVelocitySet(85,0.26);
+				rightFwVelocitySet(85,0.26);
+				wait1Msec(1250);
+				motor[intakeChain] = 125;
+				motor[intakeRoller] = 125;
 			} else if (vexRT[Btn7L] == 1 && vexRT[Btn8R] == 1) {
 				stopTask(leftFwControlTask);
 				stopTask(rightFwControlTask);
