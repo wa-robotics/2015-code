@@ -491,13 +491,16 @@ task flywheelController() { //manages flywheel starts and stops
 					} else {
 					stopTask(flashYellowLED);
 				}
-				userIntakeControl = false; //true;
-
+				userIntakeControl = true;
+				L_GAIN = 0.000835;
+				R_GAIN = 0.000885;
+				//motor[intakeChain] = 125;
+				//motor[intakeRoller] = 125;
 				leftFwVelocitySet(85,0.26);
 				rightFwVelocitySet(85,0.26);
-				wait1Msec(1250);
-				motor[intakeChain] = 125;
-				motor[intakeRoller] = 125;
+				//wait1Msec(1500);
+				//motor[intakeChain] = 125;
+				//motor[intakeRoller] = 125;
 			} else if (vexRT[Btn7L] == 1 && vexRT[Btn8R] == 1) {
 				stopTask(leftFwControlTask);
 				stopTask(rightFwControlTask);
