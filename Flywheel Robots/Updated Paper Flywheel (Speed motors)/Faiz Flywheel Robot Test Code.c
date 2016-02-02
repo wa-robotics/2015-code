@@ -457,7 +457,7 @@ task flashYellowLED() {
 }
 
 
-int codeTestingOverride = 3; //FOR CODE TEST PURPOSES ONLY; set to 0 to disable, set to 1 for long shooting, 2 for mid-field shooting, and 3 for low goal bar shooting
+int codeTestingOverride = 0; //FOR CODE TEST PURPOSES ONLY; set to 0 to disable, set to 1 for long shooting, 2 for mid-field shooting, and 3 for low goal bar shooting
 bool userIntakeControl = true;
 //for flywheel acceleration; the separate task lets the acceleration code run concurently with other robot functions
 task flywheelController() { //manages flywheel starts and stops
@@ -472,7 +472,7 @@ task flywheelController() { //manages flywheel starts and stops
 				startTask(rightFwControlTask);
 				flywheelRunning = true;
 			}
-			userIntakeControl = false;
+			userIntakeControl = false; //disable joystick control of the intake so that the intake can run automatically
 			L_GAIN = 0.000900; //test this change first
 			R_GAIN = 0.000900;
 			leftFwVelocitySet(123,0.535);
@@ -491,11 +491,11 @@ task flywheelController() { //manages flywheel starts and stops
 					} else {
 					stopTask(flashYellowLED);
 				}
-				userIntakeControl = false;
+				userIntakeControl = true; //ensure that the driver can control the intake for close shooting
 				L_GAIN = 0.000835;
 				R_GAIN = 0.000885;
-				motor[intakeChain] = 125;
-				motor[intakeRoller] = 125;
+				//motor[intakeChain] = 125;
+				//motor[intakeRoller] = 125;
 				leftFwVelocitySet(85,0.26);
 				rightFwVelocitySet(85,0.26);
 				//wait1Msec(1500);
@@ -507,9 +507,9 @@ task flywheelController() { //manages flywheel starts and stops
 				leftFwMotorSet(0);
 				rightFwMotorSet(0);
 				flywheelRunning = false;
-				userIntakeControl = true;
+				userIntakeControl = true; //ensure that the driver can control the intake
 				stopTask(flashYellowLED);
-				SensorValue[yellowLED] = 0; //make sure LEDs are off
+				SensorValue[yellowLED] = 0; //make sure LED is off
 		}
 	}
 }
