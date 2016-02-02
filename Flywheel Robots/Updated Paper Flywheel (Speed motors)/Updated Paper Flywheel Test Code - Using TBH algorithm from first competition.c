@@ -473,43 +473,43 @@ task flywheelController() { //manages flywheel starts and stops
 				flywheelRunning = true;
 			}
 			userIntakeControl = false;
-			L_GAIN = 0.000900; //test this change first
-			R_GAIN = 0.000850;
-			leftFwVelocitySet(120,0.535);
-			rightFwVelocitySet(120,0.535);
-			motor[intakeChain] = 122; //118
+			L_GAIN = 0.000925;
+			R_GAIN = 0.000950;
+			leftFwVelocitySet(132,0.535);
+			rightFwVelocitySet(132,0.535);
+			motor[intakeChain] = 124; //118
 			motor[intakeRoller] = 125;
 			startTask(flashYellowLED);
 		}
 		else if(vexRT[Btn7D] == 1 || codeTestingOverride == 3) { //close range
-				if(!flywheelRunning) {
-					L_GAIN = 0.000835;
-					R_GAIN = 0.000885;
-					startTask(leftFwControlTask);
-					startTask(rightFwControlTask);
-					flywheelRunning = true;
-					} else {
-					stopTask(flashYellowLED);
-				}
-				userIntakeControl = true;
-				L_GAIN = 0.000835;
-				R_GAIN = 0.000885;
-				//motor[intakeChain] = 125;
-				//motor[intakeRoller] = 125;
-				leftFwVelocitySet(85,0.26);
-				rightFwVelocitySet(85,0.26);
-				//wait1Msec(1500);
-				//motor[intakeChain] = 125;
-				//motor[intakeRoller] = 125;
-			} else if (vexRT[Btn7L] == 1 && vexRT[Btn8R] == 1) {
-				stopTask(leftFwControlTask);
-				stopTask(rightFwControlTask);
-				leftFwMotorSet(0);
-				rightFwMotorSet(0);
-				flywheelRunning = false;
-				userIntakeControl = true;
+			if(!flywheelRunning) {
+				L_GAIN = 0.000845;
+				R_GAIN = 0.000895;
+				startTask(leftFwControlTask);
+				startTask(rightFwControlTask);
+				flywheelRunning = true;
+				} else {
 				stopTask(flashYellowLED);
-				SensorValue[yellowLED] = 0; //make sure LEDs are off
+			}
+			userIntakeControl = true;
+			L_GAIN = 0.000845;
+			R_GAIN = 0.000895;
+			//motor[intakeChain] = 125;
+			//motor[intakeRoller] = 125;
+			leftFwVelocitySet(85,0.26);
+			rightFwVelocitySet(85,0.26);
+			//wait1Msec(1500);
+			//motor[intakeChain] = 125;
+			//motor[intakeRoller] = 125;
+			} else if (vexRT[Btn7L] == 1 && vexRT[Btn8R] == 1) {
+			stopTask(leftFwControlTask);
+			stopTask(rightFwControlTask);
+			leftFwMotorSet(0);
+			rightFwMotorSet(0);
+			flywheelRunning = false;
+			userIntakeControl = true;
+			stopTask(flashYellowLED);
+			SensorValue[yellowLED] = 0; //make sure LEDs are off
 		}
 	}
 }
@@ -581,28 +581,21 @@ clearLCDLine(1);
 
 task autonomouscode()
 {
-	startTask(flywheelsForAutonomous);
-	wait10Msec(600);
-	motor[intakeChain] = 127;
-	motor[intakeRoller] = 127;
-	wait10Msec(85);
-	motor[intakeChain] = 0;
-	motor[intakeRoller] = 0;
-	wait10Msec(85);
-
-	motor[intakeChain] = 127;
-	motor[intakeRoller] = 127;
-	wait10Msec(85);
-	motor[intakeChain] = 0;
-	motor[intakeRoller] = 0;
-	wait10Msec(75);
-
-	motor[intakeChain] = 127;
-	motor[intakeRoller] = 127;
-	wait10Msec(85);
-	motor[intakeChain] = 0;
-	motor[intakeRoller] = 0;
-	wait10Msec(150);
+	leftFwMotorSet(75);
+	rightFwMotorSet(75);
+	wait1Msec(1000);
+	startTask(leftFwControlTask);
+	startTask(rightFwControlTask);
+	L_GAIN = 0.000885;
+	R_GAIN = 0.000910;
+	leftFwVelocitySet(125,0.535);
+	rightFwVelocitySet(125,0.535);
+	wait1Msec(2400);
+	userIntakeControl = false;
+	motor[intakeChain] = 118; //118
+	motor[intakeRoller] = 125;
+	startTask(flashYellowLED);
+	wait1Msec(15000);
 
 }
 void LCDselection(){
@@ -676,7 +669,7 @@ task usercontrol()
 
 	// Start the flywheel control task
 	startTask(flywheelController);
-
+	startTask(autonomouscode);
 	while(true)
 	{
 		//drivetrain
@@ -722,7 +715,7 @@ task usercontrol()
 			{
 				motor[intakeRoller] = 0;
 			}
-	}
+		}
 		wait1Msec(25); //so we don't overload the CPU
 	}
 }
