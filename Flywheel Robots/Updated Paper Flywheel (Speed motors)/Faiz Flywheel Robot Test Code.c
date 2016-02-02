@@ -475,8 +475,8 @@ task flywheelController() { //manages flywheel starts and stops
 			userIntakeControl = false; //disable joystick control of the intake so that the intake can run automatically
 			L_GAIN = 0.000900; //test this change first
 			R_GAIN = 0.000900;
-			leftFwVelocitySet(123,0.535);
-			rightFwVelocitySet(123,0.535);
+			leftFwVelocitySet(135,0.535);
+			rightFwVelocitySet(135,0.535);
 			motor[intakeChain] = 125; //118
 			motor[intakeRoller] = 125;
 			startTask(flashYellowLED);
