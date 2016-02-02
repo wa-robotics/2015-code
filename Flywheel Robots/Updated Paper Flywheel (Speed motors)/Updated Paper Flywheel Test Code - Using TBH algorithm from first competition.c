@@ -473,12 +473,12 @@ task flywheelController() { //manages flywheel starts and stops
 				flywheelRunning = true;
 			}
 			userIntakeControl = false;
-			L_GAIN = 0.000925;
-			R_GAIN = 0.000950;
-			leftFwVelocitySet(132,0.535);
-			rightFwVelocitySet(132,0.535);
-			motor[intakeChain] = 124; //118
-			motor[intakeRoller] = 125;
+			L_GAIN = 0.000900;
+			R_GAIN = 0.000925;
+			leftFwVelocitySet(142,0.535);
+			rightFwVelocitySet(142,0.535);
+			motor[intakeChain] = 95; //118
+			motor[intakeRoller] = 95;
 			startTask(flashYellowLED);
 		}
 		else if(vexRT[Btn7D] == 1 || codeTestingOverride == 3) { //close range
@@ -669,7 +669,7 @@ task usercontrol()
 
 	// Start the flywheel control task
 	startTask(flywheelController);
-	startTask(autonomouscode);
+	//startTask(autonomouscode);
 	while(true)
 	{
 		//drivetrain
