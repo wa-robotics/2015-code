@@ -457,7 +457,7 @@ task flashYellowLED() {
 }
 
 
-int codeTestingOverride = 0; //FOR CODE TEST PURPOSES ONLY; set to 0 to disable, set to 1 for long shooting, 2 for mid-field shooting, and 3 for low goal bar shooting
+int codeTestingOverride = 1; //FOR CODE TEST PURPOSES ONLY; set to 0 to disable, set to 1 for long shooting, 2 for mid-field shooting, and 3 for low goal bar shooting
 bool userIntakeControl = true;
 //for flywheel acceleration; the separate task lets the acceleration code run concurently with other robot functions
 task flywheelController() { //manages flywheel starts and stops
@@ -473,18 +473,21 @@ task flywheelController() { //manages flywheel starts and stops
 				flywheelRunning = true;
 			}
 			userIntakeControl = false; //disable joystick control of the intake so that the intake can run automatically
-			L_GAIN = 0.000900; //test this change first
-			R_GAIN = 0.000900;
-			leftFwVelocitySet(135,0.535);
-			rightFwVelocitySet(135,0.535);
+			L_GAIN = 0.000600; //test this change first
+			R_GAIN = 0.000600;
+			leftFwVelocitySet(129,0.535);
+			rightFwVelocitySet(129,0.535);
 			motor[intakeChain] = 125; //118
 			motor[intakeRoller] = 125;
 			startTask(flashYellowLED);
 		}
 		else if(vexRT[Btn7D] == 1 || codeTestingOverride == 3) { //close range
 				if(!flywheelRunning) {
-					L_GAIN = 0.000835;
-					R_GAIN = 0.000885;
+					leftFwMotorSet(40);
+					rightFwMotorSet(40);
+					wait1Msec(1000);
+					L_GAIN = 0.00045;
+					R_GAIN = 0.00045;
 					startTask(leftFwControlTask);
 					startTask(rightFwControlTask);
 					flywheelRunning = true;
@@ -492,24 +495,24 @@ task flywheelController() { //manages flywheel starts and stops
 					stopTask(flashYellowLED);
 				}
 				userIntakeControl = true; //ensure that the driver can control the intake for close shooting
-				L_GAIN = 0.000835;
-				R_GAIN = 0.000885;
+				L_GAIN = 0.00045;
+				R_GAIN = 0.00045;
 				//motor[intakeChain] = 125;
 				//motor[intakeRoller] = 125;
-				leftFwVelocitySet(85,0.26);
-				rightFwVelocitySet(85,0.26);
+				leftFwVelocitySet(87,0.26);
+				rightFwVelocitySet(87,0.26);
 				//wait1Msec(1500);
 				//motor[intakeChain] = 125;
 				//motor[intakeRoller] = 125;
 			} else if (vexRT[Btn7L] == 1 && vexRT[Btn8R] == 1) {
-				stopTask(leftFwControlTask);
-				stopTask(rightFwControlTask);
-				leftFwMotorSet(0);
-				rightFwMotorSet(0);
-				flywheelRunning = false;
-				userIntakeControl = true; //ensure that the driver can control the intake
-				stopTask(flashYellowLED);
-				SensorValue[yellowLED] = 0; //make sure LED is off
+			stopTask(leftFwControlTask);
+			stopTask(rightFwControlTask);
+			leftFwMotorSet(0);
+			rightFwMotorSet(0);
+			flywheelRunning = false;
+			userIntakeControl = true; //ensure that the driver can control the intake
+			stopTask(flashYellowLED);
+			SensorValue[yellowLED] = 0; //make sure LED is off
 		}
 	}
 }
@@ -723,7 +726,7 @@ task usercontrol()
 			{
 				motor[intakeRoller] = 0;
 			}
-	}
+		}
 		wait1Msec(25); //so we don't overload the CPU
 	}
 }
