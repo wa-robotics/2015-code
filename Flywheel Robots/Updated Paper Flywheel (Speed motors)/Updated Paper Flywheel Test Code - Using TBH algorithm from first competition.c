@@ -473,31 +473,31 @@ task flywheelController() { //manages flywheel starts and stops
 				flywheelRunning = true;
 			}
 			userIntakeControl = false;
-			L_GAIN = 0.000900;
-			R_GAIN = 0.000925;
-			leftFwVelocitySet(142,0.535);
-			rightFwVelocitySet(142,0.535);
+			L_GAIN = .00055//evan's most recent: 0.000900;
+			R_GAIN = .000600//evan's most recent: 0.000925;
+			leftFwVelocitySet(135,0.535);//evan's most recent: 142
+			rightFwVelocitySet(145,0.535);//evan's most recent: 142
 			motor[intakeChain] = 95; //118
 			motor[intakeRoller] = 95;
 			startTask(flashYellowLED);
 		}
 		else if(vexRT[Btn7D] == 1 || codeTestingOverride == 3) { //close range
 			if(!flywheelRunning) {
-				L_GAIN = 0.000845;
-				R_GAIN = 0.000895;
-				startTask(leftFwControlTask);
+				L_GAIN = 0.00055;
+				R_GAIN = 0.00055;
+			startTask(leftFwControlTask);
 				startTask(rightFwControlTask);
 				flywheelRunning = true;
 				} else {
 				stopTask(flashYellowLED);
 			}
-			userIntakeControl = true;
-			L_GAIN = 0.000845;
-			R_GAIN = 0.000895;
-			//motor[intakeChain] = 125;
-			//motor[intakeRoller] = 125;
-			leftFwVelocitySet(85,0.26);
-			rightFwVelocitySet(85,0.26);
+				userIntakeControl = true;
+				L_GAIN = 0.00055;
+				R_GAIN = 0.00055;
+				//motor[intakeChain] = 125;
+				//motor[intakeRoller] = 125;
+				leftFwVelocitySet(84,0.26);
+				rightFwVelocitySet(84,0.26);
 			//wait1Msec(1500);
 			//motor[intakeChain] = 125;
 			//motor[intakeRoller] = 125;
@@ -630,6 +630,11 @@ void pre_auton()
 	// Example: clearing encoders, setting servo positions, ...
 }
 
+void moveIntake (int amount) {
+
+
+}
+
 /////////////////////////////////////////////////////////////////////////////////////////
 //
 //                                 Autonomous Task
@@ -715,6 +720,16 @@ task usercontrol()
 			{
 				motor[intakeRoller] = 0;
 			}
+
+			//back up intake to allow flywheels to start
+			if(vexRT[Btn7L] == 1) {
+				moveIntake(135);
+			}
+
+	//7R center shootin
+	//7L back up
+	//8U/8R stop fw
+	//8L drive forward at fullish power
 		}
 		wait1Msec(25); //so we don't overload the CPU
 	}
