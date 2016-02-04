@@ -457,7 +457,7 @@ task flashYellowLED() {
 }
 
 
-int codeTestingOverride = 1; //FOR CODE TEST PURPOSES ONLY; set to 0 to disable, set to 1 for long shooting, 2 for mid-field shooting, and 3 for low goal bar shooting
+int codeTestingOverride = 0; //FOR CODE TEST PURPOSES ONLY; set to 0 to disable, set to 1 for long shooting, 2 for mid-field shooting, and 3 for low goal bar shooting
 bool userIntakeControl = true;
 //for flywheel acceleration; the separate task lets the acceleration code run concurently with other robot functions
 task flywheelController() { //manages flywheel starts and stops
