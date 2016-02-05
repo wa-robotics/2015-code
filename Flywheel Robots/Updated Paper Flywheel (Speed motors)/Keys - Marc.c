@@ -271,8 +271,8 @@ task usercontrol()
 		if(vexRT[Btn7D] == 1 || testing == 1)
 		{
 			initializeTBH();
-			FwVelocitySet(lFly, 155, normalizeMotorPower(85));
-			FwVelocitySet(rFly, 155, normalizeMotorPower(85));
+			FwVelocitySet(lFly, 138, normalizeMotorPower(85));
+			FwVelocitySet(rFly, 138, normalizeMotorPower(85));
 			while(testing == 1)
 			{
 			}
@@ -280,8 +280,8 @@ task usercontrol()
 		else if(vexRT[Btn7L] == 1)
 		{
 			initializeTBHClose();
-			FwVelocitySet(lFly, 63, normalizeMotorPower(55));
-			FwVelocitySet(rFly, 63, normalizeMotorPower(55));
+			FwVelocitySet(lFly, 30, normalizeMotorPower(55));
+			FwVelocitySet(rFly, 30, normalizeMotorPower(55));
 		}
 		else if(vexRT[Btn7U] == 1 || testing == 2)
 		{
