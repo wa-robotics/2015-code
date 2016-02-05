@@ -3,12 +3,14 @@
 #pragma config(Sensor, I2C_1,  ,               sensorQuadEncoderOnI2CPort,    , AutoAssign )
 #pragma config(Sensor, I2C_2,  ,               sensorQuadEncoderOnI2CPort,    , AutoAssign )
 #pragma config(Sensor, I2C_3,  ,               sensorQuadEncoderOnI2CPort,    , AutoAssign )
-#pragma config(Motor,  port1,           intakeRoller,  tmotorVex393_HBridge, openLoop, reversed)
+#pragma config(Sensor, I2C_4,  ,               sensorQuadEncoderOnI2CPort,    , AutoAssign )
+#pragma config(Sensor, I2C_5,  ,               sensorQuadEncoderOnI2CPort,    , AutoAssign )
+#pragma config(Motor,  port1,           intakeRoller,  tmotorVex393_HBridge, openLoop)
 #pragma config(Motor,  port2,           flywheelR1,    tmotorVex393HighSpeed_MC29, openLoop, reversed, encoderPort, I2C_1)
 #pragma config(Motor,  port3,           flywheelR2,    tmotorVex393HighSpeed_MC29, openLoop)
-#pragma config(Motor,  port4,           rDriveBack,    tmotorVex393HighSpeed_MC29, openLoop, reversed)
+#pragma config(Motor,  port4,           rDriveBack,    tmotorVex393HighSpeed_MC29, openLoop, reversed, encoderPort, I2C_4)
 #pragma config(Motor,  port5,           rDriveFront,   tmotorVex393HighSpeed_MC29, openLoop, reversed, encoderPort, I2C_3)
-#pragma config(Motor,  port6,           lDriveBack,    tmotorVex393HighSpeed_MC29, openLoop)
+#pragma config(Motor,  port6,           lDriveBack,    tmotorVex393HighSpeed_MC29, openLoop, encoderPort, I2C_5)
 #pragma config(Motor,  port7,           lDriveFront,   tmotorVex393HighSpeed_MC29, openLoop)
 #pragma config(Motor,  port8,           flywheelL1,    tmotorVex393HighSpeed_MC29, openLoop, reversed)
 #pragma config(Motor,  port9,           flywheelL2,    tmotorVex393HighSpeed_MC29, openLoop, encoderPort, I2C_2)
@@ -179,8 +181,8 @@ task rightFwControlTask()
 
 //prepare to use TBH for flywheel velocity control
 void initializeTBH() {
-	tbhInit(lFly, 392, 0.000550);//.0002 //initialize TBH for left side of the flywheel
-	tbhInit(rFly, 392, 0.000550); //.000275 //initialize TBH for right side of the flywheel
+	tbhInit(lFly, 392, 0.000600);//.0002 //initialize TBH for left side of the flywheel
+	tbhInit(rFly, 392, 0.000600); //.000275 //initialize TBH for right side of the flywheel
 	//motor[intake] = 127;
 	//start the flywheel control tasks
 	startTask(leftFwControlTask);
@@ -188,13 +190,23 @@ void initializeTBH() {
 }
 
 void initializeTBHClose() {
-	tbhInit(lFly, 392, 0.000310);//.0002 //initialize TBH for left side of the flywheel
-	tbhInit(rFly, 392, 0.000310); //.000275 //initialize TBH for right side of the flywheel
+	tbhInit(lFly, 392, 0.0002975);//.0002 //initialize TBH for left side of the flywheel
+	tbhInit(rFly, 392, 0.0002975); //.000275 //initialize TBH for right side of the flywheel
 	//motor[intake] = 127;
 	//start the flywheel control tasks
 	startTask(leftFwControlTask);
 	startTask(rightFwControlTask);
 }
+
+void initializeTBHSkills() {
+	tbhInit(lFly, 392, 0.00085);//.0002 //initialize TBH for left side of the flywheel
+	tbhInit(rFly, 392, 0.00085); //.000275 //initialize TBH for right side of the flywheel
+	//motor[intake] = 127;
+	//start the flywheel control tasks
+	startTask(leftFwControlTask);
+	startTask(rightFwControlTask);
+}
+
 void initializeTBHfast() {
 	tbhInit(lFly, 392, 0.00085);//.0002 //initialize TBH for left side of the flywheel
 	tbhInit(rFly, 392, 0.00085); //.000275 //initialize TBH for right side of the flywheel
@@ -221,6 +233,11 @@ float normalizeMotorPower (float value) {
 //int rPower=75, lPower=55;
 task usercontrol()
 {
+			initializeTBHSkills();
+			FwVelocitySet(lFly, 105, normalizeMotorPower(70));
+			FwVelocitySet(rFly, 105, normalizeMotorPower(70));
+			motor[intakeChain] = 125;
+			motor[intakeRoller] = 125;
 	bool flywheelRunning = true;
 	while(1) {
 		motor[lDriveFront] = vexRT[Ch3];
@@ -253,7 +270,7 @@ task usercontrol()
 		}
 		else
 		{
-			motor[intakeRoller] = 0;
+			//motor[intakeRoller] = 0;
 		}
 
 		if(vexRT[Btn5D] == 1 || testing == 1 || testing == 2)
@@ -266,26 +283,26 @@ task usercontrol()
 		}
 		else
 		{
-			motor[intakeChain] = 0;
+			//motor[intakeChain] = 0;
 		}
 
-		if(vexRT[Btn7D] == 1)
+		if(vexRT[Btn7U] == 1) //far shooting
 		{
 			initializeTBH();
-			FwVelocitySet(lFly, 130, normalizeMotorPower(85));
-			FwVelocitySet(rFly, 130, normalizeMotorPower(85));
+			FwVelocitySet(lFly, 146, normalizeMotorPower(85));
+			FwVelocitySet(rFly, 146, normalizeMotorPower(85));
 		}
-		else if(vexRT[Btn7L] == 1)
+		else if(vexRT[Btn7D] == 1) //close shooting
 		{
-			initializeTBH();
-			FwVelocitySet(lFly, 101, normalizeMotorPower(55));
-			FwVelocitySet(rFly, 101, normalizeMotorPower(55));
+			initializeTBHClose();
+			FwVelocitySet(lFly, 94, normalizeMotorPower(55));
+			FwVelocitySet(rFly, 94, normalizeMotorPower(55));
 		}
-		else if(vexRT[Btn7U] == 1 || testing == 2)
+		else if(vexRT[Btn7R] == 1) //close shooting
 		{
-			initializeTBHfast();
-			FwVelocitySet(lFly, 155, normalizeMotorPower(85));
-			FwVelocitySet(rFly, 155, normalizeMotorPower(85));
+			initializeTBHSkills();
+			FwVelocitySet(lFly, 125, normalizeMotorPower(70));
+			FwVelocitySet(rFly, 125, normalizeMotorPower(70));
 		}
 		else if(vexRT[Btn8D] == 1)
 		{
