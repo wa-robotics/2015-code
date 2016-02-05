@@ -483,8 +483,8 @@ task flywheelController() { //manages flywheel starts and stops
 		}
 		else if(vexRT[Btn7D] == 1 || codeTestingOverride == 3) { //close range
 			if(!flywheelRunning) {
-				L_GAIN = 0.00055;
-				R_GAIN = 0.00055;
+				L_GAIN = 0.00053;
+				R_GAIN = 0.00053;
 			startTask(leftFwControlTask);
 				startTask(rightFwControlTask);
 				flywheelRunning = true;
@@ -496,8 +496,8 @@ task flywheelController() { //manages flywheel starts and stops
 				R_GAIN = 0.00055;
 				//motor[intakeChain] = 125;
 				//motor[intakeRoller] = 125;
-				leftFwVelocitySet(84,0.26);
-				rightFwVelocitySet(84,0.26);
+				leftFwVelocitySet(86,0.26);
+				rightFwVelocitySet(86,0.26);
 			//wait1Msec(1500);
 			//motor[intakeChain] = 125;
 			//motor[intakeRoller] = 125;
