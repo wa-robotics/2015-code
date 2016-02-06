@@ -233,12 +233,6 @@ float normalizeMotorPower (float value) {
 //int rPower=75, lPower=55;
 task usercontrol()
 {
-			initializeTBHSkills();
-			FwVelocitySet(lFly, 105, normalizeMotorPower(70));
-			FwVelocitySet(rFly, 105, normalizeMotorPower(70));
-			motor[intakeChain] = 125;
-			motor[intakeRoller] = 125;
-	bool flywheelRunning = true;
 	while(1) {
 		motor[lDriveFront] = vexRT[Ch3];
 		motor[rDriveFront] = vexRT[Ch2];
@@ -270,7 +264,7 @@ task usercontrol()
 		}
 		else
 		{
-			//motor[intakeRoller] = 0;
+			motor[intakeRoller] = 0;
 		}
 
 		if(vexRT[Btn5D] == 1 || testing == 1 || testing == 2)
@@ -283,7 +277,7 @@ task usercontrol()
 		}
 		else
 		{
-			//motor[intakeChain] = 0;
+			motor[intakeChain] = 0;
 		}
 
 		if(vexRT[Btn7U] == 1) //far shooting
@@ -298,11 +292,11 @@ task usercontrol()
 			FwVelocitySet(lFly, 94, normalizeMotorPower(55));
 			FwVelocitySet(rFly, 94, normalizeMotorPower(55));
 		}
-		else if(vexRT[Btn7R] == 1) //close shooting
+		else if(vexRT[Btn7R] == 1) //skills (purple) shooting
 		{
 			initializeTBHSkills();
-			FwVelocitySet(lFly, 125, normalizeMotorPower(70));
-			FwVelocitySet(rFly, 125, normalizeMotorPower(70));
+			FwVelocitySet(lFly, 105, normalizeMotorPower(70));
+			FwVelocitySet(rFly, 105, normalizeMotorPower(70));
 		}
 		else if(vexRT[Btn8D] == 1)
 		{
