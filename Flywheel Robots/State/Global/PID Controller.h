@@ -40,7 +40,7 @@ typedef struct _fw_controller {
     long            last;                   ///< last velocity
     float           error;                  ///< error between actual and target velocities
     float           last_error;             ///< error last time update called
-    float						sumError;								///< sum of error for integral calculation
+    float						errorSum;								///< sum of error for integral calculation
     float           drive;                  ///< final drive out of PI (0.0 to 1.0)
     float           drive_at_zero;          ///< drive at last zero crossing
     long            first_cross;            ///< flag indicating first zero crossing
@@ -60,7 +60,7 @@ typedef struct _fw_controller {
     long            motor_drive;            ///< final motor control value
     } fw_controller;
 
-void tbhInit (fw_controller *fw, float MOTOR_TPR, float Kp, float Ki) {
+void pidInit (fw_controller *fw, float MOTOR_TPR, float Kp, float Ki) {
 	fw->MOTOR_TPR = MOTOR_TPR;
 	fw->ticks_per_rev = MOTOR_TPR;
 	fw->Kp = Kp;
@@ -100,11 +100,11 @@ FwVelocitySet( fw_controller *fw, int velocity, float predicted_drive )
     fw->last_error    = fw->error;
 
     // Set predicted open loop drive value
-    fw->drive_approx  = predicted_drive;
+    fw->drive_approx  = predicted_drive; //drive_approx is used as the power on the first zero-crossing after a setpoint change
     // Set flag to detect first zero crossing
     fw->first_cross   = 1;
     // clear tbh variable
-    fw->drive_at_zero = drive_approx; //this is the constant in the PI equation, but it gets updated on zero crossings
+    fw->drive_at_zero = fw->drive_approx; //drive_at_zero is the constant in the PID equation.  this gets revised at zero-crossings (feed-forward)
 }
 
 /*-----------------------------------------------------------------------------*/
