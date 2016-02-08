@@ -104,7 +104,7 @@ FwVelocitySet( fw_controller *fw, int velocity, float predicted_drive )
     // Set flag to detect first zero crossing
     fw->first_cross   = 1;
     // clear tbh variable
-    fw->drive_at_zero = fw->drive_approx; //drive_at_zero is the constant in the PID equation.  this gets revised at zero-crossings (feed-forward)
+    fw->drive_at_zero = 0; //drive_at_zero is the constant in the PID equation.  this gets revised at zero-crossings (feed-forward)
 }
 
 /*-----------------------------------------------------------------------------*/
@@ -139,6 +139,7 @@ FwCalculateSpeed( fw_controller *fw )
     																	//value and factor it into the average, which is then
    																		//the RPM value used in the TBH calculation
    }
+   writeDebugStreamLine("%d %d %d %d",delta_enc,delta_ms,fw->ticks_per_rev);
 }
 
 /*-----------------------------------------------------------------------------*/
@@ -160,7 +161,7 @@ FwControlUpdateVelocity( fw_controller *fw )
 		// This equation adds the P and I components to the estimated motor power to achieve the setpoint
 		// drive_at_zero gets redefined to be more accurate on zero crossings but starts at the user's guesstimate
 		// In theory, this means that P and I mainly account for balls shots and battery differences
-    fw->drive = (fw->error * fw->Kp) + (fw->errorSum + fw->Ki) + fw->drive_at_zero;
+    fw->drive = (fw->error * fw->Kp) + (fw->errorSum * fw->Ki) + fw->drive_at_zero;
 
     // Clip - we are only going forwards
     if( fw->drive > 1 )
@@ -176,8 +177,8 @@ FwControlUpdateVelocity( fw_controller *fw )
             fw->drive = fw->drive_approx;
             fw->first_cross = 0;
         }
-        //else
-        //    fw->drive = 0.5 * ( fw->drive + fw->drive_at_zero );
+        else
+            fw->drive = 0.5 * ( fw->drive + fw->drive_at_zero );
 
         // Save this drive value in the "tbh" variable
         fw->drive_at_zero = fw->drive;
