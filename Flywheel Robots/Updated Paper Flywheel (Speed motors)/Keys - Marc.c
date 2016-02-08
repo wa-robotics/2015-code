@@ -79,17 +79,7 @@ void setRFly(int output)
 	motor[flyWheelR1] = output;
 	motor[flyWheelR2] = output;
 }
-task autonomous()
-{
-	driveRobot(1,100,350);
-	setLFly(60);
-	setRFly(60);
-	wait10Msec(200);
-	motor[intakeRoller] = 50;
-	motor[intakeChain] = -50;
-	driveRobot(-1,100,20);
-	driveRobot(1,0,1000);
-}
+
 /*-----------------------------------------------------------------------------*/
 /** @brief     Task to control the velocity of the left flywheel               */
 /*-----------------------------------------------------------------------------*/
@@ -217,6 +207,30 @@ void stopFlywheel() {
 float normalizeMotorPower (float value) {
 	return value/(float) 127;
 }
+
+task autonomous()
+{
+	initializeTBH();
+	FwVelocitySet(lFly, 127, normalizeMotorPower(85));
+	FwVelocitySet(rFly, 127, normalizeMotorPower(85));
+	wait1Msec(2500);
+
+	//1st ball
+	motor[intakeChain] = -125;
+	motor[intakeRoller] = -125;
+	wait1Msec(500);
+	motor[intakeChain] = 0;
+	motor[intakeRoller] = 0;
+	//driveRobot(1,100,350);
+	//setLFly(60);
+	//setRFly(60);
+	//wait10Msec(200);
+	//motor[intakeRoller] = 50;
+	//motor[intakeChain] = -50;
+	//driveRobot(-1,100,20);
+	//driveRobot(1,0,1000);
+}
+
 //int rPower=75, lPower=55;
 task usercontrol()
 {
@@ -268,20 +282,20 @@ task usercontrol()
 			motor[intakeChain] = 0;
 		}
 
-		if(vexRT[Btn7D] == 1 || testing == 1)
+		if(vexRT[Btn7D] == 1 || testing == 1) //long shooting
 		{
 			initializeTBH();
-			FwVelocitySet(lFly, 138, normalizeMotorPower(85));
-			FwVelocitySet(rFly, 138, normalizeMotorPower(85));
+			FwVelocitySet(lFly, 137, normalizeMotorPower(85));
+			FwVelocitySet(rFly, 137, normalizeMotorPower(85));
 			while(testing == 1)
 			{
 			}
 		}
-		else if(vexRT[Btn7L] == 1)
+		else if(vexRT[Btn7L] == 1) //short shooting
 		{
 			initializeTBHClose();
-			FwVelocitySet(lFly, 30, normalizeMotorPower(55));
-			FwVelocitySet(rFly, 30, normalizeMotorPower(55));
+			FwVelocitySet(lFly, 43, normalizeMotorPower(55));
+			FwVelocitySet(rFly, 40, normalizeMotorPower(55));
 		}
 		else if(vexRT[Btn7U] == 1 || testing == 2)
 		{
