@@ -3,8 +3,8 @@
 #pragma config(Sensor, I2C_2,  ,               sensorQuadEncoderOnI2CPort,    , AutoAssign )
 #pragma config(Sensor, I2C_3,  ,               sensorQuadEncoderOnI2CPort,    , AutoAssign )
 #pragma config(Motor,  port1,           intakeChain,   tmotorVex393HighSpeed_HBridge, openLoop, encoderPort, I2C_3)
-#pragma config(Motor,  port2,           rFlyTop,       tmotorVex393HighSpeed_MC29, openLoop, reversed)
-#pragma config(Motor,  port3,           rFlyBottom,    tmotorVex393HighSpeed_MC29, openLoop, encoderPort, I2C_2)
+#pragma config(Motor,  port2,           rFlyTop,       tmotorVex393HighSpeed_MC29, openLoop)
+#pragma config(Motor,  port3,           rFlyBottom,    tmotorVex393HighSpeed_MC29, openLoop, reversed, encoderPort, I2C_2)
 #pragma config(Motor,  port4,           rDriveFront,   tmotorVex393HighSpeed_MC29, openLoop)
 #pragma config(Motor,  port5,           rDriveBack,    tmotorVex393HighSpeed_MC29, openLoop)
 #pragma config(Motor,  port6,           lDriveBack,    tmotorVex393HighSpeed_MC29, openLoop)
@@ -22,7 +22,7 @@
 #pragma userControlDuration(120)
 
 #include "Vex_Competition_Includes.c"   //Main competition background code...do not modify!
-#include "..\Global\PID Controller.h"
+#include "..\Global\Simple PID Controller.h"
 
 fw_controller lFly, rFly;
 string str;
@@ -71,10 +71,10 @@ task leftFwControlTask()
 		fw->current = fw->v_current;
 
 		// Do the velocity TBH calculations
-		FwControlUpdateVelocity( fw ) ;
+		FwControlUpdateVelocityTbh( fw ) ;
 
 		// Scale drive into the range the motors need
-		fw->motor_drive  = (fw->drive * FW_MAX_POWER) + 0.5;
+		fw->motor_drive  = fw->drive * (FW_MAX_POWER/127);
 
 		// Final Limit of motor values - don't really need this
 		if( fw->motor_drive >  127 ) fw->motor_drive =  127;
@@ -116,17 +116,17 @@ task rightFwControlTask()
 		fw->current = fw->v_current;
 
 		// Do the velocity TBH calculations
-		FwControlUpdateVelocity( fw ) ;
+		FwControlUpdateVelocityTbh( fw ) ;
 
 		// Scale drive into the range the motors need
-		fw->motor_drive  = (fw->drive * FW_MAX_POWER) + 0.5;
+		fw->motor_drive  = fw->drive * (FW_MAX_POWER/127);
 
 		// Final Limit of motor values - don't really need this
 		if( fw->motor_drive >  127 ) fw->motor_drive =  127;
 		if( fw->motor_drive < -127 ) fw->motor_drive = -127;
 
 		// and finally set the motor control value
-		setRightFwSpeed( fw->motor_drive );
+		//setRightFwSpeed( fw->motor_drive );
 
 		// Run at somewhere between 20 and 50mS
 		wait1Msec( FW_LOOP_SPEED );
@@ -134,9 +134,9 @@ task rightFwControlTask()
 }
 
 void initializePID() {
-	pidInit(lFly, 392, 0.1, 0);//.0002 //initialize TBH for left side of the flywheel
-	pidInit(rFly, 392, 0.1, 0); //.000275 //initialize TBH for right side of the flywheel
-	startTask(leftFwControlTask);
+	//tbhInit(lFly, 392, 0.5,0.008064,0);//.0002 //initialize TBH for left side of the flywheel
+	tbhInit(rFly, 392, 0.8064,0.008064,0); //.000275 //initialize TBH for right side of the flywheel
+	//startTask(leftFwControlTask);
 	startTask(rightFwControlTask);
 }
 
@@ -151,17 +151,19 @@ int lSpeed = 70;
 int rSpeed = 70;
 task usercontrol()
 {
-	setLeftFwSpeed(lSpeed);
+	//setLeftFwSpeed(lSpeed);
 	setRightFwSpeed(rSpeed);
-	wait1Msec(1000);
+	wait1Msec(500);
 	initializePID();
-	FwVelocitySet(lFly,100,.7);
+	//FwVelocitySet(lFly,150,.7);
 	FwVelocitySet(rFly,100,.7);
 	while (true)
 	{
 
 		motor[intakeChain] = 125;
 		motor[intakeRoller] = 125;
+		writeDebugStreamLine("%d,%d,%d,%d,%d,%d,%d,%d",rFly.encoder_timestamp, rFly.e_current, rFly.error, rFly.current, rFly.motor_drive, rFly.p, rFly.i, rFly.d);
+	//	writeDebugStreamLine("%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d",nPgmTime,lFly.current, lFly.motor_drive, lFly.p, lFly.i, lFly.d, rFly.encoder_timestamp, rFly.current, rFly.motor_drive, rFly.p, rFly.i, rFly.d);
 		wait1Msec(25);
 	}
 }
