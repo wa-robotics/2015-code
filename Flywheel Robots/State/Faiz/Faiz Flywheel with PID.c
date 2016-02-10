@@ -126,7 +126,7 @@ task rightFwControlTask()
 		if( fw->motor_drive < -127 ) fw->motor_drive = -127;
 
 		// and finally set the motor control value
-		//setRightFwSpeed( fw->motor_drive );
+		setRightFwSpeed( fw->motor_drive );
 
 		// Run at somewhere between 20 and 50mS
 		wait1Msec( FW_LOOP_SPEED );
@@ -134,9 +134,9 @@ task rightFwControlTask()
 }
 
 void initializePID() {
-	//tbhInit(lFly, 392, 0.5,0.008064,0);//.0002 //initialize TBH for left side of the flywheel
-	tbhInit(rFly, 392, 0.8064,0.008064,0); //.000275 //initialize TBH for right side of the flywheel
-	//startTask(leftFwControlTask);
+	tbhInit(lFly, 392, 0.55,0.008064,0);//.0002 //initialize TBH for left side of the flywheel
+	tbhInit(rFly, 392, 0.55,0.008064,0); //.000275 //initialize TBH for right side of the flywheel
+	startTask(leftFwControlTask);
 	startTask(rightFwControlTask);
 }
 
@@ -151,19 +151,19 @@ int lSpeed = 70;
 int rSpeed = 70;
 task usercontrol()
 {
-	//setLeftFwSpeed(lSpeed);
+	setLeftFwSpeed(lSpeed);
 	setRightFwSpeed(rSpeed);
 	wait1Msec(500);
 	initializePID();
-	//FwVelocitySet(lFly,150,.7);
-	FwVelocitySet(rFly,100,.7);
+	FwVelocitySet(lFly,140,.7);
+	FwVelocitySet(rFly,140,.7);
 	while (true)
 	{
 
 		motor[intakeChain] = 125;
 		motor[intakeRoller] = 125;
-		writeDebugStreamLine("%d,%d,%d,%d,%d,%d,%d,%d",rFly.encoder_timestamp, rFly.e_current, rFly.error, rFly.current, rFly.motor_drive, rFly.p, rFly.i, rFly.d);
-	//	writeDebugStreamLine("%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d",nPgmTime,lFly.current, lFly.motor_drive, lFly.p, lFly.i, lFly.d, rFly.encoder_timestamp, rFly.current, rFly.motor_drive, rFly.p, rFly.i, rFly.d);
+		//writeDebugStreamLine("%d,%d,%d,%d,%d,%d,%d,%d",rFly.encoder_timestamp, rFly.e_current, rFly.error, rFly.current, rFly.motor_drive, rFly.p, rFly.i, rFly.d);
+	  writeDebugStreamLine("%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d",nPgmTime,lFly.current, lFly.motor_drive, lFly.p, lFly.i, lFly.d, rFly.current, rFly.motor_drive, rFly.p, rFly.i, rFly.d);
 		wait1Msec(25);
 	}
 }
