@@ -81,8 +81,10 @@ task leftFwControlTask()
 		if( fw->motor_drive < -127 ) fw->motor_drive = -127;
 
 		// and finally set the motor control value
-		setLeftFwSpeed( fw->motor_drive );
-
+		//if(fw->current < fw->target - 20) {
+		//	setLeftFwSpeed( 70 );
+		//} else
+			setLeftFwSpeed(fw->motor_drive);
 		str = sprintf( str, "%4d %4d  %5.2f", fw->target,  fw->current, nImmediateBatteryLevel/1000.0 );
 		displayLCDString(0, 0, str );
 		str = sprintf( str, "%4.2f %4.2f ", fw->drive, fw->drive_at_zero );
@@ -126,7 +128,10 @@ task rightFwControlTask()
 		if( fw->motor_drive < -127 ) fw->motor_drive = -127;
 
 		// and finally set the motor control value
-		setRightFwSpeed( fw->motor_drive );
+		//if(fw->current < fw->target - 20) {
+		//	setRightFwSpeed( 70 );
+		//} else
+			setRightFwSpeed( fw->motor_drive );
 
 		// Run at somewhere between 20 and 50mS
 		wait1Msec( FW_LOOP_SPEED );
@@ -134,7 +139,7 @@ task rightFwControlTask()
 }
 
 void initializePID() {
-	tbhInit(lFly, 392, 0.55,0.008064,0);//.0002 //initialize TBH for left side of the flywheel
+	tbhInit(lFly, 392, 0.6,0.008064,0);//.0002 //initialize TBH for left side of the flywheel
 	tbhInit(rFly, 392, 0.55,0.008064,0); //.000275 //initialize TBH for right side of the flywheel
 	startTask(leftFwControlTask);
 	startTask(rightFwControlTask);
@@ -155,8 +160,8 @@ task usercontrol()
 	setRightFwSpeed(rSpeed);
 	wait1Msec(500);
 	initializePID();
-	FwVelocitySet(lFly,140,.7);
-	FwVelocitySet(rFly,140,.7);
+	FwVelocitySet(lFly,138,.7);
+	FwVelocitySet(rFly,138,.7);
 	while (true)
 	{
 
