@@ -2,13 +2,15 @@
 #pragma config(Sensor, I2C_1,  ,               sensorQuadEncoderOnI2CPort,    , AutoAssign )
 #pragma config(Sensor, I2C_2,  ,               sensorQuadEncoderOnI2CPort,    , AutoAssign )
 #pragma config(Sensor, I2C_3,  ,               sensorQuadEncoderOnI2CPort,    , AutoAssign )
+#pragma config(Sensor, I2C_4,  ,               sensorQuadEncoderOnI2CPort,    , AutoAssign )
+#pragma config(Sensor, I2C_5,  ,               sensorQuadEncoderOnI2CPort,    , AutoAssign )
 #pragma config(Motor,  port1,           intakeChain,   tmotorVex393HighSpeed_HBridge, openLoop, encoderPort, I2C_3)
 #pragma config(Motor,  port2,           rFlyTop,       tmotorVex393HighSpeed_MC29, openLoop)
 #pragma config(Motor,  port3,           rFlyBottom,    tmotorVex393HighSpeed_MC29, openLoop, reversed, encoderPort, I2C_2)
-#pragma config(Motor,  port4,           rDriveFront,   tmotorVex393HighSpeed_MC29, openLoop)
+#pragma config(Motor,  port4,           rDriveFront,   tmotorVex393HighSpeed_MC29, openLoop, encoderPort, I2C_4)
 #pragma config(Motor,  port5,           rDriveBack,    tmotorVex393HighSpeed_MC29, openLoop)
 #pragma config(Motor,  port6,           lDriveBack,    tmotorVex393HighSpeed_MC29, openLoop)
-#pragma config(Motor,  port7,           lDriveFront,   tmotorVex393HighSpeed_MC29, openLoop)
+#pragma config(Motor,  port7,           lDriveFront,   tmotorVex393HighSpeed_MC29, openLoop, encoderPort, I2C_5)
 #pragma config(Motor,  port8,           lFlyTop,       tmotorVex393HighSpeed_MC29, openLoop, reversed)
 #pragma config(Motor,  port9,           lFlyBottom,    tmotorVex393HighSpeed_MC29, openLoop, encoderPort, I2C_1)
 #pragma config(Motor,  port10,          intakeRoller,  tmotorVex393HighSpeed_HBridge, openLoop)
@@ -151,17 +153,20 @@ task autonomous()
 
 }
 
-
-int lSpeed = 70;
-int rSpeed = 70;
+int lSpeed = 50; //Added For Short Shot Test -- Crawford
+int rSpeed = 50; //Added For Short Shot Test -- Crawford
+//int lSpeed = 70; // Evan's Long Shot
+//int rSpeed = 70; // Evan's Long Shot
 task usercontrol()
 {
 	setLeftFwSpeed(lSpeed);
 	setRightFwSpeed(rSpeed);
 	wait1Msec(500);
 	initializePID();
-	FwVelocitySet(lFly,138,.7);
-	FwVelocitySet(rFly,138,.7);
+	//FwVelocitySet(lFly, 85, .5); //Added For Short Shot Test -- Crawford
+	//FwVelocitySet(rFly, 85, .5); //Added For Short Shot Test -- Crawford
+	FwVelocitySet(lFly,135,.7); // Evan's Long Shot 141
+	FwVelocitySet(rFly,135,.7); // Evan's Long Shot 141
 	while (true)
 	{
 
