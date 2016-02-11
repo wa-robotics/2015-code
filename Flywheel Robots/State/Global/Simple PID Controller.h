@@ -87,6 +87,7 @@ typedef struct _fw_controller {
     float						Kp;
     float						Ki;
     float						Kd;
+    float						constant;								///< constant in PID equation
     float						p;
     float						i;
     float						d;
@@ -105,12 +106,13 @@ typedef struct _fw_controller {
     long            motor_drive;            ///< final motor control value
     } fw_controller;
 
-void tbhInit (fw_controller *fw, float MOTOR_TPR, float Kp, float Ki, float Kd) {
+void tbhInit (fw_controller *fw, float MOTOR_TPR, float Kp, float Ki, float Kd, float constant) {
 	fw->MOTOR_TPR = MOTOR_TPR;
 	fw->ticks_per_rev = MOTOR_TPR;
 	fw->Kp = Kp;
 	fw->Ki = Ki;
 	fw->Kd = Kd;
+	fw->constant = constant;
 	fw->alpha = 1;
 	//ensure that the variables that store previous values start at 0 (i.e., will have a value and not be null/empty)
 	fw->encoder_timestamp_last = 0;
@@ -196,16 +198,16 @@ FwControlUpdateVelocityTbh( fw_controller *fw )
 {
     // calculate error in velocity
     // target is desired velocity
-    // current is measured velocity
-		// rpm_average is a weighted moving average of the past 5 RPM values
-    //fw->error = fw->target - fw->current;
-		fw->error = fw->target - fw->rpm_average;
-		fw->errorSum += fw->error;
-    // Use Kp as gain
+		// rpm_average is a weighted exponential moving average and is the RPM used for calculations
+		fw->error = fw->target - fw->rpm_average; //current error for P and D terms
+		fw->errorSum += fw->error; //add error to the sum of past errors for I term
+
+		//use error values previously calculated and constants to calculate P, I, and D terms
 		fw->p = fw->error * fw->Kp;
 		fw->i = fw->errorSum * fw->Ki;
 		fw->d = (fw->error - fw->last_error) * fw->Kd;
-    fw->drive = fw->p + fw->i + fw->d;
+    fw->drive = fw->p + fw->i + fw->d + fw->constant;
+
     // Clip - we are only going forwards
     if( fw->drive > 127 )
           fw->drive = 127;
