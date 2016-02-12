@@ -143,8 +143,10 @@ task rightFwControlTask()
 void initializePID() {
 	//tbhInit(lFly, 392, 0.6, 0.008064, 0, 70); //initialize PID for left side of the flywheel
 	//tbhInit(rFly, 392, 0.55, 0.008064, 0, 70); //initialize PID for right side of the flywheel
-	tbhInit(lFly, 392, 0.5481, 0.005481, 0, 75); //initialize PID for left side of the flywheel //left side might be able to have a higher P
-	tbhInit(rFly, 392, 0.5481, 0.005481, 0, 75); //initialize PID for right side of the flywheel
+	//note the order of the parameters:
+	//(controller, motor ticks per rev, KpNorm, KpBallLaunch, Ki, Kd, constant, RPM drop on ball launch)
+	tbhInit(lFly, 392, 0.3481, 0.6481, 0.005481, 0, 75, 20); //initialize PID for left side of the flywheel //left side might be able to have a higher P
+	tbhInit(rFly, 392, 0.3481, 0.6481, 0.005481, 0, 75, 20); //initialize PID for right side of the flywheel
 	startTask(leftFwControlTask);
 	startTask(rightFwControlTask);
 }
@@ -161,22 +163,22 @@ int rSpeed = 50; //Added For Short Shot Test -- Crawford
 //int rSpeed = 70; // Evan's Long Shot
 task usercontrol()
 {
-	writeDebugStreamLine("nPgmTime,lFly.current, lFly.motor_drive, lFly.p, lFly.i, lFly.d, lFly.constant, rFly.current, rFly.motor_drive, rFly.p, rFly.i, rFly.d, rFly.constant");
+	writeDebugStreamLine("nPgmTime,lFly.current, lFly.motor_drive, lFly.p, lFly.i, lFly.d, lFly.constant, 50*lFly.postBallLaunch, rFly.current, rFly.motor_drive, rFly.p, rFly.i, rFly.d, rFly.constant, 60*rFly.postBallLaunch");
 	setLeftFwSpeed(lSpeed);
 	setRightFwSpeed(rSpeed);
 	wait1Msec(500);
 	initializePID();
 	//FwVelocitySet(lFly, 85, .5); //Added For Short Shot Test -- Crawford
 	//FwVelocitySet(rFly, 85, .5); //Added For Short Shot Test -- Crawford
-	FwVelocitySet(lFly,138,.7); // Evan's Long Shot 141
-	FwVelocitySet(rFly,138,.7); // Evan's Long Shot 141
+	FwVelocitySet(lFly,135,.7); // Evan's Long Shot 141
+	FwVelocitySet(rFly,135,.7); // Evan's Long Shot 141
 	while (true)
 	{
 
 		motor[intakeChain] = 125;
 		motor[intakeRoller] = 125;
 		//writeDebugStreamLine("%d,%d,%d,%d,%d,%d,%d,%d",rFly.encoder_timestamp, rFly.e_current, rFly.error, rFly.current, rFly.motor_drive, rFly.p, rFly.i, rFly.d);
-	  writeDebugStreamLine("%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d",nPgmTime,lFly.current, lFly.motor_drive, lFly.p, lFly.i, lFly.d, lFly.constant, rFly.current, rFly.motor_drive, rFly.p, rFly.i, rFly.d, rFly.constant);
+	  writeDebugStreamLine("%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d",nPgmTime,lFly.current, lFly.motor_drive, lFly.p, lFly.i, lFly.d, lFly.constant, 50*lFly.postBallLaunch, rFly.current, rFly.motor_drive, rFly.p, rFly.i, rFly.d, rFly.constant, 60*rFly.postBallLaunch);
 		wait1Msec(25);
 	}
 }

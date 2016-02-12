@@ -76,15 +76,19 @@ typedef struct _fw_controller {
     float						v_last;									///< last velocity in rpm
     //long            v_time;                 ///< Time of last velocity calculation
 
-    // TBH control algorithm variables
+    // PID control algorithm variables
     long            target;                 ///< target velocity
     long            current;                ///< current velocity
     long            last;                   ///< last velocity
     float           error;                  ///< error between actual and target velocities
     float           last_error;             ///< error last time update called
+    float						last_rpm_average;				///< RPM value used in calculations during the last update
+    float						older_125ms_rpm; 				///< RPM value from 125 ms, used for ball shot detection
     float						errorSum;
     float           gain;                   ///< gain
-    float						Kp;
+    float						KpNorm;									///< P constant used during normal flywheel operation (idle, essentially)
+    float						KpBallLaunch;						///< P constant used to speed up recovery after a ball is launched by the flywheel
+    float						ballLaunchVelocityDrop;  ///< how much the flywheel velocity drops after a ball is launched (a total over the last 5 cycles)
     float						Ki;
     float						Kd;
     float						constant;								///< constant in PID equation
@@ -102,22 +106,30 @@ typedef struct _fw_controller {
     float						raw_last_rpm;						///< only for debugging the weighted average
     float						alpha;									///< constant for average calculation
 
+    bool						postBallLaunch;					///< keeps track of whether a ball has just been launched
+    float						last_5_rpm[5];
+
     // final motor drive
     long            motor_drive;            ///< final motor control value
     } fw_controller;
 
-void tbhInit (fw_controller *fw, float MOTOR_TPR, float Kp, float Ki, float Kd, float constant) {
+void tbhInit (fw_controller *fw, float MOTOR_TPR, float KpNorm, float KpBallLaunch, float Ki, float Kd, float constant, float ballLaunchVelocityDrop) {
 	fw->MOTOR_TPR = MOTOR_TPR;
 	fw->ticks_per_rev = MOTOR_TPR;
-	fw->Kp = Kp;
+	fw->KpNorm = KpNorm;
+	fw->KpBallLaunch = KpBallLaunch;
 	fw->Ki = Ki;
 	fw->Kd = Kd;
 	fw->constant = constant;
 	fw->alpha = 1;
+	fw->postBallLaunch = false;
+	fw->ballLaunchVelocityDrop = ballLaunchVelocityDrop;
 	//ensure that the variables that store previous values start at 0 (i.e., will have a value and not be null/empty)
 	fw->encoder_timestamp_last = 0;
 	fw->e_last = 0;
 	fw->last_error = 0;
+	fw->last_RPM_average = 0;
+	fw->older_125ms_rpm = 0;
 	fw->v_last = 0;
 	fw->errorSum = 0;
 }
@@ -199,11 +211,27 @@ FwControlUpdateVelocityTbh( fw_controller *fw )
     // calculate error in velocity
     // target is desired velocity
 		// rpm_average is a weighted exponential moving average and is the RPM used for calculations
+		// error is positive if we're below the target and negative if we are above.
 		fw->error = fw->target - fw->rpm_average; //current error for P and D terms
 		fw->errorSum += fw->error; //add error to the sum of past errors for I term
+		//fw->rpm_average - fw->last_rpm_average; //positive if RPM is increasing, 0 if no change, and negative if decreasing
+
+		if (fw->older_125ms_rpm != 0 && fw->older_125ms_rpm - fw->rpm_average >= fw->ballLaunchVelocityDrop) { //if the error from 5 cycles (125 ms) ago is greater than or equal to the velocity drop indicating a ball launch, switch to ball launch mode
+			fw->postBallLaunch = true;
+		} else if (fw->error <= 5 && fw->error >= -5) {
+			fw->postBallLaunch = false;
+		}
 
 		//use error values previously calculated and constants to calculate P, I, and D terms
-		fw->p = fw->error * fw->Kp;
+
+		//after a ball is shot, the P constant causes the flywheel velocity to overshoot the target
+		//To remedy this, the P constant should be lower normally and then increase after the large velocity drop
+		//caused by a ball being launched.  The Kpnorm constant is for times when the flywheel is just running.  The Kphigh constant
+		//is for times when the ball is launched, from the initial velocity drop to the return to normal velocity.
+		//Kp high will be used when fw->postBallLaunch is set to true.  fw->postBallLaunch will be set to true as soon as the velocity drop is detected
+		//(error > ballLaunchVelocityDrop)
+		//and reset to false from the velocity gets near the setpoint (error < 5).
+		fw->p = (fw->postBallLaunch) ? fw->error * fw->KpBallLaunch : fw->error * fw->KpNorm;
 		fw->i = fw->errorSum * fw->Ki;
 		fw->d = (fw->error - fw->last_error) * fw->Kd;
     fw->drive = fw->p + fw->i + fw->d + fw->constant;
@@ -229,6 +257,13 @@ FwControlUpdateVelocityTbh( fw_controller *fw )
         fw->drive_at_zero = fw->drive;
     }*/
 
-    // Save last error
-    fw->last_error = fw->error;
+    //move back the last 5 RPM values to get a new value for older_125ms_rpm
+    for (int i = 0; i < 4; i++) {
+    	fw->last_5_rpm[i] = fw->last_5_rpm[i + 1];
+  	}
+
+  	fw->older_125ms_rpm = fw->last_5_rpm[0]; //save the RPM from 125ms ago
+  	fw->last_5_rpm[4] = fw->rpm_average;
+  	fw->last_error = fw->error; //save last error
+    fw->last_rpm_average = fw->rpm_average; //save last RPM used in calculations
 }
