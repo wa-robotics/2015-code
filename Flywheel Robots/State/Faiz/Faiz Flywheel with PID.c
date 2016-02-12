@@ -143,8 +143,8 @@ task rightFwControlTask()
 void initializePID() {
 	//tbhInit(lFly, 392, 0.6, 0.008064, 0, 70); //initialize PID for left side of the flywheel
 	//tbhInit(rFly, 392, 0.55, 0.008064, 0, 70); //initialize PID for right side of the flywheel
-	tbhInit(lFly, 392, .6655, 0, 0, 0); //initialize PID for left side of the flywheel 1.569
-	tbhInit(rFly, 392, .6655, 0, 0, 0); //initialize PID for right side of the flywheel
+	tbhInit(lFly, 392, 0.5481, 0.005481, 0, 75); //initialize PID for left side of the flywheel //left side might be able to have a higher P
+	tbhInit(rFly, 392, 0.5481, 0.005481, 0, 75); //initialize PID for right side of the flywheel
 	startTask(leftFwControlTask);
 	startTask(rightFwControlTask);
 }
