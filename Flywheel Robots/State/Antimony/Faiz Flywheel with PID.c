@@ -157,13 +157,38 @@ void initializePIDLong() {
 void initializePIDShort() {
 	//note the order of the parameters:
 	//(controller, motor ticks per rev, KpNorm, KpBallLaunch, Ki, Kd, constant, RPM drop on ball launch)
-	tbhInit(lFly, 392, 0.7481, 0.7481, 0.005481, 0, 50, 20); //initialize PID for left side of the flywheel //left side might be able to have a higher P
-	tbhInit(rFly, 392, 0.7481, 0.7481, 0.005481, 0, 50, 20); //initialize PID for right side of the flywheel //x.x481
+	tbhInit(lFly, 392, 0.7481, 0.8481, 0.005481, 0, 50, 20); //initialize PID for left side of the flywheel //left side might be able to have a higher P
+	tbhInit(rFly, 392, 0.7481, 0.8481, 0.005481, 0, 50, 20); //initialize PID for right side of the flywheel //x.x481
 	startTask(leftFwControlTask);
 	startTask(rightFwControlTask);
 }
+
+//stop flywheel
+void stopFlywheel() {
+	//disable PIC control of the flywheels
+	stopTask(leftFwControlTask);
+	stopTask(rightFwControlTask);
+	//turn off the flywheel motors
+	setLeftFwSpeed(0);
+	setRightFwSpeed(0);
+}
+
 task autonomous()
 {
+	initializePIDLong();
+	setLeftFwSpeed(70);
+	setRightFwSpeed(70);
+	wait1Msec(500);
+	FwVelocitySet(lFly,136,.7);
+	FwVelocitySet(rFly,136,.7);
+	wait1Msec(2000);
+	motor[intakeChain] = 125;
+	motor[intakeRoller] = 125;
+	wait1Msec(6000);
+	motor[intakeChain] = 0;
+	motor[intakeRoller] = 0;
+	wait1Msec(1000);
+	stopFlywheel();
 
 }
 
@@ -174,14 +199,14 @@ int rSpeed = 55; //Added For Short Shot Test -- Crawford
 task usercontrol()
 {
 	writeDebugStreamLine("nPgmTime,lFly.current, lFly.motor_drive, lFly.p, lFly.i, lFly.d, lFly.constant, 50*lFly.postBallLaunch, rFly.current, rFly.motor_drive, rFly.p, rFly.i, rFly.d, rFly.constant, 60*rFly.postBallLaunch");
-	setLeftFwSpeed(lSpeed);
-	setRightFwSpeed(rSpeed);
+	//setLeftFwSpeed(lSpeed);
+	//setRightFwSpeed(rSpeed);
 	wait1Msec(500);
 
 	//short shooting
-	initializePIDShort();
-	FwVelocitySet(lFly, 97.75, .5); //Added For Short Shot Test -- Crawford
-	FwVelocitySet(rFly, 97.75, .5); //Added For Short Shot Test -- Crawford
+	//initializePIDShort();
+	//FwVelocitySet(lFly, 97.75, .5); //Added For Short Shot Test -- Crawford
+	//FwVelocitySet(rFly, 97.75, .5); //Added For Short Shot Test -- Crawford
 
 	//long shooting
 	//initializePIDLong();
@@ -192,8 +217,8 @@ task usercontrol()
 
 	while (true)
 	{
-		motor[intakeChain] = 125;
-		motor[intakeRoller] = 125;
+		motor[intakeChain] = 125*vexRT[Btn5U] - 125*vexRT[Btn5D];
+		motor[intakeRoller] = 125*vexRT[Btn6U] - 125*vexRT[Btn6D];
 		//writeDebugStreamLine("%d,%d,%d,%d,%d,%d,%d,%d",rFly.encoder_timestamp, rFly.e_current, rFly.error, rFly.current, rFly.motor_drive, rFly.p, rFly.i, rFly.d);
 	  writeDebugStreamLine("%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d",nPgmTime,lFly.current, lFly.motor_drive, lFly.p, lFly.i, lFly.d, lFly.constant, 50*lFly.postBallLaunch, rFly.current, rFly.motor_drive, rFly.p, rFly.i, rFly.d, rFly.constant, 60*rFly.postBallLaunch);
 		wait1Msec(25);
