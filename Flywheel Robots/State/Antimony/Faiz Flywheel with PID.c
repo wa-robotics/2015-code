@@ -141,7 +141,8 @@ task rightFwControlTask()
 	}
 }
 
-void initializePID() {
+//long shooting
+void initializePIDLong() {
 	//tbhInit(lFly, 392, 0.6, 0.008064, 0, 70); //initialize PID for left side of the flywheel
 	//tbhInit(rFly, 392, 0.55, 0.008064, 0, 70); //initialize PID for right side of the flywheel
 	//note the order of the parameters:
@@ -152,14 +153,22 @@ void initializePID() {
 	startTask(rightFwControlTask);
 }
 
-
+//short shooting
+void initializePIDShort() {
+	//note the order of the parameters:
+	//(controller, motor ticks per rev, KpNorm, KpBallLaunch, Ki, Kd, constant, RPM drop on ball launch)
+	tbhInit(lFly, 392, 0.7481, 0.7481, 0.005481, 0, 50, 20); //initialize PID for left side of the flywheel //left side might be able to have a higher P
+	tbhInit(rFly, 392, 0.7481, 0.7481, 0.005481, 0, 50, 20); //initialize PID for right side of the flywheel //x.x481
+	startTask(leftFwControlTask);
+	startTask(rightFwControlTask);
+}
 task autonomous()
 {
 
 }
 
-int lSpeed = 50; //Added For Short Shot Test -- Crawford
-int rSpeed = 50; //Added For Short Shot Test -- Crawford
+int lSpeed = 55; //Added For Short Shot Test -- Crawford
+int rSpeed = 55; //Added For Short Shot Test -- Crawford
 //int lSpeed = 70; // Evan's Long Shot
 //int rSpeed = 70; // Evan's Long Shot
 task usercontrol()
@@ -168,14 +177,21 @@ task usercontrol()
 	setLeftFwSpeed(lSpeed);
 	setRightFwSpeed(rSpeed);
 	wait1Msec(500);
-	initializePID();
-	//FwVelocitySet(lFly, 85, .5); //Added For Short Shot Test -- Crawford
-	//FwVelocitySet(rFly, 85, .5); //Added For Short Shot Test -- Crawford
-	FwVelocitySet(lFly,136,.7); // Evan's Long Shot 141
-	FwVelocitySet(rFly,136,.7); // Evan's Long Shot 141
+
+	//short shooting
+	initializePIDShort();
+	FwVelocitySet(lFly, 97.75, .5); //Added For Short Shot Test -- Crawford
+	FwVelocitySet(rFly, 97.75, .5); //Added For Short Shot Test -- Crawford
+
+	//long shooting
+	//initializePIDLong();
+	//FwVelocitySet(lFly,136,.7); // Evan's Long Shot 141
+	//FwVelocitySet(rFly,136,.7); // Evan's Long Shot 141
+
+	//short shooting
+
 	while (true)
 	{
-
 		motor[intakeChain] = 125;
 		motor[intakeRoller] = 125;
 		//writeDebugStreamLine("%d,%d,%d,%d,%d,%d,%d,%d",rFly.encoder_timestamp, rFly.e_current, rFly.error, rFly.current, rFly.motor_drive, rFly.p, rFly.i, rFly.d);
