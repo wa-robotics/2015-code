@@ -228,13 +228,26 @@ task usercontrol()
 	//FwVelocitySet(rFly,115,.7);
 
 	int intakePower;
+	int threshold = 15;
+	int lY;
+	int rY;
 	while (true)
 	{
 		intakePower = 125*vexRT[Btn5U] - 125*vexRT[Btn5D];
-		intakePower = 115; //testing
-		wait1Msec(2000);
+		//intakePower = 115; //testing
+		//wait1Msec(2000); //testing
 		motor[intakeLeft] = intakePower;
 		motor[intakeRight] = intakePower;
+
+		//drivetrain
+		lY = vexRT[Ch3];
+		rY = vexRT[Ch2];
+		motor[lDriveFront] = (abs(lY) > threshold) ? lY : 0;
+		motor[lDriveBack] = (abs(lY) > threshold) ? lY : 0;
+		motor[rDriveFront] = (abs(rY) > threshold) ? rY : 0;
+		motor[rDriveBack] = (abs(rY) > threshold) ? rY : 0;
+
+
 		//setLeftFwSpeed(lSpeed);
 		//setRightFwSpeed(rSpeed);
 		//writeDebugStreamLine("%d,%d,%d,%d,%d,%d,%d,%d",rFly.encoder_timestamp, rFly.e_current, rFly.error, rFly.current, rFly.motor_drive, rFly.p, rFly.i, rFly.d);
