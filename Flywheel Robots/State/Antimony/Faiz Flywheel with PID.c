@@ -156,8 +156,8 @@ void initializePIDLong() {
 void initializePIDShort() {
 	//note the order of the parameters:
 	//(controller, motor ticks per rev, KpNorm, KpBallLaunch, Ki, Kd, constant, RPM drop on ball launch)
-	tbhInit(lFly, 392, 0.7481, 0.8481, 0.005481, 0, 50, 20); //initialize PID for left side of the flywheel //left side might be able to have a higher P
-	tbhInit(rFly, 392, 0.7481, 0.8481, 0.005481, 0, 50, 20); //initialize PID for right side of the flywheel //x.x481
+	tbhInit(lFly, 392, 0.7481, 0.9981, 0.005481, 0, 50, 20); //initialize PID for left side of the flywheel //left side might be able to have a higher P
+	tbhInit(rFly, 392, 0.7481, 0.9981, 0.005481, 0, 50, 20); //initialize PID for right side of the flywheel //x.x481
 	startTask(leftFwControlTask);
 	startTask(rightFwControlTask);
 }
@@ -166,8 +166,8 @@ void initializePIDShort() {
 void initializePIDPurple() {
 	//note the order of the parameters:
 	//(controller, motor ticks per rev, KpNorm, KpBallLaunch, Ki, Kd, constant, RPM drop on ball launch)
-	tbhInit(lFly, 392, 0.7481, 1.0981, 0.005481, 0, 55, 20); //initialize PID for left side of the flywheel //left side might be able to have a higher P
-	tbhInit(rFly, 392, 0.7481, 1.0981, 0.005481, 0, 55, 20); //initialize PID for right side of the flywheel //x.x481
+	tbhInit(lFly, 392, 0.6981, 0.9981, 0.005481, 0, 55, 20); //initialize PID for left side of the flywheel //left side might be able to have a higher P
+	tbhInit(rFly, 392, 0.6981, 0.9981, 0.005481, 0, 55, 20); //initialize PID for right side of the flywheel //x.x481
 	startTask(leftFwControlTask);
 	startTask(rightFwControlTask);
 }
@@ -211,9 +211,10 @@ task usercontrol()
 	wait1Msec(500);
 
 	//short shooting
-	//initializePIDShort();
-	//FwVelocitySet(lFly, 97.75, .5);
-	//FwVelocitySet(rFly, 97.75, .5);
+	//intake power 115
+	initializePIDShort();
+	FwVelocitySet(lFly, 97.75, .5);
+	FwVelocitySet(rFly, 97.75, .5);
 
 	//long shooting
 	//initializePIDLong();
@@ -221,16 +222,17 @@ task usercontrol()
 	//FwVelocitySet(rFly,136,.7);
 
 	//purple shooting
-	initializePIDPurple();
-	FwVelocitySet(lFly,111,.7);
-	FwVelocitySet(rFly,111,.7);
+	//intake power 125
+	//initializePIDPurple();
+	//FwVelocitySet(lFly,115,.7);
+	//FwVelocitySet(rFly,115,.7);
 
-	//short shooting
 	int intakePower;
 	while (true)
 	{
 		intakePower = 125*vexRT[Btn5U] - 125*vexRT[Btn5D];
-		intakePower = 70; //testing
+		intakePower = 115; //testing
+		wait1Msec(2000);
 		motor[intakeLeft] = intakePower;
 		motor[intakeRight] = intakePower;
 		//setLeftFwSpeed(lSpeed);
