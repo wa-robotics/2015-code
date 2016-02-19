@@ -231,42 +231,11 @@ task autonomous()
 	//motor[intakeChain] = -50;
 	//driveRobot(-1,100,20);
 	//driveRobot(1,0,1000);
-	initializeTBH();
-	FwVelocitySet(lFly, 136, normalizeMotorPower(85));
-	FwVelocitySet(rFly, 136, normalizeMotorPower(85));
-	wait1Msec(2500);
-
-	//1st ball
+	initializeTBHSkills();
+	FwVelocitySet(lFly, 105, normalizeMotorPower(70));
+	FwVelocitySet(rFly, 105, normalizeMotorPower(70));
 	motor[intakeChain] = 125;
 	motor[intakeRoller] = 125;
-	wait1Msec(750);
-	motor[intakeChain] = 0;
-	motor[intakeRoller] = 0;
-	wait1Msec(750);
-
-	//2nd ball
-	motor[intakeChain] = 125;
-	motor[intakeRoller] = 125;
-	wait1Msec(750);
-	motor[intakeChain] = 0;
-	motor[intakeRoller] = 0;
-	wait1Msec(750);
-
-	//3rd ball
-	motor[intakeChain] = 125;
-	motor[intakeRoller] = 125;
-	wait1Msec(750);
-	motor[intakeChain] = 0;
-	motor[intakeRoller] = 0;
-	wait1Msec(750);
-
-	//4th ball
-	motor[intakeChain] = 125;
-	motor[intakeRoller] = 125;
-	wait1Msec(750);
-	motor[intakeChain] = 0;
-	motor[intakeRoller] = 0;
-	wait1Msec(750);
 
 }
 
