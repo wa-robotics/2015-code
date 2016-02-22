@@ -1,4 +1,5 @@
 #pragma config(I2C_Usage, I2C1, i2cSensors)
+#pragma config(Sensor, in1,    gyro,           sensorGyro)
 #pragma config(Sensor, I2C_1,  ,               sensorQuadEncoderOnI2CPort,    , AutoAssign )
 #pragma config(Sensor, I2C_2,  ,               sensorQuadEncoderOnI2CPort,    , AutoAssign )
 #pragma config(Sensor, I2C_3,  ,               sensorQuadEncoderOnI2CPort,    , AutoAssign )
@@ -65,19 +66,46 @@ void driveDistance (int encoderCounts, int direction, float power) {
 	setRDriveMotors(0);
 }
 
-//work in progress
-void rotate (int encoderCounts, int direction, float power) {
-	int encoderGoalLeft = nMotorEncoder[lDriveFront] + encoderCounts*direction,
-	encoderGoalRight = nMotorEncoder[rDriveFront] - encoderCounts*direction;
+//rotate the robot to a certain position (rotationally)
+//@param deg The number of degrees to turn; positive values are counterclockwise, negative values are clockwise.
+//@param direction The direction to turn in to get to the position; 1 is counterclockwise, -1 is clockwise
+void rotate (int deg, int direction) {
+	//Specify the number of degrees for the robot to turn (1 degree = 10, or 900 = 90 degrees)
+  int degrees10 = deg*10; //multiply the degrees parameter by 10 to get the amount to turn relative to gyro sensor values
 
-	while (nMotorEncoder[lDriveFront] < encoderGoalLeft) {
-		setLDriveMotors(power);
-		setRDriveMotors(power);
-		wait1Msec(10);
-	}
+  //Specify the amount of acceptable error in the turn
+  int error = 5;
 
-	setLDriveMotors(0);
+  //While the absolute value of the gyro is less than the desired rotation - 100...
+  while(abs(SensorValue[gyro]) < degrees10 - 100)
+  {
+    setRDriveMotors(50*direction);
+    setLDriveMotors(-50*direction);
+  }
+  //Brief brake to eliminate some drift
+  setRDriveMotors(-5*direction);
+  setLDriveMotors(5*direction);
+  wait1Msec(100);
+
+  //Second while loop to move the robot more slowly to its goal, also setting up a range
+  //for the amount of acceptable error in the system
+  while(abs(SensorValue[gyro]) > degrees10 + error || abs(SensorValue[gyro]) < degrees10 - error)
+  {
+    if(abs(SensorValue[gyro]) > degrees10)
+    {
+      setRDriveMotors(-30);
+      setLDriveMotors(30);
+    }
+    else
+    {
+      setRDriveMotors(30);
+      setLDriveMotors(-30);
+    }
+  }
+
+  //Stop
 	setRDriveMotors(0);
+	setLDriveMotors(0);
 }
 
 void pre_auton()
@@ -257,15 +285,17 @@ task autonomous()
 
 }
 
+bool userIntakeControl = true;
 task closeShootingMacro() {
 	while (1) {
 		if (vexRT[Btn8D] == 1 && flywheelMode == 1) { //only run this if the flywheel is in the correct operating state (close shooting only), to prevent mishaps resulting from accidental button presses
+			userIntakeControl = false; //prevent user from controlling intake while macro is running
 			setIntakeMotors(115); //turn on the intake to outtake the balls
-			wait1Msec(1500); //wait long enough to shoot all the balls
+			wait1Msec(1750); //wait long enough to shoot all the balls
 			setIntakeMotors(0); //stop the intake
+			userIntakeControl = true; //return intake control to user
 			stopFlywheel(); //turn off the flywheel
 		}
-
 		wait1Msec(25); //don't hog the CPU
 	}
 }
@@ -278,14 +308,14 @@ task usercontrol()
 	writeDebugStreamLine("nPgmTime,lFly.current, lFly.motor_drive, lFly.p, lFly.i, lFly.d, lFly.constant, 50*lFly.postBallLaunch, rFly.current, rFly.motor_drive, rFly.p, rFly.i, rFly.d, rFly.constant, 60*rFly.postBallLaunch");
 	//setLeftFwSpeed(lSpeed);
 	//setRightFwSpeed(rSpeed);
-	wait1Msec(500);
+	//wait1Msec(500);
 
 	//short shooting
 	//intake power 115
-	initializePIDShort();
-	FwVelocitySet(lFly, 97.75, .5);
-	FwVelocitySet(rFly, 97.75, .5);
-	wait1Msec(2000); //testing
+	//initializePIDShort();
+	//FwVelocitySet(lFly, 97.75, .5);
+	//FwVelocitySet(rFly, 97.75, .5);
+	//wait1Msec(2000); //testing
 	//long shooting
 	//initializePIDLong();
 	//FwVelocitySet(lFly,136,.7);
@@ -312,8 +342,10 @@ task usercontrol()
 		motor[rDriveBack] = (abs(rY) > threshold) ? rY : 0;
 
 		//intake
-		intakePower = 125*vexRT[Btn5U] - 125*vexRT[Btn5D];
-		setIntakeMotors(intakePower);
+		if (userIntakeControl) { //if the program is not overriding control of the intake
+			intakePower = 125*vexRT[Btn6U] - 125*vexRT[Btn6D];
+			setIntakeMotors(intakePower);
+		}
 
 		//flywheel speed control
 		//7U - long, 7R - purple, 7D - short
