@@ -225,12 +225,15 @@ void initializePIDPurple() {
 
 //stop flywheel
 void stopFlywheel() {
-	//disable PIC control of the flywheels
+	//disable PIC control of the flywheels and switch to open-loop control
 	stopTask(leftFwControlTask);
 	stopTask(rightFwControlTask);
+
 	//turn off the flywheel motors
 	setLeftFwSpeed(0);
 	setRightFwSpeed(0);
+
+	flywheelMode = 0; //make sure we know that the flywheel is stopped
 }
 
 task autonomous()
