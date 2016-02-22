@@ -207,8 +207,8 @@ void initializePIDLong() {
 void initializePIDShort() {
 	//note the order of the parameters:
 	//(controller, motor ticks per rev, KpNorm, KpBallLaunch, Ki, Kd, constant, RPM drop on ball launch)
-	tbhInit(lFly, 392, 0.7481, 0.9981, 0.005481, 0, 50, 20); //initialize PID for left side of the flywheel //left side might be able to have a higher P
-	tbhInit(rFly, 392, 0.7481, 0.9981, 0.005481, 0, 50, 20); //initialize PID for right side of the flywheel //x.x481
+	tbhInit(lFly, 392, 0.7481, 1.0981, 0.005481, 0, 50, 20); //initialize PID for left side of the flywheel //left side might be able to have a higher P
+	tbhInit(rFly, 392, 0.7481, 1.0981, 0.005481, 0, 50, 20); //initialize PID for right side of the flywheel //x.x481
 	startTask(leftFwControlTask);
 	startTask(rightFwControlTask);
 }
@@ -262,7 +262,7 @@ task closeShootingMacro() {
 	while (1) {
 		if (vexRT[Btn8D] == 1 && flywheelMode == 1) { //only run this if the flywheel is in the correct operating state (close shooting only), to prevent mishaps resulting from accidental button presses
 			userIntakeControl = false; //prevent user from controlling intake while macro is running
-			setIntakeMotors(115); //turn on the intake to outtake the balls
+			setIntakeMotors(112); //turn on the intake to outtake the balls
 			wait1Msec(1750); //wait long enough to shoot all the balls
 			setIntakeMotors(0); //stop the intake
 			userIntakeControl = true; //return intake control to user
