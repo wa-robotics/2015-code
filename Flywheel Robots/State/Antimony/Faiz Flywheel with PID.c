@@ -288,7 +288,7 @@ task autonomous()
 bool userIntakeControl = true;
 task closeShootingMacro() {
 	while (1) {
-		if (vexRT[Btn8D] == 1 && flywheelMode == 1) { //only run this if the flywheel is in the correct operating state (close shooting only), to prevent mishaps resulting from accidental button presses
+		if (vexRT[Btn5D] == 1 && flywheelMode == 1) { //only run this if the flywheel is in the correct operating state (close shooting only), to prevent mishaps resulting from accidental button presses
 			userIntakeControl = false; //prevent user from controlling intake while macro is running
 			setIntakeMotors(115); //turn on the intake to outtake the balls
 			wait1Msec(1750); //wait long enough to shoot all the balls
@@ -378,7 +378,7 @@ task usercontrol()
 			FwVelocitySet(lFly,115,.7);
 			FwVelocitySet(rFly,115,.7);
 
-		} else if (vexRT[Btn7D] == 1 && flywheelMode != 1) { //close shooting
+		} else if (vexRT[Btn5U] == 1 && flywheelMode != 1) { //close shooting
 			if (flywheelMode >= 1) { //if the flywheel is currently running (modes 1-4), we need to stop the controller tasks before re-initializing the PID controller
 				stopTask(leftFwControlTask);
 				stopTask(rightFwControlTask);
