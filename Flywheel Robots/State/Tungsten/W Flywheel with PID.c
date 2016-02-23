@@ -1,17 +1,16 @@
 #pragma config(I2C_Usage, I2C1, i2cSensors)
+#pragma config(Sensor, in1,    gyro,           sensorGyro)
 #pragma config(Sensor, I2C_1,  ,               sensorQuadEncoderOnI2CPort,    , AutoAssign )
 #pragma config(Sensor, I2C_2,  ,               sensorQuadEncoderOnI2CPort,    , AutoAssign )
 #pragma config(Sensor, I2C_3,  ,               sensorQuadEncoderOnI2CPort,    , AutoAssign )
 #pragma config(Sensor, I2C_4,  ,               sensorQuadEncoderOnI2CPort,    , AutoAssign )
-#pragma config(Sensor, I2C_5,  ,               sensorQuadEncoderOnI2CPort,    , AutoAssign )
-#pragma config(Sensor, I2C_6,  ,               sensorQuadEncoderOnI2CPort,    , AutoAssign )
-#pragma config(Motor,  port1,           intakeRoller,  tmotorVex393TurboSpeed_HBridge, openLoop, encoderPort, I2C_3)
+#pragma config(Motor,  port1,           intakeRoller,  tmotorVex393TurboSpeed_HBridge, openLoop)
 #pragma config(Motor,  port2,           rFlyTop,       tmotorVex393HighSpeed_MC29, openLoop)
 #pragma config(Motor,  port3,           rFlyBottom,    tmotorVex393HighSpeed_MC29, openLoop, reversed, encoderPort, I2C_2)
-#pragma config(Motor,  port4,           rDriveFront,   tmotorVex393HighSpeed_MC29, openLoop, reversed, encoderPort, I2C_5)
-#pragma config(Motor,  port5,           intakeChain,   tmotorVex393HighSpeed_MC29, openLoop, reversed, encoderPort, I2C_4)
+#pragma config(Motor,  port4,           rDriveFront,   tmotorVex393HighSpeed_MC29, openLoop, reversed, encoderPort, I2C_4)
+#pragma config(Motor,  port5,           intakeChain,   tmotorVex393HighSpeed_MC29, openLoop, reversed, encoderPort, I2C_3)
 #pragma config(Motor,  port6,           lDriveBack,    tmotorVex393HighSpeed_MC29, openLoop)
-#pragma config(Motor,  port7,           lDriveFront,   tmotorVex393HighSpeed_MC29, openLoop, encoderPort, I2C_6)
+#pragma config(Motor,  port7,           lDriveFront,   tmotorVex393HighSpeed_MC29, openLoop)
 #pragma config(Motor,  port8,           lFlyTop,       tmotorVex393HighSpeed_MC29, openLoop, reversed)
 #pragma config(Motor,  port9,           lFlyBottom,    tmotorVex393HighSpeed_MC29, openLoop, encoderPort, I2C_1)
 #pragma config(Motor,  port10,          rDriveBack,    tmotorVex393TurboSpeed_HBridge, openLoop, reversed)
@@ -36,7 +35,83 @@ void pre_auton()
 	// Autonomous and Tele-Op modes. You will need to manage all user created tasks if set to false.
 	bStopTasksBetweenModes = true;
 
+	SensorType[gyro] = sensorNone;
+  wait1Msec(500);
+  //Reconfigure Analog Port 8 as a Gyro sensor and allow time for ROBOTC to calibrate it
+  SensorType[gyro] = sensorGyro;
+  wait1Msec(2000);
+  displayLCDCenteredString(0,"");
+
 }
+
+void setLDriveMotors (float power) {
+	motor[lDriveFront] = power;
+	motor[lDriveBack] = power;
+}
+
+void setRDriveMotors (float power) {
+	motor[rDriveFront] = power;
+	motor[rDriveBack] = power;
+}
+
+//work in progress
+void driveDistance (int encoderCounts, int direction, float power) {
+	int encoderGoalRight = nMotorEncoder[rDriveFront] + encoderCounts*direction;
+
+	while (nMotorEncoder[rDriveFront] < encoderGoalRight) {
+		setLDriveMotors(power*direction);
+		setRDriveMotors(power*direction);
+		wait1Msec(10);
+	}
+	setLDriveMotors(-10);
+	setRDriveMotors(-10);
+	wait1Msec(125);
+	setLDriveMotors(0);
+	setRDriveMotors(0);
+}
+
+//rotate the robot to a certain position (rotationally)
+//@param deg The number of degrees to turn; positive values are counterclockwise, negative values are clockwise.
+//@param direction The direction to turn in to get to the position; 1 is counterclockwise, -1 is clockwise
+void rotate (int deg, int direction) {
+	//Specify the number of degrees for the robot to turn (1 degree = 10, or 900 = 90 degrees)
+  int degrees10 = deg*10; //multiply the degrees parameter by 10 to get the amount to turn relative to gyro sensor values
+
+  //Specify the amount of acceptable error in the turn
+  int error = 5;
+
+  //While the absolute value of the gyro is less than the desired rotation - 100...
+  while(abs(SensorValue[gyro]) < degrees10 - 100)
+  {
+    setRDriveMotors(65*direction);
+    setLDriveMotors(-65*direction);
+  }
+  //Brief brake to eliminate some drift
+  setRDriveMotors(-15*direction);
+  setLDriveMotors(15*direction);
+  wait1Msec(100);
+
+  //Second while loop to move the robot more slowly to its goal, also setting up a range
+  //for the amount of acceptable error in the system
+  while(abs(SensorValue[gyro]) > degrees10 + error || abs(SensorValue[gyro]) < degrees10 - error)
+  {
+    if(abs(SensorValue[gyro]) > degrees10)
+    {
+      setRDriveMotors(-45);
+      setLDriveMotors(45);
+    }
+    else
+    {
+      setRDriveMotors(45);
+      setLDriveMotors(-45);
+    }
+  }
+
+  //Stop
+	setRDriveMotors(0);
+	setLDriveMotors(0);
+}
+
 
 void setLeftFwSpeed (float power) {
 	motor[lFlyTop] = power;
@@ -180,7 +255,8 @@ void stopFlywheel() {
 }
 task autonomous()
 {
-
+	driveDistance(3225, 1, 125);
+	rotate(7.5,1)
 }
 
 int lSpeed = 55; //Added For Short Shot Test -- Crawford
@@ -190,6 +266,7 @@ int rSpeed = 55; //Added For Short Shot Test -- Crawford
 int flywheelWorking = 0;
 task usercontrol()
 {
+	//startTask(autonomous);
 	//writeDebugStreamLine("nPgmTime,lFly.current, lFly.motor_drive, lFly.p, lFly.i, lFly.d, lFly.constant, 50*lFly.postBallLaunch, rFly.current, rFly.motor_drive, rFly.p, rFly.i, rFly.d, rFly.constant, 60*rFly.postBallLaunch");
 	//setLeftFwSpeed(lSpeed);
 	//setRightFwSpeed(rSpeed);
@@ -206,13 +283,17 @@ task usercontrol()
 	//FwVelocitySet(rFly,150,.7); // Evan's Long Shot 141
 
 	//short shooting
-
-	while (true)
+	int threshold = 15,
+	lY,
+	rY;
+	while (false)
 	{
-		motor[lDriveFront] = vexRT[Ch3]*2;
-		motor[rDriveFront] = vexRT[Ch2]*2;
-		motor[lDriveBack] = vexRT[Ch3]*2;
-		motor[rDriveBack] = vexRT[Ch2]*2;
+		lY = vexRT[Ch3]*2;
+		rY = vexRT[Ch2]*2;
+		motor[lDriveFront] = (abs(lY) > threshold) ? lY : 0;
+		motor[lDriveBack] = (abs(lY) > threshold) ? lY : 0;
+		motor[rDriveFront] = (abs(rY) > threshold) ? rY : 0;
+		motor[rDriveBack] = (abs(rY) > threshold) ? rY : 0;
 		if(vexRT[Btn7L] == 1)
 		{
 			flywheelWorking = 1;
