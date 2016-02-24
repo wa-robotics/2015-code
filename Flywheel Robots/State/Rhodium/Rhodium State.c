@@ -52,10 +52,9 @@ void setIntakeMotors (float power) {
 void driveDistance (int encoderCounts, int direction, float power) {
 	int	encoderGoalLeft = nMotorEncoder[lDriveFront] + encoderCounts*direction;
 
-	while (nMotorEncoder[lDriveFront] < encoderGoalLeft) {
-		//if (encoderGoalLeft - nMotorEncoder[lDriveFront] <= 360) { //as the target is approached, start decreasing the power slightly
-		//	power *= .85;
-		//}
+int encoderGoalRight = nMotorEncoder[rDriveFront] + encoderCounts*direction;
+
+	while (nMotorEncoder[rDriveFront] < encoderGoalRight) {
 		setLDriveMotors(power*direction);
 		setRDriveMotors(power*direction);
 		wait1Msec(10);
@@ -113,6 +112,12 @@ void pre_auton()
 	// Set bStopTasksBetweenModes to false if you want to keep user created tasks running between
 	// Autonomous and Tele-Op modes. You will need to manage all user created tasks if set to false.
 	bStopTasksBetweenModes = true;
+
+	SensorType[gyro] = sensorNone;
+  wait1Msec(500);
+  //Reconfigure Analog Port 8 as a Gyro sensor and allow time for ROBOTC to calibrate it
+  SensorType[gyro] = sensorGyro;
+  wait1Msec(2000);
 
 }
 
@@ -235,8 +240,8 @@ void initializePIDLong() {
 void initializePIDShort() {
 	//note the order of the parameters:
 	//(controller, motor ticks per rev, KpNorm, KpBallLaunch, Ki, Kd, constant, RPM drop on ball launch)
-	tbhInit(lFly, 392, 0.7481, .9981, 0.005481, 0, 42, 20); //initialize PID for left side of the flywheel //left side might be able to have a higher P
-	tbhInit(rFly, 392, 0.7481, .9981, 0.005481, 0, 42, 20); //initialize PID for right side of the flywheel //x.x481
+	tbhInit(lFly, 392, 0.7481, 1.0481, 0.005481, 0, 42, 20); //initialize PID for left side of the flywheel //left side might be able to have a higher P
+	tbhInit(rFly, 392, 0.7481, 1.0481, 0.005481, 0, 42, 20); //initialize PID for right side of the flywheel //x.x481
 	startTask(leftFwControlTask);
 	startTask(rightFwControlTask);
 }
@@ -266,7 +271,17 @@ void stopFlywheel() {
 
 task autonomous()
 {
-	driveDistance(1800, 1, 125);
+	initializePIDShort();
+	FwVelocitySet(lFly, 102, .5);
+	FwVelocitySet(rFly, 102, .5);
+	driveDistance(3200, 1, 85);
+	wait1Msec(500);
+	//rotate(0,-1);
+	wait1Msec(250);
+	setIntakeMotors(105); //turn on the intake to outtake the balls
+	wait1Msec(2500); //wait long enough to shoot all the balls
+	setIntakeMotors(0); //stop the intake
+	stopFlywheel(); //turn off the flywheel
 
 	/*initializePIDLong();
 	setLeftFwSpeed(70);
@@ -290,7 +305,7 @@ task closeShootingMacro() {
 	while (1) {
 		if (vexRT[Btn8D] == 1 && flywheelMode == 1) { //only run this if the flywheel is in the correct operating state (close shooting only), to prevent mishaps resulting from accidental button presses
 			userIntakeControl = false; //prevent user from controlling intake while macro is running
-			setIntakeMotors(110); //turn on the intake to outtake the balls
+			setIntakeMotors(105); //turn on the intake to outtake the balls
 			wait1Msec(2000); //wait long enough to shoot all the balls
 			setIntakeMotors(0); //stop the intake
 			userIntakeControl = true; //return intake control to user
@@ -305,6 +320,7 @@ int rSpeed = 60;
 task usercontrol()
 {
 	startTask(closeShootingMacro);
+	//startTask(autonomous);
 	//startTask(autonomous); //comment out and change while loop condition
 	//writeDebugStreamLine("nPgmTime,lFly.current, lFly.motor_drive, lFly.p, lFly.i, lFly.d, lFly.constant, 50*lFly.postBallLaunch, rFly.current, rFly.motor_drive, rFly.p, rFly.i, rFly.d, rFly.constant, 60*rFly.postBallLaunch");
 	//setLeftFwSpeed(lSpeed);
@@ -318,13 +334,12 @@ task usercontrol()
 	//FwVelocitySet(rFly, 93.75, .5);
 	//wait1Msec(2000);
 	//userIntakeControl = false;
-	//setIntakeMotors(110);
+	//setIntakeMotors(105);
 	//wait1Msec(2000); //testing
 	//long shooting
 	//initializePIDLong();
 	//FwVelocitySet(lFly,144,.7);
 	//FwVelocitySet(rFly,144,.7);
-
 	//purple shooting
 	//intake power 125
 	//initializePIDPurple();
@@ -393,8 +408,8 @@ task usercontrol()
 			//next 4 lines have to run every time to run flywheel
 			flywheelMode = 1;
 			initializePIDShort();
-			FwVelocitySet(lFly, 90, .5);
-			FwVelocitySet(rFly, 90, .5);
+			FwVelocitySet(lFly, 102, .5);
+			FwVelocitySet(rFly, 102, .5);
 
 		} else if (vexRT[Btn8R] == 1 && flywheelMode >= 1) { //this is an else statement so that if two buttons are pressed, we won't switch back and forth between starting and stopping the flywheel
 			stopFlywheel();																		 // flywheelMode needs to be greater than 1 so that we don't run the stopFlywheel function if the flywheel is already stopped
