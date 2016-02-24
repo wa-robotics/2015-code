@@ -264,6 +264,46 @@ void stopFlywheel() {
 	flywheelMode = 0; //make sure we know that the flywheel is stopped
 }
 
+task drivetrainController() {
+	int lYRequested,
+			rYRequested,
+			lYLastSent = 0,
+			rYLastSent = 0,
+			lY,
+			rY,
+			slewRateLimit = 10,
+			threshold = 15;
+	while(true) {
+		lYRequested = vexRT[Ch3];
+		rYRequested = vexRT[Ch2];
+		if (abs(lYRequested - lYLastSent) > slewRateLimit) { //if the new power requested is greater than the slew rate limit
+			if (lYRequested > lYLastSent) {
+				lY += slewRateLimit; //only increase the power by the max allowed by the slew rate
+			} else {
+				lY -= slewRateLimit; //only decrease the power by the max allowed by the slew rate
+			}
+		} else {
+			lY = (lYRequested == 0) ? 0 : lY;
+		}
+		lYLastSent = lY;
+		if (abs(rYRequested - rYLastSent) > slewRateLimit) {
+			if (rYRequested > rYLastSent) {
+				rY += slewRateLimit;
+			} else {
+				rY -= slewRateLimit;
+			}
+		} else {
+			rY = (rYRequested == 0) ? 0 : rY;
+		}
+		rYLastSent = rY;
+		motor[lDriveFront] = (abs(lY) > threshold) ? lY : 0;
+		motor[lDriveBack] = (abs(lY) > threshold) ? lY : 0;
+		motor[rDriveFront] = (abs(rY) > threshold) ? rY : 0;
+		motor[rDriveBack] = (abs(rY) > threshold) ? rY : 0;
+		wait1Msec(15);
+	}
+}
+
 task autonomous()
 {
 	driveDistance(2500, 1, 85);
@@ -305,7 +345,8 @@ int rSpeed = 60;
 task usercontrol()
 {
 	startTask(closeShootingMacro);
-	writeDebugStreamLine("nPgmTime,lFly.current, lFly.motor_drive, lFly.p, lFly.i, lFly.d, lFly.constant, 50*lFly.postBallLaunch, rFly.current, rFly.motor_drive, rFly.p, rFly.i, rFly.d, rFly.constant, 60*rFly.postBallLaunch");
+	startTask(drivetrainController);
+	//writeDebugStreamLine("nPgmTime,lFly.current, lFly.motor_drive, lFly.p, lFly.i, lFly.d, lFly.constant, 50*lFly.postBallLaunch, rFly.current, rFly.motor_drive, rFly.p, rFly.i, rFly.d, rFly.constant, 60*rFly.postBallLaunch");
 	//setLeftFwSpeed(lSpeed);
 	//setRightFwSpeed(rSpeed);
 	//wait1Msec(500);
@@ -330,21 +371,9 @@ task usercontrol()
 	//testing
 	//userIntakeControl = false;
 	//setIntakeMotors(125);
-
-	int intakePower,
-	threshold = 15,
-	lY,
-	rY;
+	int intakePower;
 	while (true)
 	{
-		//drivetrain
-		lY = vexRT[Ch3];
-		rY = vexRT[Ch2];
-		motor[lDriveFront] = (abs(lY) > threshold) ? lY : 0;
-		motor[lDriveBack] = (abs(lY) > threshold) ? lY : 0;
-		motor[rDriveFront] = (abs(rY) > threshold) ? rY : 0;
-		motor[rDriveBack] = (abs(rY) > threshold) ? rY : 0;
-
 		//intake
 		if (userIntakeControl) { //if the program is not overriding control of the intake
 			intakePower = 125*vexRT[Btn6U] - 125*vexRT[Btn6D];
