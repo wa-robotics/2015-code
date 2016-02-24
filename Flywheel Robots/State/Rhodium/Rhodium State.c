@@ -225,8 +225,8 @@ void initializePIDLong() {
 	//tbhInit(rFly, 392, 0.55, 0.008064, 0, 70); //initialize PID for right side of the flywheel
 	//note the order of the parameters:
 	//(controller, motor ticks per rev, KpNorm, KpBallLaunch, Ki, Kd, constant, RPM drop on ball launch)
-	tbhInit(lFly, 392, 0.6981, 1, .005481, 0, 75, 20); // .2481 .6681 initialize PID for left side of the flywheel //left side might be able to have a higher P
-	tbhInit(rFly, 392, 0.6981, 1, .005481, 0, 75, 20); //initialize PID for right side of the flywheel //x.x481
+	tbhInit(lFly, 392, 0.2481, 1.5481, .005481, 0, 75, 20); // .2481 .6681 initialize PID for left side of the flywheel //left side might be able to have a higher P
+	tbhInit(rFly, 392, 0.2481, 1.5481, .005481, 0, 75, 20); //initialize PID for right side of the flywheel //x.x481
 	startTask(leftFwControlTask);
 	startTask(rightFwControlTask);
 }
@@ -266,7 +266,7 @@ void stopFlywheel() {
 
 task autonomous()
 {
-	driveDistance(1425, 1, 125);
+	driveDistance(1800, 1, 125);
 
 	/*initializePIDLong();
 	setLeftFwSpeed(70);
@@ -305,7 +305,7 @@ int rSpeed = 60;
 task usercontrol()
 {
 	startTask(closeShootingMacro);
-	//startTask(autonomous);
+	//startTask(autonomous); //comment out and change while loop condition
 	//writeDebugStreamLine("nPgmTime,lFly.current, lFly.motor_drive, lFly.p, lFly.i, lFly.d, lFly.constant, 50*lFly.postBallLaunch, rFly.current, rFly.motor_drive, rFly.p, rFly.i, rFly.d, rFly.constant, 60*rFly.postBallLaunch");
 	//setLeftFwSpeed(lSpeed);
 	//setRightFwSpeed(rSpeed);
@@ -370,8 +370,8 @@ task usercontrol()
 			flywheelMode = 4; //make sure we set the flywheel mode
 			initializePIDLong(); //prepare controller for long shooting
 			//set long shooting velocities
-		  FwVelocitySet(lFly,150,.7);
-	    FwVelocitySet(rFly,150,.7);
+		  FwVelocitySet(lFly,137,.7);
+	    FwVelocitySet(rFly,137,.7);
 		} else if (vexRT[Btn7R] == 1 && flywheelMode != 3) { //purple shooting
 			if (flywheelMode >= 1) { //if the flywheel is currently running (modes 1-4), we need to stop the controller tasks before re-initializing the PID controller
 				stopTask(leftFwControlTask);
