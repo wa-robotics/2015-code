@@ -21,24 +21,27 @@ const int ROBOT_SKILLS = LEFT_BUTTON;
 const int PROG_SKILLS = RIGHT_BUTTON;
 
 //these variables represent the answers in the skills challenge selection question (ensures proper program is selected)
-const int ROBOT_SKILLS_ANSWER = 10;
-const int PROG_SKILLS_ANSWER = 16;
+const int ROBOT_SKILLS_ANSWER = 25;
+const int PROG_SKILLS_ANSWER = 26;
 
-
-const int SIDE = 10;
-const int TIMING = 20;
+const int	COLOR = 10;
+const int TILE = 20;
+const int PATH = 30;
+const int WAIT = 35;
 const int SKILLS_SELECT = 40;
 const int NO = LEFT_BUTTON;
 const int YES = RIGHT_BUTTON;
-const int CONFIRM_QUESTION = 30; //the variable that leads to the final confirmatory question
+const int CONFIRM_QUESTION = 50; //the variable that leads to the final confirmatory question
 
-int question = SIDE;
+int question = COLOR;
 
 string pgmName; //for confirming choice
 int sumChoices; //for determining which program to run
 
 //autonomous play selection variables
 int allianceColor; //possible values: 1, 4
+int startTile;
+int autonPath;
 bool delayStart; //possible values: true, false
 int skillsMode; //possible values: 10, 16
 //poss
@@ -65,57 +68,87 @@ int waitForButtonPress() {
 }
 
 void resetSelections() {
-	question = SIDE;
+	question = COLOR;
 	//make sure none of these variables have values, so that when the program decides which autonomous program to run, it doesn't run the wrong one
 	//because one of these variables still had a value
 	allianceColor = 0;
 	delayStart = false;
 	skillsMode = 0;
+	autonPath = 0;
+	startTile = 0;
 	sumChoices = 0;
 }
 
 void getProgramToRun(int sum, bool run) {
 
 	switch (sum) {
-	case 1:
+	case 15:
 		if(run) {
 			//do something
-		} else {
-			pgmName = "Red, no wait";
+			} else {
+			pgmName = "R Back Long";
 		}
 		break;
-	case 2:
+	case 19:
 		if(run) {
 			//do something
-		} else {
-			pgmName = "Red, wait";
+			} else {
+			pgmName = "R Back Goal";
 		}
 		break;
-	case 4:
+	case 17:
 		if(run) {
 			//do something
-		} else {
-			pgmName = "Blue, no wait";
+			} else {
+			pgmName = "R Side Long";
 		}
 		break;
-	case 5:
+	case 21:
 		if(run) {
 			//do something
-		} else {
-			pgmName = "Blue, wait";
+			} else {
+			pgmName = "R Side Goal";
 		}
 		break;
-	case 10:
+	case 18:
 		if(run) {
 			//do something
-		} else {
+			} else {
+			pgmName = "B Back Long";
+		}
+		break;
+	case 22:
+		if(run) {
+			//do something
+			} else {
+			pgmName = "B Back Goal";
+		}
+		break;
+	case 20:
+		if(run) {
+			//do something
+			} else {
+			pgmName = "B Side Long";
+		}
+		break;
+	case 24:
+		if(run) {
+			//do something
+			} else {
+			pgmName = "B Side Goal";
+		}
+		break;
+	case 25:
+		if(run) {
+			//do something
+			} else {
 			pgmName = "Robot skills";
 		}
 		break;
-	case 16:
+	case 26:
 		if(run) {
 			//do something
-		} else {
+			} else {
 			pgmName = "Prog. skills";
 		}
 		break;
@@ -138,21 +171,46 @@ task confirmChoice() {
 void showQuestion(int type) {
 	int choice;
 	switch(type) {
-	case 10: //side
+	case 10: //color
 		displayLCDCenteredString(0, "Which side?");
 		displayLCDCenteredString(1, "Red   Sk.   Blue");
 		choice = waitForButtonPress();
 		if (choice == RED) {
 			allianceColor = RED;
-			question = TIMING;
+			question = TILE;
 			} else if (choice == BLUE) {
 			allianceColor = BLUE;
-			question = TIMING;
+			question = TILE;
 			} else if (choice == SKILLS) {
 			question = SKILLS_SELECT;
 		}
 		break;
-	case 20: //timing
+	case 20: //tile
+		displayLCDCenteredString(0, "Start tile?");
+		displayLCDCenteredString(1, "Side        Back");
+		startTile = waitForButtonPress();
+		if (startTile == LEFT_BUTTON) {
+			startTile = 6;
+			question = PATH;
+			}	else if (startTile == RIGHT_BUTTON) {
+			startTile = 4;
+			question = PATH;
+		}
+		break;
+
+	case 30: //path
+		displayLCDCenteredString(0, "Which path?");
+		displayLCDCenteredString(1, "Long       Close");
+		autonPath = waitForButtonPress();
+		if (autonPath == LEFT_BUTTON) {
+			autonPath = 10;
+			question = WAIT;
+			}	else if (autonPath == RIGHT_BUTTON) {
+			autonPath = 14;
+			question = WAIT;
+		}
+		break;
+	case 35: //timing
 		displayLCDCenteredString(0, "Wait at start?");
 		displayLCDCenteredString(1, "No           Yes");
 		choice = waitForButtonPress();
@@ -164,16 +222,7 @@ void showQuestion(int type) {
 			question = CONFIRM_QUESTION;
 		}
 		break;
-	case 30: //confirm
-		startTask(confirmChoice);
-		choice = waitForButtonPress();
-		stopTask(confirmChoice);
-		if (choice == CENTER_BUTTON) {
-			selectionDone = true;
-			} else if (choice == LEFT_BUTTON || choice == RIGHT_BUTTON) {
-			resetSelections();
-		}
-		break;
+
 
 	case 40: //skills mode
 		displayLCDCenteredString(0, "Which skills?");
@@ -187,6 +236,17 @@ void showQuestion(int type) {
 			question = CONFIRM_QUESTION;
 		}
 		break;
+
+	case 50: //confirm
+		startTask(confirmChoice);
+		choice = waitForButtonPress();
+		stopTask(confirmChoice);
+		if (choice == CENTER_BUTTON) {
+			selectionDone = true;
+			} else if (choice == LEFT_BUTTON || choice == RIGHT_BUTTON) {
+			resetSelections();
+		}
+		break;
 	}
 }
 
@@ -198,17 +258,23 @@ task selectionController ()
 	question = 10;
 	while (nPgmTime <= 20000 && !selectionDone) {
 		switch(question) {
-		case 10: //side
-			showQuestion(SIDE);
+		case 10: //color
+			showQuestion(COLOR);
 			break;
-		case 20: //timing
-			showQuestion(TIMING);
+		case 20: //tile
+			showQuestion(TILE);
 			break;
-		case 30: //confirm
-			showQuestion(CONFIRM_QUESTION);
+		case 30: //path
+			showQuestion(PATH);
+			break;
+		case 35: //wait
+			showQuestion(PATH);
 			break;
 		case 40: //skills
 			showQuestion(SKILLS_SELECT);
+			break;
+		case 50: //confirm
+			showQuestion(CONFIRM_QUESTION);
 			break;
 		}
 		wait1Msec(25); //don't hog the CPU
@@ -219,5 +285,4 @@ task selectionController ()
 	displayLCDCenteredString(0,"Play selected");
 	displayLCDCenteredString(1,"");
 	getProgramToRun(sumChoices,true);
-	wait1Msec(5000);
 }
