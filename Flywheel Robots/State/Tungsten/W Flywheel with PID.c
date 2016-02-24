@@ -245,8 +245,8 @@ void initializePIDShort() {
 void initializePIDPurple() {
 	//note the order of the parameters:
 	//(controller, motor ticks per rev, KpNorm, KpBallLaunch, Ki, Kd, constant, RPM drop on ball launch)
-	tbhInit(lFly, 392, 0.6981, 1.1, 0.005481, 0, 55, 20); //initialize PID for left side of the flywheel //left side might be able to have a higher P
-	tbhInit(rFly, 392, 0.6981, 1.1, 0.005481, 0, 55, 20); //initialize PID for right side of the flywheel //x.x481
+	tbhInit(lFly, 392, 0.6681, 1.36, 0.005481, 0, 55, 20); //initialize PID for left side of the flywheel //left side might be able to have a higher P
+	tbhInit(rFly, 392, 0.6681, 1.36, 0.005481, 0, 55, 20); //initialize PID for right side of the flywheel //x.x481
 	startTask(leftFwControlTask);
 	startTask(rightFwControlTask);
 }
@@ -326,8 +326,6 @@ task usercontrol()
 	  	initializePIDPurple();
 			FwVelocitySet(lFly, 120, .5);
 			FwVelocitySet(rFly, 120, .5);
-				motor[intakeChain] = 127;
-			motor[intakeRoller] = 127;
 		}
 	  else if(vexRT[Btn7D] == 1)
 	  {
