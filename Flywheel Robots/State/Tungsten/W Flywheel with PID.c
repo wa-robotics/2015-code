@@ -54,6 +54,11 @@ void setRDriveMotors (float power) {
 	motor[rDriveBack] = power;
 }
 
+void setIntakeMotors (float power) {
+	motor[intakeChain] = power;
+	motor[intakeRoller] = power;
+}
+
 //work in progress
 void driveDistance (int encoderCounts, int direction, float power) {
 	int encoderGoalRight = nMotorEncoder[rDriveFront] + encoderCounts*direction;
@@ -87,8 +92,8 @@ void rotate (int deg, int direction) {
     setLDriveMotors(-65*direction);
   }
   //Brief brake to eliminate some drift
-  setRDriveMotors(-15*direction);
-  setLDriveMotors(15*direction);
+  setRDriveMotors(-5*direction);
+  setLDriveMotors(5*direction);
   wait1Msec(100);
 
   //Second while loop to move the robot more slowly to its goal, also setting up a range
@@ -97,13 +102,13 @@ void rotate (int deg, int direction) {
   {
     if(abs(SensorValue[gyro]) > degrees10)
     {
-      setRDriveMotors(-45);
-      setLDriveMotors(45);
+      setRDriveMotors(-40);
+      setLDriveMotors(40);
     }
     else
     {
-      setRDriveMotors(45);
-      setLDriveMotors(-45);
+      setRDriveMotors(40);
+      setLDriveMotors(-40);
     }
   }
 
@@ -255,8 +260,14 @@ void stopFlywheel() {
 }
 task autonomous()
 {
-	driveDistance(3225, 1, 125);
-	rotate(7.5,1)
+	//blue side
+	initializePIDShort();
+	FwVelocitySet(lFly, 83, .5); //Added For Short Shot Test -- Crawford
+	FwVelocitySet(rFly, 83, .5); //Added For Short Shot Test -- Crawford
+	driveDistance(3450, 1, 125);
+	wait1Msec(500);
+	setIntakeMotors(122);
+	//rotate(37.1,1);
 }
 
 int lSpeed = 55; //Added For Short Shot Test -- Crawford
@@ -286,7 +297,7 @@ task usercontrol()
 	int threshold = 15,
 	lY,
 	rY;
-	while (false)
+	while (true)
 	{
 		lY = vexRT[Ch3]*2;
 		rY = vexRT[Ch2]*2;
