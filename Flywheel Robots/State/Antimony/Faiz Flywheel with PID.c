@@ -93,13 +93,13 @@ void rotate (int deg, int direction) {
   {
     if(abs(SensorValue[gyro]) > degrees10)
     {
-      setRDriveMotors(-30);
-      setLDriveMotors(30);
+      setRDriveMotors(-40);
+      setLDriveMotors(40);
     }
     else
     {
-      setRDriveMotors(30);
-      setLDriveMotors(-30);
+      setRDriveMotors(40);
+      setLDriveMotors(-40);
     }
   }
 
@@ -114,6 +114,11 @@ void pre_auton()
 	// Autonomous and Tele-Op modes. You will need to manage all user created tasks if set to false.
 	bStopTasksBetweenModes = true;
 
+	SensorType[gyro] = sensorNone;
+  wait1Msec(500);
+  //Reconfigure Analog Port 8 as a Gyro sensor and allow time for ROBOTC to calibrate it
+  SensorType[gyro] = sensorGyro;
+  wait1Msec(2000);
 }
 
 void setLeftFwSpeed (float power) {
@@ -306,7 +311,17 @@ task drivetrainController() {
 
 task autonomous()
 {
-	driveDistance(2500, 1, 85);
+	initializePIDShort();
+	FwVelocitySet(lFly, 97.75, .5);
+	FwVelocitySet(rFly, 97.75, .5);
+	driveDistance(3350, 1, 85);
+	wait1Msec(500);
+	rotate(0,1);
+	wait1Msec(250);
+	setIntakeMotors(115); //turn on the intake to outtake the balls
+	wait1Msec(1750); //wait long enough to shoot all the balls
+	setIntakeMotors(0); //stop the intake
+	stopFlywheel(); //turn off the flywheel
 
 	/*initializePIDLong();
 	setLeftFwSpeed(70);
@@ -346,6 +361,7 @@ task usercontrol()
 {
 	startTask(closeShootingMacro);
 	startTask(drivetrainController);
+	//startTask(autonomous);
 	//writeDebugStreamLine("nPgmTime,lFly.current, lFly.motor_drive, lFly.p, lFly.i, lFly.d, lFly.constant, 50*lFly.postBallLaunch, rFly.current, rFly.motor_drive, rFly.p, rFly.i, rFly.d, rFly.constant, 60*rFly.postBallLaunch");
 	//setLeftFwSpeed(lSpeed);
 	//setRightFwSpeed(rSpeed);
