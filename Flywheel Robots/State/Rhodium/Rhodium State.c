@@ -235,8 +235,8 @@ void initializePIDLong() {
 void initializePIDShort() {
 	//note the order of the parameters:
 	//(controller, motor ticks per rev, KpNorm, KpBallLaunch, Ki, Kd, constant, RPM drop on ball launch)
-	tbhInit(lFly, 392, 0.7481, 1.2281, 0.005481, 0, 42, 20); //initialize PID for left side of the flywheel //left side might be able to have a higher P
-	tbhInit(rFly, 392, 0.7481, 1.2281, 0.005481, 0, 42, 20); //initialize PID for right side of the flywheel //x.x481
+	tbhInit(lFly, 392, 0.7481, .9981, 0.005481, 0, 42, 20); //initialize PID for left side of the flywheel //left side might be able to have a higher P
+	tbhInit(rFly, 392, 0.7481, .9981, 0.005481, 0, 42, 20); //initialize PID for right side of the flywheel //x.x481
 	startTask(leftFwControlTask);
 	startTask(rightFwControlTask);
 }
@@ -370,8 +370,8 @@ task usercontrol()
 			flywheelMode = 4; //make sure we set the flywheel mode
 			initializePIDLong(); //prepare controller for long shooting
 			//set long shooting velocities
-		  FwVelocitySet(lFly,137,.7);
-	    FwVelocitySet(rFly,137,.7);
+		  FwVelocitySet(lFly,142,.7);
+	    FwVelocitySet(rFly,142,.7);
 		} else if (vexRT[Btn7R] == 1 && flywheelMode != 3) { //purple shooting
 			if (flywheelMode >= 1) { //if the flywheel is currently running (modes 1-4), we need to stop the controller tasks before re-initializing the PID controller
 				stopTask(leftFwControlTask);
@@ -393,8 +393,8 @@ task usercontrol()
 			//next 4 lines have to run every time to run flywheel
 			flywheelMode = 1;
 			initializePIDShort();
-			FwVelocitySet(lFly, 93.75, .5);
-			FwVelocitySet(rFly, 93.75, .5);
+			FwVelocitySet(lFly, 90, .5);
+			FwVelocitySet(rFly, 90, .5);
 
 		} else if (vexRT[Btn8R] == 1 && flywheelMode >= 1) { //this is an else statement so that if two buttons are pressed, we won't switch back and forth between starting and stopping the flywheel
 			stopFlywheel();																		 // flywheelMode needs to be greater than 1 so that we don't run the stopFlywheel function if the flywheel is already stopped
