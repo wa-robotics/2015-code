@@ -225,8 +225,8 @@ void initializePIDLong() {
 	//tbhInit(rFly, 392, 0.55, 0.008064, 0, 70); //initialize PID for right side of the flywheel
 	//note the order of the parameters:
 	//(controller, motor ticks per rev, KpNorm, KpBallLaunch, Ki, Kd, constant, RPM drop on ball launch)
-	tbhInit(lFly, 392, 0.2481, 0.6981, 0.005481, 0, 75, 20); //initialize PID for left side of the flywheel //left side might be able to have a higher P
-	tbhInit(rFly, 392, 0.2481, 0.6981, 0.005481, 0, 75, 20); //initialize PID for right side of the flywheel //x.x481
+	tbhInit(lFly, 392, 0.6981, 1, .005481, 0, 75, 20); // .2481 .6681 initialize PID for left side of the flywheel //left side might be able to have a higher P
+	tbhInit(rFly, 392, 0.6981, 1, .005481, 0, 75, 20); //initialize PID for right side of the flywheel //x.x481
 	startTask(leftFwControlTask);
 	startTask(rightFwControlTask);
 }
@@ -305,7 +305,7 @@ int rSpeed = 60;
 task usercontrol()
 {
 	startTask(closeShootingMacro);
-	startTask(autonomous);
+	//startTask(autonomous);
 	//writeDebugStreamLine("nPgmTime,lFly.current, lFly.motor_drive, lFly.p, lFly.i, lFly.d, lFly.constant, 50*lFly.postBallLaunch, rFly.current, rFly.motor_drive, rFly.p, rFly.i, rFly.d, rFly.constant, 60*rFly.postBallLaunch");
 	//setLeftFwSpeed(lSpeed);
 	//setRightFwSpeed(rSpeed);
@@ -350,7 +350,13 @@ task usercontrol()
 			intakePower = 125*vexRT[Btn6U] - 125*vexRT[Btn6D];
 			setIntakeMotors(intakePower);
 		}
-
+		if(vexRT[Btn5D] == 1)
+		{
+			setIntakeMotors(-127);
+			wait10Msec(10);
+			setIntakeMotors(0);
+			wait10Msec(20);
+		}
 		//flywheel speed control
 		//7U - long, 7R - purple, 7D - short
 		//8R - stop, 8D - if short shooting (flywheel must be on and in short shooting mode), outtake 4 balls and then stop the flywheel automatically
@@ -364,8 +370,8 @@ task usercontrol()
 			flywheelMode = 4; //make sure we set the flywheel mode
 			initializePIDLong(); //prepare controller for long shooting
 			//set long shooting velocities
-		  FwVelocitySet(lFly,136,.7);
-	    FwVelocitySet(rFly,136,.7);
+		  FwVelocitySet(lFly,150,.7);
+	    FwVelocitySet(rFly,150,.7);
 		} else if (vexRT[Btn7R] == 1 && flywheelMode != 3) { //purple shooting
 			if (flywheelMode >= 1) { //if the flywheel is currently running (modes 1-4), we need to stop the controller tasks before re-initializing the PID controller
 				stopTask(leftFwControlTask);
