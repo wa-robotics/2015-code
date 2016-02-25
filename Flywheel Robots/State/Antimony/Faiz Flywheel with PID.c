@@ -25,7 +25,8 @@
 #pragma autonomousDuration(20)
 #pragma userControlDuration(120)
 
-#include "Vex_Competition_Includes.c"   //Main competition background code...do not modify!
+#include "..\..\..\Vex_Competition_Includes_No_LCD.c"   //Main competition background code...do not modify!
+#include "..\..\..\LCD Autonomous Play Selection.c"
 #include "..\Global\Simple PID Controller.h"
 
 fw_controller lFly, rFly;
@@ -49,6 +50,7 @@ void setIntakeMotors (float power) {
 	motor[intakeRight] = power;
 }
 
+<<<<<<< HEAD
 task flashLED() {
 	while(1) {
 		SensorValue[led] = true;
@@ -59,6 +61,8 @@ task flashLED() {
 }
 
 //work in progress
+=======
+>>>>>>> 2fceff803e6777b69e14b7c1d58cbf25e8c43517
 void driveDistance (int encoderCounts, int direction, float power) {
 	int encoderGoalLeft = nMotorEncoder[lDriveFront] + encoderCounts*direction,
 	encoderGoalRight = nMotorEncoder[rDriveFront] + encoderCounts*direction;
@@ -87,15 +91,27 @@ void rotate (int deg, int direction) {
   int error = 5;
 
   //While the absolute value of the gyro is less than the desired rotation - 100...
+  if(direction == 1) {
   while(abs(SensorValue[gyro]) < degrees10 - 100)
   {
-    setRDriveMotors(50*direction);
-    setLDriveMotors(-50*direction);
+    setRDriveMotors(70);
+    setLDriveMotors(-70);
   }
   //Brief brake to eliminate some drift
-  setRDriveMotors(-5*direction);
-  setLDriveMotors(5*direction);
+  setRDriveMotors(-5);
+  setLDriveMotors(5);
   wait1Msec(100);
+} else {
+  while(abs(SensorValue[gyro]) > degrees10 + 100)
+  {
+    setRDriveMotors(70);
+    setLDriveMotors(-70);
+  }
+  //Brief brake to eliminate some drift
+  setRDriveMotors(-5);
+  setLDriveMotors(5);
+  wait1Msec(100);
+  }
 
   //Second while loop to move the robot more slowly to its goal, also setting up a range
   //for the amount of acceptable error in the system
@@ -103,13 +119,13 @@ void rotate (int deg, int direction) {
   {
     if(abs(SensorValue[gyro]) > degrees10)
     {
-      setRDriveMotors(-40);
-      setLDriveMotors(40);
+      setRDriveMotors(-55);
+      setLDriveMotors(55);
     }
     else
     {
-      setRDriveMotors(40);
-      setLDriveMotors(-40);
+      setRDriveMotors(55);
+      setLDriveMotors(-55);
     }
   }
 
@@ -123,7 +139,7 @@ void pre_auton()
 	// Set bStopTasksBetweenModes to false if you want to keep user created tasks running between
 	// Autonomous and Tele-Op modes. You will need to manage all user created tasks if set to false.
 	bStopTasksBetweenModes = true;
-
+	startTask(selectionController);
 	SensorType[gyro] = sensorNone;
   wait1Msec(500);
   //Reconfigure Analog Port 8 as a Gyro sensor and allow time for ROBOTC to calibrate it
@@ -319,8 +335,44 @@ task drivetrainController() {
 	}
 }
 
-task autonomous()
-{
+void intakeDistance (int encoderCounts, int direction, float power) {
+	int encoderGoal = nMotorEncoder[intakeRight] - encoderCounts*direction; //intake encoder counts down for forward
+	if (direction == 1) {
+		while (nMotorEncoder[intakeRight] > encoderGoal) {
+			setIntakeMotors(power*direction);
+		}
+	} else {
+		while (nMotorEncoder[intakeRight] < encoderGoal) {
+			setIntakeMotors(power*direction);
+		}
+	}
+
+	setIntakeMotors(0);
+}
+
+void longShotAuton(bool waitAtStart) {
+	if(waitAtStart) {
+		wait1Msec(3000);
+	}
+	initializePIDLong();
+	FwVelocitySet(lFly,132,.7);
+	FwVelocitySet(rFly,132,.7);
+	wait1Msec(1700);
+	intakeDistance(150,1,125);
+	wait1Msec(750);
+	intakeDistance(150,1,125);
+	wait1Msec(750);
+	intakeDistance(300,1,125);
+	wait1Msec(750);
+	intakeDistance(300,1,125);
+	wait1Msec(1000);
+	stopFlywheel();
+}
+
+void blueCloseShotAuton(bool waitAtStart) {
+	if(waitAtStart) {
+		wait1Msec(3000);
+	}
 	initializePIDShort();
 	FwVelocitySet(lFly, 97.75, .5);
 	FwVelocitySet(rFly, 97.75, .5);
@@ -332,22 +384,29 @@ task autonomous()
 	wait1Msec(1750); //wait long enough to shoot all the balls
 	setIntakeMotors(0); //stop the intake
 	stopFlywheel(); //turn off the flywheel
+}
 
-	/*initializePIDLong();
-	setLeftFwSpeed(70);
-	setRightFwSpeed(70);
-	wait1Msec(500);
-	FwVelocitySet(lFly,136,.7);
-	FwVelocitySet(rFly,136,.7);
-	wait1Msec(2000);
-	motor[intakeLeft] = 125;
-	motor[intakeRight] = 125;
-	wait1Msec(6000);
-	motor[intakeLeft] = 0;
-	motor[intakeRight] = 0;
-	wait1Msec(1000);
-	stopFlywheel();*/
+void programmingSkills() {
+	//initializePIDPurple();
+	//FwVelocitySet(lFly,115,.7);
+	//FwVelocitySet(rFly,115,.7);
+	rotate(-1,116);
+}
 
+task autonomous()
+{
+	//testing
+	pgmToRun = "Prog. Skills";
+	delayStart = false;
+	if (pgmToRun == "R Side Long") {
+			longShotAuton(delayStart);
+	} else if (pgmToRun == "B Side Close") {
+			blueCloseShotAuton(delayStart);
+	} else if (pgmToRun == "B Back Close") {
+			blueCloseShotAuton(delayStart);
+	} else if (pgmToRun == "Prog. Skills") {
+			programmingSkills();
+	}
 }
 
 bool userIntakeControl = true;
@@ -370,9 +429,15 @@ int rSpeed = 60;
 task usercontrol()
 {
 	startTask(closeShootingMacro);
+<<<<<<< HEAD
 	startTask(drivetrainController);
 	startTask(flashLED);
 	//startTask(autonomous);
+=======
+	//startTask(drivetrainController);
+
+	startTask(autonomous);
+>>>>>>> 2fceff803e6777b69e14b7c1d58cbf25e8c43517
 	//writeDebugStreamLine("nPgmTime,lFly.current, lFly.motor_drive, lFly.p, lFly.i, lFly.d, lFly.constant, 50*lFly.postBallLaunch, rFly.current, rFly.motor_drive, rFly.p, rFly.i, rFly.d, rFly.constant, 60*rFly.postBallLaunch");
 	//setLeftFwSpeed(lSpeed);
 	//setRightFwSpeed(rSpeed);
@@ -395,13 +460,22 @@ task usercontrol()
 	//testing
 	//userIntakeControl = false;
 	//setIntakeMotors(125);
+
+
 	int intakePower;
-	while (true)
+	while (false)
 	{
 		//intake
 		if (userIntakeControl) { //if the program is not overriding control of the intake
 			intakePower = 125*vexRT[Btn6U] - 125*vexRT[Btn6D];
 			setIntakeMotors(intakePower);
+		}
+		if(vexRT[Btn5U] == 1)
+		{
+			setIntakeMotors(-127);
+			wait10Msec(10);
+			setIntakeMotors(0);
+			wait10Msec(20);
 		}
 
 		//flywheel speed control
@@ -431,7 +505,7 @@ task usercontrol()
 			FwVelocitySet(lFly,115,.7);
 			FwVelocitySet(rFly,115,.7);
 
-		} else if (vexRT[Btn5U] == 1 && flywheelMode != 1) { //close shooting
+		} else if (vexRT[Btn7D] == 1 && flywheelMode != 1) { //close shooting
 			if (flywheelMode >= 1) { //if the flywheel is currently running (modes 1-4), we need to stop the controller tasks before re-initializing the PID controller
 				stopTask(leftFwControlTask);
 				stopTask(rightFwControlTask);
