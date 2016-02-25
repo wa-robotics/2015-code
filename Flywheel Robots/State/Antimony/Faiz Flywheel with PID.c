@@ -1,5 +1,6 @@
 #pragma config(I2C_Usage, I2C1, i2cSensors)
 #pragma config(Sensor, in1,    gyro,           sensorGyro)
+#pragma config(Sensor, dgtl12, led,            sensorLEDtoVCC)
 #pragma config(Sensor, I2C_1,  ,               sensorQuadEncoderOnI2CPort,    , AutoAssign )
 #pragma config(Sensor, I2C_2,  ,               sensorQuadEncoderOnI2CPort,    , AutoAssign )
 #pragma config(Sensor, I2C_3,  ,               sensorQuadEncoderOnI2CPort,    , AutoAssign )
@@ -46,6 +47,15 @@ void setRDriveMotors (float power) {
 void setIntakeMotors (float power) {
 	motor[intakeLeft] = power;
 	motor[intakeRight] = power;
+}
+
+task flashLED() {
+	while(1) {
+		SensorValue[led] = true;
+		wait1Msec(450);
+		SensorValue[led] = false;
+		wait1Msec(450);
+	}
 }
 
 //work in progress
@@ -250,8 +260,8 @@ void initializePIDShort() {
 void initializePIDPurple() {
 	//note the order of the parameters:
 	//(controller, motor ticks per rev, KpNorm, KpBallLaunch, Ki, Kd, constant, RPM drop on ball launch)
-	tbhInit(lFly, 392, 0.6981, 0.9981, 0.005481, 0, 55, 20); //initialize PID for left side of the flywheel //left side might be able to have a higher P
-	tbhInit(rFly, 392, 0.6981, 0.9981, 0.005481, 0, 55, 20); //initialize PID for right side of the flywheel //x.x481
+	tbhInit(lFly, 392, 0.6281, 1.03, 0.005481, 0, 55, 20); //initialize PID for left side of the flywheel //left side might be able to have a higher P
+	tbhInit(rFly, 392, 0.6281, 1.03, 0.005481, 0, 55, 20); //initialize PID for right side of the flywheel //x.x481
 	startTask(leftFwControlTask);
 	startTask(rightFwControlTask);
 }
@@ -361,6 +371,7 @@ task usercontrol()
 {
 	startTask(closeShootingMacro);
 	startTask(drivetrainController);
+	startTask(flashLED);
 	//startTask(autonomous);
 	//writeDebugStreamLine("nPgmTime,lFly.current, lFly.motor_drive, lFly.p, lFly.i, lFly.d, lFly.constant, 50*lFly.postBallLaunch, rFly.current, rFly.motor_drive, rFly.p, rFly.i, rFly.d, rFly.constant, 60*rFly.postBallLaunch");
 	//setLeftFwSpeed(lSpeed);
@@ -380,9 +391,6 @@ task usercontrol()
 
 	//purple shooting
 	//intake power 125
-	//initializePIDPurple();
-	//FwVelocitySet(lFly,115,.7);
-	//FwVelocitySet(rFly,115,.7);
 
 	//testing
 	//userIntakeControl = false;
