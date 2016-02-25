@@ -35,7 +35,7 @@ const int CONFIRM_QUESTION = 50; //the variable that leads to the final confirma
 
 int question = COLOR;
 
-string pgmName; //for confirming choice
+string pgmToRun; //for confirming choice
 int sumChoices; //for determining which program to run
 
 //autonomous play selection variables
@@ -79,88 +79,88 @@ void resetSelections() {
 	sumChoices = 0;
 }
 
-void getProgramToRun(int sum, bool run) {
+void getProgramToRun(int sum, bool run, bool delayStart) {
 
 	switch (sum) {
 	case 15:
 		if(run) {
 			//do something
 			} else {
-			pgmName = "R Back Long";
+			pgmToRun = "R Back Long";
 		}
 		break;
 	case 19:
 		if(run) {
 			//do something
 			} else {
-			pgmName = "R Back Goal";
+			pgmToRun = "R Back Goal";
 		}
 		break;
 	case 17:
 		if(run) {
 			//do something
 			} else {
-			pgmName = "R Side Long";
+			pgmToRun = "R Side Long";
 		}
 		break;
 	case 21:
 		if(run) {
 			//do something
 			} else {
-			pgmName = "R Side Goal";
+			pgmToRun = "R Side Goal";
 		}
 		break;
 	case 18:
 		if(run) {
 			//do something
 			} else {
-			pgmName = "B Back Long";
+			pgmToRun = "B Back Long";
 		}
 		break;
 	case 22:
 		if(run) {
 			//do something
 			} else {
-			pgmName = "B Back Goal";
+			pgmToRun = "B Back Goal";
 		}
 		break;
 	case 20:
 		if(run) {
 			//do something
 			} else {
-			pgmName = "B Side Long";
+			pgmToRun = "B Side Long";
 		}
 		break;
 	case 24:
 		if(run) {
 			//do something
 			} else {
-			pgmName = "B Side Goal";
+			pgmToRun = "B Side Goal";
 		}
 		break;
 	case 25:
 		if(run) {
 			//do something
 			} else {
-			pgmName = "Robot skills";
+			pgmToRun = "Robot skills";
 		}
 		break;
 	case 26:
 		if(run) {
 			//do something
 			} else {
-			pgmName = "Prog. skills";
+			pgmToRun = "Prog. skills";
 		}
 		break;
 	}
 }
 
 task confirmChoice() {
-	sumChoices = allianceColor + delayStart + skillsMode; //sum the values of the users' responses to determine which autonomous program to run
-	getProgramToRun(sumChoices,false);
+	sumChoices = allianceColor + skillsMode + startTile + autonPath; //sum the values of the users' responses to determine which autonomous program to run
+	getProgramToRun(sumChoices,false, delayStart);
 	while(!selectionDone) {
 		displayLCDCenteredString(0,"Confirm choice:");
-		displayLCDCenteredString(1,pgmName);
+		displayLCDCenteredString(1,pgmToRun);
 		wait1Msec(2000);
 		displayLCDCenteredString(0, "Center - confirm");
 		displayLCDCenteredString(1, "L/R - start over");
@@ -199,7 +199,7 @@ void showQuestion(int type) {
 		break;
 
 	case 30: //path
-		displayLCDCenteredString(0, "Which path?");
+		displayLCDCenteredString(0, "Shot type?");
 		displayLCDCenteredString(1, "Long       Close");
 		autonPath = waitForButtonPress();
 		if (autonPath == LEFT_BUTTON) {
@@ -268,7 +268,7 @@ task selectionController ()
 			showQuestion(PATH);
 			break;
 		case 35: //wait
-			showQuestion(PATH);
+			showQuestion(WAIT);
 			break;
 		case 40: //skills
 			showQuestion(SKILLS_SELECT);
@@ -284,5 +284,5 @@ task selectionController ()
 	}
 	displayLCDCenteredString(0,"Play selected");
 	displayLCDCenteredString(1,"");
-	getProgramToRun(sumChoices,true);
+	getProgramToRun(sumChoices,true, delayStart);
 }
