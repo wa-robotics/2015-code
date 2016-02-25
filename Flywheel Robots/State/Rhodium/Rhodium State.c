@@ -1,5 +1,6 @@
 #pragma config(I2C_Usage, I2C1, i2cSensors)
 #pragma config(Sensor, in1,    gyro,           sensorGyro)
+#pragma config(Sensor, dgtl12, led,            sensorLEDtoVCC)
 #pragma config(Sensor, I2C_1,  ,               sensorQuadEncoderOnI2CPort,    , AutoAssign )
 #pragma config(Sensor, I2C_2,  ,               sensorQuadEncoderOnI2CPort,    , AutoAssign )
 #pragma config(Sensor, I2C_3,  ,               sensorQuadEncoderOnI2CPort,    , AutoAssign )
@@ -26,7 +27,14 @@
 
 #include "Vex_Competition_Includes.c"   //Main competition background code...do not modify!
 #include "..\Global\Simple PID Controller.h"
-
+task flashLED() {
+	while(1) {
+		SensorValue[led] = true;
+		wait1Msec(450);
+		SensorValue[led] = false;
+		wait1Msec(450);
+	}
+}
 fw_controller lFly, rFly;
 string str;
 int flywheelMode = 0; //0 - stopped, 1 - close, 2 - center, 3 - purple, 4 - long
@@ -230,8 +238,8 @@ void initializePIDLong() {
 	//tbhInit(rFly, 392, 0.55, 0.008064, 0, 70); //initialize PID for right side of the flywheel
 	//note the order of the parameters:
 	//(controller, motor ticks per rev, KpNorm, KpBallLaunch, Ki, Kd, constant, RPM drop on ball launch)
-	tbhInit(lFly, 392, 0.2481, 1.5481, .005481, 0, 75, 20); // .2481 .6681 initialize PID for left side of the flywheel //left side might be able to have a higher P
-	tbhInit(rFly, 392, 0.2481, 1.5481, .005481, 0, 75, 20); //initialize PID for right side of the flywheel //x.x481
+	tbhInit(lFly, 392, 0.5481, 1.3181, .005481, 0, 75, 20); // .2481 .6681 initialize PID for left side of the flywheel //left side might be able to have a higher P
+	tbhInit(rFly, 392, 0.5481, 1.3181, .005481, 0, 75, 20); //initialize PID for right side of the flywheel //x.x481
 	startTask(leftFwControlTask);
 	startTask(rightFwControlTask);
 }
@@ -345,7 +353,7 @@ task usercontrol()
 	//initializePIDPurple();
 	//FwVelocitySet(lFly,115,.7);
 	//FwVelocitySet(rFly,115,.7);
-
+  startTask(flashLED);
 	int intakePower,
 	threshold = 15,
 	lY,
@@ -385,8 +393,8 @@ task usercontrol()
 			flywheelMode = 4; //make sure we set the flywheel mode
 			initializePIDLong(); //prepare controller for long shooting
 			//set long shooting velocities
-		  FwVelocitySet(lFly,139,.7);
-	    FwVelocitySet(rFly,139,.7);
+		  FwVelocitySet(lFly,136,.7);
+	    FwVelocitySet(rFly,136,.7);
 		} else if (vexRT[Btn7R] == 1 && flywheelMode != 3) { //purple shooting
 			if (flywheelMode >= 1) { //if the flywheel is currently running (modes 1-4), we need to stop the controller tasks before re-initializing the PID controller
 				stopTask(leftFwControlTask);
@@ -394,6 +402,7 @@ task usercontrol()
 			}
 
 			//next 4 lines have to run every time to run flywheel
+
 			flywheelMode = 3;
 			initializePIDPurple();
 			FwVelocitySet(lFly,120,.7);
