@@ -35,12 +35,12 @@ void pre_auton()
 	// Set bStopTasksBetweenModes to false if you want to keep user created tasks running between
 	// Autonomous and Tele-Op modes. You will need to manage all user created tasks if set to false.
 	bStopTasksBetweenModes = true;
-	startTask(selectionController);
 	SensorType[gyro] = sensorNone;
   wait1Msec(500);
-  //Reconfigure Analog Port 8 as a Gyro sensor and allow time for ROBOTC to calibrate it
+  //Reconfigure Analog Port 1 as a Gyro sensor and allow time for ROBOTC to calibrate it
   SensorType[gyro] = sensorGyro;
   wait1Msec(2000);
+  startTask(selectionController);
 }
 
 void setLDriveMotors (float power) {
@@ -283,18 +283,16 @@ void longShotAuton(bool waitAtStart) {
 	stopFlywheel();
 }
 
-void blueCloseShotAuton(bool waitAtStart) {
+void closeShotAuton(bool waitAtStart) {
 	if(waitAtStart) {
 		wait1Msec(3000);
 	}
-	//blue side
 	initializePIDShort();
-	FwVelocitySet(lFly, 83, .5); //Added For Short Shot Test -- Crawford
-	FwVelocitySet(rFly, 83, .5); //Added For Short Shot Test -- Crawford
+	FwVelocitySet(lFly, 83, .5);
+	FwVelocitySet(rFly, 83, .5);
 	driveDistance(3450, 1, 125);
 	wait1Msec(500);
 	setIntakeMotors(122);
-	//rotate(37.1,1);
 }
 
 void programmingSkills() {
@@ -318,14 +316,16 @@ void programmingSkills() {
 task autonomous()
 {
 	//testing
-	pgmToRun = "Prog. Skills";
-	delayStart = false;
-	if (pgmToRun == "R Side Long") {
+	//pgmToRun = "Prog. Skills";
+	//delayStart = false;
+	if (pgmToRun == "R Side Long" || pgmToRun == "R Back Long"
+			|| pgmToRun == "B Side Long"
+			|| pgmToRun == "B Back Long") {
 			longShotAuton(delayStart);
-	} else if (pgmToRun == "B Side Close") {
-			blueCloseShotAuton(delayStart);
-	} else if (pgmToRun == "B Back Close") {
-			blueCloseShotAuton(delayStart);
+	} else if (pgmToRun == "B Side Close" || pgmToRun == "B Back Close"
+			|| pgmToRun == "R Side Close"
+			|| pgmToRun == "R Back Close") {
+			closeShotAuton(delayStart);
 	} else if (pgmToRun == "Prog. Skills") {
 			programmingSkills();
 	}
