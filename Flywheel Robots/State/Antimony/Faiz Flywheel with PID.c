@@ -393,17 +393,17 @@ void longShotAuton(bool waitAtStart) {
 		wait1Msec(3000);
 	}
 	initializePIDLong();
-	FwVelocitySet(lFly,132,.7);
-	FwVelocitySet(rFly,132,.7);
-	wait1Msec(1700);
+	FwVelocitySet(lFly,132.5,.7);
+	FwVelocitySet(rFly,132.5,.7);
+	wait1Msec(2000);
 	intakeDistance(150,1,125);
-	wait1Msec(750);
+	wait1Msec(2000);
 	intakeDistance(150,1,125);
-	wait1Msec(750);
+	wait1Msec(2000);
 	intakeDistance(300,1,125);
-	wait1Msec(750);
+	wait1Msec(2000);
 	intakeDistance(300,1,125);
-	wait1Msec(1000);
+	wait1Msec(1500);
 	stopFlywheel();
 }
 

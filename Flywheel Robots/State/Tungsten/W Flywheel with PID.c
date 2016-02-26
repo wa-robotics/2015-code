@@ -264,7 +264,7 @@ void intakeDistance (int encoderCounts, int direction, float power) {
 	setIntakeMotors(0);
 }
 
-void longShotAuton(bool waitAtStart) {
+/*void longShotAuton(bool waitAtStart) {
 	if(waitAtStart) {
 		wait1Msec(3000);
 	}
@@ -281,7 +281,7 @@ void longShotAuton(bool waitAtStart) {
 	intakeDistance(300,1,125);
 	wait1Msec(1000);
 	stopFlywheel();
-}
+}*/
 
 void closeShotAuton(bool waitAtStart) {
 	if(waitAtStart) {
@@ -293,6 +293,18 @@ void closeShotAuton(bool waitAtStart) {
 	driveDistance(3450, 1, 125);
 	wait1Msec(500);
 	setIntakeMotors(122);
+}
+
+void longShotAuton(bool waitAtStart) {
+	if(waitAtStart) {
+		wait1Msec(5000);
+	}
+	initializePIDPurple();
+	FwVelocitySet(lFly, 120, .5);
+	FwVelocitySet(rFly, 120, .5);
+	driveDistance(1775, 1, 125);
+	wait1Msec(500);
+	setIntakeMotors(125);
 }
 
 void programmingSkills() {
@@ -338,10 +350,7 @@ int rSpeed = 55; //Added For Short Shot Test -- Crawford
 int flywheelWorking = 0;
 task usercontrol()
 {
-<<<<<<< HEAD
 	//startTask(autonomous);
-=======
->>>>>>> origin/master
 	//writeDebugStreamLine("nPgmTime,lFly.current, lFly.motor_drive, lFly.p, lFly.i, lFly.d, lFly.constant, 50*lFly.postBallLaunch, rFly.current, rFly.motor_drive, rFly.p, rFly.i, rFly.d, rFly.constant, 60*rFly.postBallLaunch");
 	//setLeftFwSpeed(lSpeed);
 	//setRightFwSpeed(rSpeed);
