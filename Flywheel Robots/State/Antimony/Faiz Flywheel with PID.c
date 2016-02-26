@@ -61,14 +61,24 @@ task flashLED() {
 void driveDistance (int encoderCounts, int direction, float power) {
 	int encoderGoalLeft = nMotorEncoder[lDriveFront] + encoderCounts*direction,
 	encoderGoalRight = nMotorEncoder[rDriveFront] + encoderCounts*direction;
-
-	while (nMotorEncoder[lDriveFront] < encoderGoalLeft) {
-		if (encoderGoalLeft - nMotorEncoder[lDriveFront] <= 360) { //as the target is approached, start decreasing the power slightly
-			power *= .85;
+	if (direction == 1) {
+		while (nMotorEncoder[lDriveFront] < encoderGoalLeft) {
+			if (encoderGoalLeft - nMotorEncoder[lDriveFront] <= 360) { //as the target is approached, start decreasing the power slightly
+				power *= .85;
+			}
+			setLDriveMotors(power*direction);
+			setRDriveMotors(power*direction);
+			wait1Msec(10);
 		}
-		setLDriveMotors(power*direction);
-		setRDriveMotors(power*direction);
-		wait1Msec(10);
+	} else {
+		while (nMotorEncoder[lDriveFront] > encoderGoalLeft) {
+			if (abs(encoderGoalLeft - nMotorEncoder[lDriveFront]) <= 360) { //as the target is approached, start decreasing the power slightly
+				power *= .85;
+			}
+			setLDriveMotors(power*direction);
+			setRDriveMotors(power*direction);
+			wait1Msec(10);
+		}
 	}
 
 	setLDriveMotors(0);
@@ -139,8 +149,8 @@ void rotateDegrees(int position, int direction) {//This function is for turning
 		//If direction == Left
 		while(abs(SensorValue[gyro]) < position){
 			//While the gyro is less than a set degrees, turn Left
-			setRDriveMotors(45);
-			setLDriveMotors(-45);
+			setRDriveMotors(55);
+			setLDriveMotors(-55);
 		}
 		setRDriveMotors(-15);
 		setLDriveMotors(15);
@@ -151,8 +161,8 @@ void rotateDegrees(int position, int direction) {//This function is for turning
 		//if direction == right
 		while(abs(SensorValue[gyro]) < position){
 			//While the gyro is less than a set degrees, turn right
-			setRDriveMotors(-45);
-			setLDriveMotors(45);
+			setRDriveMotors(-55);
+			setLDriveMotors(55);
 		}
 
 		setRDriveMotors(15);
@@ -415,26 +425,33 @@ void closeShotAuton(bool waitAtStart) {
 }
 
 void programmingSkills() {
+	startTask(flashLED);
 	initializePIDPurple();
 	FwVelocitySet(lFly,115,.7);
 	FwVelocitySet(rFly,115,.7);
 	setIntakeMotors(125);
-	wait1Msec(25000);
+	wait1Msec(5000);
+	stopFlywheel();
 	setIntakeMotors(0);
-	rotateDegrees(850,-1);
+	rotateDegrees(860,1);
 	wait1Msec(750);
-	driveDistance(3275, 1, 60);
-	wait1Msec(750);
-	rotateDegrees(780,1);
-	wait1Msec(500);
+	driveDistance(3300, -1, 85);
 	setIntakeMotors(125);
-	wait1Msec(25000);
+	initializePIDPurple();
+	FwVelocitySet(lFly,115,.7);
+	FwVelocitySet(rFly,115,.7);
+	wait1Msec(750);
+	rotateDegrees(895,-1);
+	setIntakeMotors(125);
+	//wait1Msec(500);
+	//setIntakeMotors(125);
+	//wait1Msec(25000);
 }
 
 task autonomous()
 {
 	//testing
-	//pgmToRun = "Prog. Skills";
+	pgmToRun = "Prog. Skills";
 	//delayStart = false;
 	if (pgmToRun == "R Side Long" || pgmToRun == "R Back Long"
 			|| pgmToRun == "B Side Long"
@@ -484,11 +501,11 @@ int lSpeed = 60;
 int rSpeed = 60;
 task usercontrol()
 {
-	startTask(closeShootingMacro);
-	startTask(drivetrainController);
-	startTask(flashLED);
-	startTask(liftController);
-	//startTask(autonomous);
+	//startTask(closeShootingMacro);
+	//startTask(drivetrainController);
+	//startTask(flashLED);
+	//startTask(liftController);
+	startTask(autonomous);
 	//startTask(drivetrainController);
 
 	//startTask(autonomous);
@@ -517,7 +534,7 @@ task usercontrol()
 
 
 	int intakePower;
-	while (true)
+	while (false)
 	{
 		//intake
 		if (userIntakeControl) { //if the program is not overriding control of the intake
