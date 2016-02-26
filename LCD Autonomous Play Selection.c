@@ -93,7 +93,7 @@ void getProgramToRun(int sum, bool run, bool delayStart) {
 		if(run) {
 			//do something
 			} else {
-			pgmToRun = "R Back Goal";
+			pgmToRun = "R Back Close";
 		}
 		break;
 	case 17:
@@ -107,7 +107,7 @@ void getProgramToRun(int sum, bool run, bool delayStart) {
 		if(run) {
 			//do something
 			} else {
-			pgmToRun = "R Side Goal";
+			pgmToRun = "R Side Close";
 		}
 		break;
 	case 18:
@@ -121,7 +121,7 @@ void getProgramToRun(int sum, bool run, bool delayStart) {
 		if(run) {
 			//do something
 			} else {
-			pgmToRun = "B Back Goal";
+			pgmToRun = "B Back Close";
 		}
 		break;
 	case 20:
@@ -135,7 +135,7 @@ void getProgramToRun(int sum, bool run, bool delayStart) {
 		if(run) {
 			//do something
 			} else {
-			pgmToRun = "B Side Goal";
+			pgmToRun = "B Side Close";
 		}
 		break;
 	case 25:
