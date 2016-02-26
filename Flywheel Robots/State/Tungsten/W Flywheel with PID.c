@@ -338,7 +338,6 @@ int rSpeed = 55; //Added For Short Shot Test -- Crawford
 int flywheelWorking = 0;
 task usercontrol()
 {
-	startTask(autonomous);
 	//writeDebugStreamLine("nPgmTime,lFly.current, lFly.motor_drive, lFly.p, lFly.i, lFly.d, lFly.constant, 50*lFly.postBallLaunch, rFly.current, rFly.motor_drive, rFly.p, rFly.i, rFly.d, rFly.constant, 60*rFly.postBallLaunch");
 	//setLeftFwSpeed(lSpeed);
 	//setRightFwSpeed(rSpeed);
@@ -361,7 +360,7 @@ task usercontrol()
 	int threshold = 15,
 	lY,
 	rY;
-	while (false)
+	while (true)
 	{
 		lY = vexRT[Ch3]*2;
 		rY = vexRT[Ch2]*2;
