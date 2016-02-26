@@ -450,9 +450,6 @@ void programmingSkills() {
 
 task autonomous()
 {
-	//testing
-	//pgmToRun = "Prog. Skills";
-	//delayStart = false;
 	if (pgmToRun == "R Side Long" || pgmToRun == "R Back Long"
 			|| pgmToRun == "B Side Long"
 			|| pgmToRun == "B Back Long") {
@@ -461,7 +458,7 @@ task autonomous()
 			|| pgmToRun == "R Side Close"
 			|| pgmToRun == "R Back Close") {
 			closeShotAuton(delayStart);
-	} else if (pgmToRun == "Prog. Skills") {
+	} else if (pgmToRun == "Prog. skills") {
 			programmingSkills();
 	}
 }
@@ -485,11 +482,13 @@ task liftController() {
 	while(1) {
 		if (vexRT[Btn8L] == 1 && vexRT[Btn8D] == 1) {
 			motor[liftPlatform] = 127;
-			wait1Msec(500);
+		} else {
 			motor[liftPlatform] = 0;
-		} else if (vexRT[Btn8U] == 1 && vexRT[Btn8L] == 1) {
+		}
+
+		if (vexRT[Btn8U] == 1 && vexRT[Btn8L] == 1) {
 			motor[fourBarRelease] = 127;
-			wait1Msec(1000);
+	  } else {
 			motor[fourBarRelease] = 0;
 		}
 
@@ -573,8 +572,8 @@ task usercontrol()
 			//next 4 lines have to run every time to run flywheel
 			flywheelMode = 3;
 			initializePIDPurple();
-			FwVelocitySet(lFly,115,.7);
-			FwVelocitySet(rFly,115,.7);
+			FwVelocitySet(lFly,118.5,.7);
+			FwVelocitySet(rFly,118.5,.7);
 
 		} else if (vexRT[Btn7D] == 1 && flywheelMode != 1) { //close shooting
 			if (flywheelMode >= 1) { //if the flywheel is currently running (modes 1-4), we need to stop the controller tasks before re-initializing the PID controller
