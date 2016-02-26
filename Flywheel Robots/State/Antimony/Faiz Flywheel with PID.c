@@ -340,7 +340,7 @@ task drivetrainController() {
 			rYLastSent = 0,
 			lY,
 			rY,
-			slewRateLimit = 10,
+			slewRateLimit = 15,
 			threshold = 15;
 	while(true) {
 		lYRequested = vexRT[Ch3];
@@ -501,11 +501,11 @@ int lSpeed = 60;
 int rSpeed = 60;
 task usercontrol()
 {
-	//startTask(closeShootingMacro);
-	//startTask(drivetrainController);
-	//startTask(flashLED);
-	//startTask(liftController);
-	startTask(autonomous);
+	startTask(closeShootingMacro);
+	startTask(drivetrainController);
+	startTask(flashLED);
+	startTask(liftController);
+	//startTask(autonomous);
 	//startTask(drivetrainController);
 
 	//startTask(autonomous);
@@ -534,7 +534,7 @@ task usercontrol()
 
 
 	int intakePower;
-	while (false)
+	while (true)
 	{
 		//intake
 		if (userIntakeControl) { //if the program is not overriding control of the intake
