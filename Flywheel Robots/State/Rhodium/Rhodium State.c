@@ -25,8 +25,10 @@
 #pragma autonomousDuration(20)
 #pragma userControlDuration(120)
 
-#include "Vex_Competition_Includes.c"   //Main competition background code...do not modify!
+#include "..\..\..\Vex_Competition_Includes_No_LCD.c"   //Main competition background code...do not modify!
+#include "..\..\..\LCD Autonomous Play Selection.c"
 #include "..\Global\Simple PID Controller.h"
+
 task flashLED() {
 	while(1) {
 		SensorValue[led] = true;
@@ -59,11 +61,18 @@ void setIntakeMotors (float power) {
 
 void driveDistance (int encoderCounts, int direction, float power) {
 	int	encoderGoalLeft = nMotorEncoder[lDriveFront] + encoderCounts*direction;
-
-int encoderGoalRight = nMotorEncoder[rDriveFront] + encoderCounts*direction;
-
+	int encoderGoalRight = nMotorEncoder[rDriveFront] + encoderCounts*direction;
+	int lAdjust;
+	int rAdjust;
 	while (nMotorEncoder[rDriveFront] < encoderGoalRight) {
-		setLDriveMotors(power*direction);
+		if (abs(nMotorEncoder[rDriveFront] - nMotorEncoder[rDriveBack]) <= 10) { //sides are close together
+			lAdjust = 0;
+		} else if (nMotorEncoder[lDriveFront] > nMotorEncoder[rDriveFront]) { //left side is ahead
+			lAdjust = -10; //slow left side down
+		} else { //right side is ahead
+			lAdjust = 10; //speed left side up to compensate
+		}
+		setLDriveMotors((power+lAdjust)*direction);
 		setRDriveMotors(power*direction);
 		wait1Msec(10);
 	}
@@ -71,6 +80,7 @@ int encoderGoalRight = nMotorEncoder[rDriveFront] + encoderCounts*direction;
 	setLDriveMotors(0);
 	setRDriveMotors(0);
 }
+
 
 //rotate the robot to a certain position (rotationally)
 //@param deg The number of degrees to turn; positive values are counterclockwise, negative values are clockwise.
@@ -120,7 +130,7 @@ void pre_auton()
 	// Set bStopTasksBetweenModes to false if you want to keep user created tasks running between
 	// Autonomous and Tele-Op modes. You will need to manage all user created tasks if set to false.
 	bStopTasksBetweenModes = true;
-
+	startTask(selectionController);
 	SensorType[gyro] = sensorNone;
   wait1Msec(500);
   //Reconfigure Analog Port 8 as a Gyro sensor and allow time for ROBOTC to calibrate it
@@ -277,8 +287,45 @@ void stopFlywheel() {
 	flywheelMode = 0; //make sure we know that the flywheel is stopped
 }
 
-task autonomous()
-{
+void intakeDistance (int encoderCounts, int direction, float power) {
+	int encoderGoal = nMotorEncoder[intakeRight] - encoderCounts*direction; //intake encoder counts down for forward
+	if (direction == 1) {
+		while (nMotorEncoder[intakeRight] > encoderGoal) {
+			setIntakeMotors(power*direction);
+		}
+	} else {
+		while (nMotorEncoder[intakeRight] < encoderGoal) {
+			setIntakeMotors(power*direction);
+		}
+	}
+
+	setIntakeMotors(0);
+}
+
+void centerShotAuton(bool waitToStart) {
+	if (waitToStart) {
+		wait1Msec(3000);
+	}
+	initializePIDPurple();
+	FwVelocitySet(lFly, 128, .5);
+	FwVelocitySet(rFly, 128, .5);
+	driveDistance(1600, 1, 85);
+	wait1Msec(750);
+	intakeDistance(150,1,125);
+	wait1Msec(1250);
+	intakeDistance(205,1,125);
+	wait1Msec(1250);
+	intakeDistance(300,1,125);
+	wait1Msec(1250);
+	intakeDistance(300,1,125);
+	wait1Msec(1250);
+	stopFlywheel(); //turn off the flywheel
+}
+
+void closeShotAuton(bool waitToStart) {
+	if (waitToStart) {
+		wait1Msec(3000);
+	}
 	initializePIDShort();
 	FwVelocitySet(lFly, 102, .5);
 	FwVelocitySet(rFly, 102, .5);
@@ -290,6 +337,21 @@ task autonomous()
 	wait1Msec(2500); //wait long enough to shoot all the balls
 	setIntakeMotors(0); //stop the intake
 	stopFlywheel(); //turn off the flywheel
+}
+
+task autonomous()
+{
+	if (pgmToRun == "R Side Long" || pgmToRun == "R Back Long"
+			|| pgmToRun == "B Side Long"
+			|| pgmToRun == "B Back Long") {
+			centerShotAuton(delayStart);
+	} else if (pgmToRun == "B Side Close" || pgmToRun == "B Back Close"
+			|| pgmToRun == "R Side Close"
+			|| pgmToRun == "R Back Close") {
+			closeShotAuton(delayStart);
+	} else if (pgmToRun == "Prog. skills") {
+			//programmingSkills();
+	}
 
 	/*initializePIDLong();
 	setLeftFwSpeed(70);
@@ -393,8 +455,8 @@ task usercontrol()
 			flywheelMode = 4; //make sure we set the flywheel mode
 			initializePIDLong(); //prepare controller for long shooting
 			//set long shooting velocities
-		  FwVelocitySet(lFly,136,.7);
-	    FwVelocitySet(rFly,136,.7);
+		  FwVelocitySet(lFly,140,.7);
+	    FwVelocitySet(rFly,140,.7);
 		} else if (vexRT[Btn7R] == 1 && flywheelMode != 3) { //purple shooting
 			if (flywheelMode >= 1) { //if the flywheel is currently running (modes 1-4), we need to stop the controller tasks before re-initializing the PID controller
 				stopTask(leftFwControlTask);
