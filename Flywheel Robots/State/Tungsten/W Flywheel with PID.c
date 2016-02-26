@@ -338,7 +338,10 @@ int rSpeed = 55; //Added For Short Shot Test -- Crawford
 int flywheelWorking = 0;
 task usercontrol()
 {
+<<<<<<< HEAD
 	//startTask(autonomous);
+=======
+>>>>>>> origin/master
 	//writeDebugStreamLine("nPgmTime,lFly.current, lFly.motor_drive, lFly.p, lFly.i, lFly.d, lFly.constant, 50*lFly.postBallLaunch, rFly.current, rFly.motor_drive, rFly.p, rFly.i, rFly.d, rFly.constant, 60*rFly.postBallLaunch");
 	//setLeftFwSpeed(lSpeed);
 	//setRightFwSpeed(rSpeed);
