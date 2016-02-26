@@ -256,7 +256,7 @@ task selectionController ()
 {
 	bLCDBacklight = true;
 	question = 10;
-	while (nPgmTime <= 20000 && !selectionDone) {
+	while (nPgmTime <= 30000 && !selectionDone) {
 		switch(question) {
 		case 10: //color
 			showQuestion(COLOR);
