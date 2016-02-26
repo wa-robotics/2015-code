@@ -256,7 +256,7 @@ task selectionController ()
 {
 	bLCDBacklight = true;
 	question = 10;
-	while (nPgmTime <= 30000 && !selectionDone) {
+	while (!selectionDone && bIfiRobotDisabled) {
 		switch(question) {
 		case 10: //color
 			showQuestion(COLOR);
@@ -281,8 +281,11 @@ task selectionController ()
 	}
 	if(!selectionDone) {
 		resetSelections(); //if no selection is confirmed, make sure nothing runs during autonomous
+		displayLCDCenteredString(0,"No auton play");
+		displayLCDCenteredString(1,"");
+	} else {
+		displayLCDCenteredString(0,"Play selected");
+		displayLCDCenteredString(1,"");
 	}
-	displayLCDCenteredString(0,"Play selected");
-	displayLCDCenteredString(1,"");
 	getProgramToRun(sumChoices,true, delayStart);
 }
