@@ -129,6 +129,40 @@ void rotate (int deg, int direction) {
 	setLDriveMotors(0);
 }
 
+//rotate the robot a certain amount
+//@param deg The number of degrees to turn; positive values are counterclockwise, negative values are clockwise.
+//@param direction The direction to turn in to get to the position; 1 is counterclockwise, -1 is clockwise
+void rotateDegrees(int position, int direction) {//This function is for turning
+	SensorValue[gyro] = 0;
+	//Clear gyro
+	if(direction == 1){
+		//If direction == Left
+		while(abs(SensorValue[gyro]) < position){
+			//While the gyro is less than a set degrees, turn Left
+			setRDriveMotors(45);
+			setLDriveMotors(-45);
+		}
+		setRDriveMotors(-15);
+		setLDriveMotors(15);
+		wait1Msec(100); //brief brake
+	}
+	//end of LEFT turn
+	else{
+		//if direction == right
+		while(abs(SensorValue[gyro]) < position){
+			//While the gyro is less than a set degrees, turn right
+			setRDriveMotors(-45);
+			setLDriveMotors(45);
+		}
+
+		setRDriveMotors(15);
+		setLDriveMotors(-15);
+		wait1Msec(100); //brief brake
+	} //end of RIGHT turn
+	setRDriveMotors(0);
+	setLDriveMotors(0);
+}
+
 void pre_auton()
 {
 	// Set bStopTasksBetweenModes to false if you want to keep user created tasks running between
@@ -363,7 +397,7 @@ void longShotAuton(bool waitAtStart) {
 	stopFlywheel();
 }
 
-void blueCloseShotAuton(bool waitAtStart) {
+void closeShotAuton(bool waitAtStart) {
 	if(waitAtStart) {
 		wait1Msec(3000);
 	}
@@ -381,23 +415,35 @@ void blueCloseShotAuton(bool waitAtStart) {
 }
 
 void programmingSkills() {
-	//initializePIDPurple();
-	//FwVelocitySet(lFly,115,.7);
-	//FwVelocitySet(rFly,115,.7);
-	rotate(116, -1);
+	initializePIDPurple();
+	FwVelocitySet(lFly,115,.7);
+	FwVelocitySet(rFly,115,.7);
+	setIntakeMotors(125);
+	wait1Msec(25000);
+	setIntakeMotors(0);
+	rotateDegrees(850,-1);
+	wait1Msec(750);
+	driveDistance(3275, 1, 60);
+	wait1Msec(750);
+	rotateDegrees(780,1);
+	wait1Msec(500);
+	setIntakeMotors(125);
+	wait1Msec(25000);
 }
 
 task autonomous()
 {
 	//testing
-	pgmToRun = "Prog. Skills";
-	delayStart = false;
-	if (pgmToRun == "R Side Long") {
+	//pgmToRun = "Prog. Skills";
+	//delayStart = false;
+	if (pgmToRun == "R Side Long" || pgmToRun == "R Back Long"
+			|| pgmToRun == "B Side Long"
+			|| pgmToRun == "B Back Long") {
 			longShotAuton(delayStart);
-	} else if (pgmToRun == "B Side Close") {
-			blueCloseShotAuton(delayStart);
-	} else if (pgmToRun == "B Back Close") {
-			blueCloseShotAuton(delayStart);
+	} else if (pgmToRun == "B Side Close" || pgmToRun == "B Back Close"
+			|| pgmToRun == "R Side Close"
+			|| pgmToRun == "R Back Close") {
+			closeShotAuton(delayStart);
 	} else if (pgmToRun == "Prog. Skills") {
 			programmingSkills();
 	}
