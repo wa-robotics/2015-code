@@ -430,22 +430,21 @@ void programmingSkills() {
 	FwVelocitySet(lFly,115,.7);
 	FwVelocitySet(rFly,115,.7);
 	setIntakeMotors(125);
-	wait1Msec(5000);
+	wait1Msec(25000);
 	stopFlywheel();
 	setIntakeMotors(0);
 	rotateDegrees(860,1);
 	wait1Msec(750);
-	driveDistance(3300, -1, 85);
+	driveDistance(3375, -1, 85);
 	setIntakeMotors(125);
 	initializePIDPurple();
 	FwVelocitySet(lFly,115,.7);
 	FwVelocitySet(rFly,115,.7);
 	wait1Msec(750);
 	rotateDegrees(895,-1);
+	wait1Msec(500);
 	setIntakeMotors(125);
-	//wait1Msec(500);
-	//setIntakeMotors(125);
-	//wait1Msec(25000);
+	wait1Msec(25000);
 }
 
 task autonomous()
