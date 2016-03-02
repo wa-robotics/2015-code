@@ -550,7 +550,7 @@ task usercontrol()
 		//flywheel speed control
 		//7U - long, 7R - purple, 7D - short
 		//8R - stop, 8D - if short shooting (flywheel must be on and in short shooting mode), outtake 4 balls and then stop the flywheel automatically
-		if (true){//vexRT[Btn7U] == 1 && flywheelMode != 4) { //second condition prevents reinitialization of long shooting if the flywheel is currently in long shooting mode
+		if (vexRT[Btn7U] == 1 && flywheelMode != 4) { //second condition prevents reinitialization of long shooting if the flywheel is currently in long shooting mode
 			if (flywheelMode >= 1) { //if the flywheel is currently running (modes 1-4), we need to stop the controller tasks before re-initializing the PID controller
 				stopTask(leftFwControlTask);
 				stopTask(rightFwControlTask);
@@ -560,8 +560,8 @@ task usercontrol()
 			flywheelMode = 4; //make sure we set the flywheel mode
 			initializePIDLong(); //prepare controller for long shooting
 			//set long shooting velocities
-		  FwVelocitySet(lFly,110,.7);
-	    FwVelocitySet(rFly,110,.7);
+		  FwVelocitySet(lFly,140,.7);
+	    FwVelocitySet(rFly,140,.7);
 	    userIntakeControl = false;
 	    setIntakeMotors(127);
 		} else if (vexRT[Btn7R] == 1 && flywheelMode != 3) { //purple shooting
