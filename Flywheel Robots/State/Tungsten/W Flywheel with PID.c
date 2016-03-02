@@ -320,8 +320,8 @@ void programmingSkills() {
 	driveDistance(3275, 1, 60);
 	wait1Msec(750);
 	rotate(780,1);
-	motor[intakeChain] = 127;
-	wait1Msec(25000);
+	motor[intakeRoller] = 127;
+	wait1Msec(30000);
 }
 
 
@@ -338,7 +338,7 @@ task autonomous()
 			|| pgmToRun == "R Side Close"
 			|| pgmToRun == "R Back Close") {
 			closeShotAuton(delayStart);
-	} else if (pgmToRun == "Prog. Skills") {
+	} else if (pgmToRun == "Prog. skills") {
 			programmingSkills();
 	}
 }
