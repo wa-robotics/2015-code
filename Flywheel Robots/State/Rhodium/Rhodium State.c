@@ -62,15 +62,15 @@ void setIntakeMotors (float power) {
 void driveDistance (int encoderCounts, int direction, float power) {
 	int	encoderGoalLeft = nMotorEncoder[lDriveFront] + encoderCounts*direction;
 	int encoderGoalRight = nMotorEncoder[rDriveFront] + encoderCounts*direction;
-	int lAdjust;
+	int lAdjust = 0;
 	int rAdjust;
 	while (nMotorEncoder[rDriveFront] < encoderGoalRight) {
 		if (abs(nMotorEncoder[rDriveFront] - nMotorEncoder[rDriveBack]) <= 10) { //sides are close together
-			lAdjust = 0;
+			//lAdjust = 0;
 		} else if (nMotorEncoder[lDriveFront] > nMotorEncoder[rDriveFront]) { //left side is ahead
-			lAdjust = -10; //slow left side down
+			//lAdjust = -10; //slow left side down
 		} else { //right side is ahead
-			lAdjust = 10; //speed left side up to compensate
+			//lAdjust = 10; //speed left side up to compensate
 		}
 		setLDriveMotors((power+lAdjust)*direction);
 		setRDriveMotors(power*direction);
@@ -109,13 +109,13 @@ void rotate (int deg, int direction) {
   {
     if(abs(SensorValue[gyro]) > degrees10)
     {
-      setRDriveMotors(-30);
-      setLDriveMotors(30);
+      setRDriveMotors(-50);
+      setLDriveMotors(50);
     }
     else
     {
-      setRDriveMotors(30);
-      setLDriveMotors(-30);
+      setRDriveMotors(50);
+      setLDriveMotors(-50);
     }
   }
 
@@ -130,12 +130,13 @@ void pre_auton()
 	// Set bStopTasksBetweenModes to false if you want to keep user created tasks running between
 	// Autonomous and Tele-Op modes. You will need to manage all user created tasks if set to false.
 	bStopTasksBetweenModes = true;
-	startTask(selectionController);
+	displayLCDCenteredString(0,"Startup");
 	SensorType[gyro] = sensorNone;
   wait1Msec(500);
   //Reconfigure Analog Port 8 as a Gyro sensor and allow time for ROBOTC to calibrate it
   SensorType[gyro] = sensorGyro;
   wait1Msec(2000);
+  startTask(selectionController);
 
 }
 
@@ -331,7 +332,7 @@ void closeShotAuton(bool waitToStart) {
 	FwVelocitySet(rFly, 102, .5);
 	driveDistance(3200, 1, 85);
 	wait1Msec(500);
-	//rotate(0,-1);
+	rotate(0,-1);
 	wait1Msec(250);
 	setIntakeMotors(105); //turn on the intake to outtake the balls
 	wait1Msec(2500); //wait long enough to shoot all the balls
