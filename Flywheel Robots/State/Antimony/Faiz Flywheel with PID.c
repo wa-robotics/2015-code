@@ -563,8 +563,8 @@ task usercontrol()
 			flywheelMode = 4; //make sure we set the flywheel mode
 			initializePIDLong(); //prepare controller for long shooting
 			//set long shooting velocities
-		  FwVelocitySet(lFly,128,.7);
-	    FwVelocitySet(rFly,128,.7);
+		  FwVelocitySet(lFly,140,.7);
+	    FwVelocitySet(rFly,140,.7);s
 	    userIntakeControl = false;
 	    setIntakeMotors(127);
 		} else if (vexRT[Btn7R] == 1 && flywheelMode != 3) { //purple shooting
