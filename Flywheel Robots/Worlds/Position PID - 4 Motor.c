@@ -1,8 +1,9 @@
 #pragma config(I2C_Usage, I2C1, i2cSensors)
 #pragma config(Sensor, in1,    gyro,           sensorGyro)
+#pragma config(Sensor, I2C_3,  ,               sensorQuadEncoderOnI2CPort,    , AutoAssign )
 #pragma config(Sensor, I2C_4,  ,               sensorQuadEncoderOnI2CPort,    , AutoAssign )
 #pragma config(Sensor, I2C_5,  ,               sensorQuadEncoderOnI2CPort,    , AutoAssign )
-#pragma config(Motor,  port3,           intake,        tmotorVex393HighSpeed_MC29, openLoop, encoderPort, None)
+#pragma config(Motor,  port3,           intake,        tmotorVex393HighSpeed_MC29, openLoop, encoderPort, I2C_3)
 #pragma config(Motor,  port4,           rDriveFront,   tmotorVex393HighSpeed_MC29, openLoop, encoderPort, I2C_4)
 #pragma config(Motor,  port5,           rDriveBack,    tmotorVex393HighSpeed_MC29, openLoop)
 #pragma config(Motor,  port6,           lDriveBack,    tmotorVex393HighSpeed_MC29, openLoop, reversed)
@@ -17,7 +18,7 @@ float positionKp = 0.36, //proportional constant for positional PID
 			positionKi = 0.000350, //integral constant
 			positionKd = 4; //derivative constant
 
-static int STRAIGHT = 2;
+static int STRAIGHT = 2; //the 2 here shouldn't matter as long as no variables are multiplied by 'direction' in driveDistancePID
 static int ROTATE_LEFT = -1;
 static int ROTATE_RIGHT = 1;
 
@@ -29,6 +30,14 @@ void setLDriveMotors(float power) {
 void setRDriveMotors(float power) {
 	motor[rDriveFront] = power;
 	motor[rDriveBack] = power;
+}
+
+task moveIntakeBack() {
+	nMotorEncoder[intake] = 0;
+	while(abs(nMotorEncoder[intake]) < 106) {
+		motor[intake] = -127;
+	}
+	motor[intake] = 0;
 }
 
 void driveDistancePID(int encoderCounts, int direction, int time) {
@@ -146,7 +155,7 @@ void driveDistancePID(int encoderCounts, int direction, int time) {
 			}
 
 			lastPower = power; //update the last power
-			writeDebugStreamLine("%d,%f,%f,%f,%f,%f,%f,%f,%f",nPgmTime,target,error,nMotorEncoder[lDriveFront], nMotorEncoder[rDriveFront],pTerm,iTerm,dTerm,lPower,rPower);
+			writeDebugStreamLine("%d,%f,%f,%f,%f,%f,%f,%f,%f",nPgmTime,error,nMotorEncoder[lDriveFront], nMotorEncoder[rDriveFront],pTerm,iTerm,dTerm,lPower,rPower);
 			setLDriveMotors(lPower * direction); //for a left turn, ROTATE_LEFT = -1 so this moves the left side backwards for a left turn. For a right turn will go forward since ROTATE_RIGHT = 1
 			setRDriveMotors(rPower * -1 * direction); //same idea as for a left turn, except this side needs to go the opposite way as the left side in order to turn, hence the * -1 in the calculation
 			wait1Msec(25);
@@ -234,6 +243,20 @@ task main()
 	//wait1Msec(1500);
 
   //starting from red side tile
-  driveDistancePID(525, STRAIGHT, 1500);
-  driveDistancePID(300,ROTATE_RIGHT, 1500);
+	//wait1Msec(7000);
+  driveDistancePID(525, STRAIGHT, 1000); //move forward from tile
+  driveDistancePID(285,ROTATE_RIGHT, 750); //turn towards blue net
+  driveDistancePID(815,STRAIGHT,1250); //move forward towards blue net
+  driveDistancePID(460,ROTATE_LEFT, 1250); //turn so intake faces ball stack on side wall
+  motor[intake] = 127; //start the intake to prepare to pick up balls
+  driveDistancePID(-445,STRAIGHT,1000); //first pass at ball stack
+  //driveDistancePID doesn't stop motors when it's done.  Stop the motors here while we wait for a little to pick up balls on the first pass
+  setLDriveMotors(0);
+  setRDriveMotors(0);
+  wait1Msec(750);
+  driveDistancePID(200,STRAIGHT,750);
+  driveDistancePID(-300,STRAIGHT,750);
+  wait1Msec(750);
+  motor[intake] = 0;
+  startTask(moveIntakeBack);
 }
