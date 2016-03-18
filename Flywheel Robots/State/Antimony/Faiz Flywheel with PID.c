@@ -52,9 +52,9 @@ void setIntakeMotors (float power) {
 task flashLED() {
 	while(1) {
 		SensorValue[led] = true;
-		wait1Msec(450);
+		wait1Msec(320);
 		SensorValue[led] = false;
-		wait1Msec(450);
+		wait1Msec(320);
 	}
 }
 
@@ -294,8 +294,8 @@ void initializePIDLong() {
 	//tbhInit(rFly, 392, 0.55, 0.008064, 0, 70); //initialize PID for right side of the flywheel
 	//note the order of the parameters:
 	//(controller, motor ticks per rev, KpNorm, KpBallLaunch, Ki, Kd, constant, RPM drop on ball launch)
-	tbhInit(lFly, 392, 0.1125, 3.2, 0.006481, 0, 75, 20); //initialize PID for left side of the flywheel //left side might be able to have a higher P
-	tbhInit(rFly, 392, 0.1125, 3.2, 0.006481, 0, 75, 20); //initialize PID for right side of the flywheel //x.x481
+	tbhInit(lFly, 392, 0.5121, 9.35, 0.006481, 0, 70, 20); //initialize PID for left side of the flywheel //left side might be able to have a higher P
+	tbhInit(rFly, 392, 0.5121, 9.35, 0.006481, 0, 70, 20); //initialize PID for right side of the flywheel //x.x481
 	startTask(leftFwControlTask);
 	startTask(rightFwControlTask);
 }
@@ -530,8 +530,8 @@ task usercontrol()
 	//userIntakeControl = false;
 	//setIntakeMotors(125);
 			initializePIDLong(); //prepare controller for long shooting
-			FwVelocitySet(lFly,138,.7);
-	    FwVelocitySet(rFly,138,.7);
+			FwVelocitySet(lFly,139.12,.7);
+	    FwVelocitySet(rFly,139.12,.7);
 	    userIntakeControl = false;
 	    setIntakeMotors(127);
 	int intakePower;
