@@ -521,7 +521,7 @@ task usercontrol()
 	//long shooting
 	//initializePIDLong();
 	//FwVelocitySet(lFly,136,.7);
-	//FwVelocitySet(rFly,136,.7);c
+	//FwVelocitySet(rFly,136,.7);
 
 	//purple shooting
 	//intake power 125
