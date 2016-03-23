@@ -305,8 +305,8 @@ void initializePIDLong() {
 void initializePIDShort() {
 	//note the order of the parameters:
 	//(controller, motor ticks per rev, KpNorm, KpBallLaunch, Ki, Kd, constant, RPM drop on ball launch)
-	tbhInit(lFly, 392, 0.7481, 0.9981, 0.006481, 0, 50, 20); //initialize PID for left side of the flywheel //left side might be able to have a higher P
-	tbhInit(rFly, 392, 0.7481, 0.9981, 0.006481, 0, 50, 20); //initialize PID for right side of the flywheel //x.x481
+	tbhInit(lFly, 392, 0.3281, 3, 0.005081, 0, 50, 20); //initialize PID for left side of the flywheel //left side might be able to have a higher P
+	tbhInit(rFly, 392, 0.3281, 3, 0.005081, 0, 50, 20); //initialize PID for right side of the flywheel //x.x481
 	startTask(leftFwControlTask);
 	startTask(rightFwControlTask);
 }
@@ -557,14 +557,14 @@ task usercontrol()
 	//userIntakeControl = false;
 	//setIntakeMotors(125);
 
-
-	//crawford testing
-	/*initializePIDLong(); //prepare controller for long shooting
-			FwVelocitySet(lFly,139.12,.7);
-	    FwVelocitySet(rFly,139.12,.7);
-	    userIntakeControl = false;
-	    setIntakeMotors(127);*/
-
+			//initializePIDLong(); //prepare controller for long shooting
+			//FwVelocitySet(lFly,139.12,.7);
+	    //FwVelocitySet(rFly,139.12,.7);
+	    initializePIDShort();
+			FwVelocitySet(lFly, 103, .5);
+			FwVelocitySet(rFly, 103, .5);
+			userIntakeControl = false;
+	    setIntakeMotors(127);
 
 	int intakePower;
 	while (true)
@@ -596,8 +596,8 @@ task usercontrol()
 			flywheelMode = 4; //make sure we set the flywheel mode
 			initializePIDLong(); //prepare controller for long shooting
 			//set long shooting velocities
-		  FwVelocitySet(lFly,140,.7);
-	    FwVelocitySet(rFly,140,.7);
+		  FwVelocitySet(lFly,139.12,.7);
+	    FwVelocitySet(rFly,139.12,.7);
 	    userIntakeControl = false;
 	    setIntakeMotors(127);
 		} else if (vexRT[Btn7R] == 1 && flywheelMode != 3) { //purple shooting
