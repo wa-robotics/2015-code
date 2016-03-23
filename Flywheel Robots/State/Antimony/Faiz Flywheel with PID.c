@@ -1,5 +1,6 @@
 #pragma config(I2C_Usage, I2C1, i2cSensors)
 #pragma config(Sensor, in1,    gyro,           sensorGyro)
+#pragma config(Sensor, dgtl10, sonar,          sensorSONAR_mm)
 #pragma config(Sensor, dgtl12, led,            sensorLEDtoVCC)
 #pragma config(Sensor, I2C_1,  ,               sensorQuadEncoderOnI2CPort,    , AutoAssign )
 #pragma config(Sensor, I2C_2,  ,               sensorQuadEncoderOnI2CPort,    , AutoAssign )
@@ -325,7 +326,6 @@ void stopFlywheel() {
 	//disable PIC control of the flywheels and switch to open-loop control
 	stopTask(leftFwControlTask);
 	stopTask(rightFwControlTask);
-
 	//turn off the flywheel motors
 	setLeftFwSpeed(0);
 	setRightFwSpeed(0);
@@ -495,12 +495,39 @@ task liftController() {
 	}
 }
 
+void moveIntakeBack() {
+	userIntakeControl = false;
+	setIntakeMotors(-127);
+	wait10Msec(10);
+	setIntakeMotors(0);
+	wait10Msec(20);
+	userIntakeControl = true;
+}
+
+bool outtakeOnly = false;
+task intakeWatchDog() {
+	while(1) {
+		if(flywheelMode > 0 && lFly.current < 30 && rFly.current < 30) {
+			if((SensorValue[sonar] >= 20 && SensorValue[sonar] <=80) || SensorValue[sonar] == -1 || SensorValue[sonar] >= 200) { //sonar sensor values that indicate the presence of a ball
+				outtakeOnly = true;
+				moveIntakeBack(); //move the intake back so that the ball is not touching the flywheel
+				wait1Msec(300);
+			}
+		} else {
+				outtakeOnly = false;
+		}
+		wait1Msec(25);
+	}
+}
+
 int lSpeed = 60;
 int rSpeed = 60;
+
 task usercontrol()
 {
 	startTask(closeShootingMacro);
 	startTask(drivetrainController);
+	startTask(intakeWatchDog);
 	startTask(flashLED);
 	startTask(liftController);
 	//startTask(autonomous);
@@ -529,26 +556,32 @@ task usercontrol()
 	//testing
 	//userIntakeControl = false;
 	//setIntakeMotors(125);
-			initializePIDLong(); //prepare controller for long shooting
+
+
+	//crawford testing
+	/*initializePIDLong(); //prepare controller for long shooting
 			FwVelocitySet(lFly,139.12,.7);
 	    FwVelocitySet(rFly,139.12,.7);
 	    userIntakeControl = false;
-	    setIntakeMotors(127);
+	    setIntakeMotors(127);*/
+
+
 	int intakePower;
 	while (true)
 	{
 		//intake
-		if (userIntakeControl) { //if the program is not overriding control of the intake
-			intakePower = 125*vexRT[Btn6U] - 125*vexRT[Btn6D];
-			setIntakeMotors(intakePower);
-		}
-		if(vexRT[Btn5U] == 1)
-		{
-			setIntakeMotors(-127);
-			wait10Msec(10);
-			setIntakeMotors(0);
-			wait10Msec(20);
-		}
+		if(userIntakeControl) {
+
+			if(vexRT[Btn5U] == 1) {
+				moveIntakeBack();
+			} else if (!outtakeOnly) { //if the program is not overriding control of the intake
+				intakePower = 125*vexRT[Btn6U] - 125*vexRT[Btn6D];
+				setIntakeMotors(intakePower);
+			} else if (outtakeOnly) {
+				intakePower = -125*vexRT[Btn6D];
+				setIntakeMotors(intakePower);
+			}
+	}
 
 		//flywheel speed control
 		//7U - long, 7R - purple, 7D - short
@@ -571,6 +604,7 @@ task usercontrol()
 			if (flywheelMode >= 1) { //if the flywheel is currently running (modes 1-4), we need to stop the controller tasks before re-initializing the PID controller
 				stopTask(leftFwControlTask);
 				stopTask(rightFwControlTask);
+				userIntakeControl = true;
 			}
 
 			//next 4 lines have to run every time to run flywheel
@@ -583,6 +617,7 @@ task usercontrol()
 			if (flywheelMode >= 1) { //if the flywheel is currently running (modes 1-4), we need to stop the controller tasks before re-initializing the PID controller
 				stopTask(leftFwControlTask);
 				stopTask(rightFwControlTask);
+				userIntakeControl = true;
 			}
 
 			//next 4 lines have to run every time to run flywheel
@@ -592,6 +627,7 @@ task usercontrol()
 			FwVelocitySet(rFly, 97.75, .5);
 
 		} else if (vexRT[Btn8R] == 1 && flywheelMode >= 1) { //this is an else statement so that if two buttons are pressed, we won't switch back and forth between starting and stopping the flywheel
+			userIntakeControl = true;
 			stopFlywheel();																		 // flywheelMode needs to be greater than 1 so that we don't run the stopFlywheel function if the flywheel is already stopped
 		}
 
