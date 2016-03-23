@@ -196,7 +196,7 @@ static void displayStatusAndTime()
 {
   displayLCDPos(1, 0);
 	if (bIfiRobotDisabled)
-	  displayNextLCDString("Disable ");
+	  //displayNextLCDString("Disable "); //do not show anythig on the LCD if the robot is disabled
 	else
 	{
 	  if (bIfiAutonomousMode)
