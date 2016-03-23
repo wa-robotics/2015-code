@@ -1,5 +1,6 @@
 #pragma config(I2C_Usage, I2C1, i2cSensors)
 #pragma config(Sensor, in1,    gyro,           sensorGyro)
+#pragma config(Sensor, dgtl9,  redLED,         sensorLEDtoVCC)
 #pragma config(Sensor, dgtl10, sonar,          sensorSONAR_mm)
 #pragma config(Sensor, dgtl12, led,            sensorLEDtoVCC)
 #pragma config(Sensor, I2C_1,  ,               sensorQuadEncoderOnI2CPort,    , AutoAssign )
@@ -570,6 +571,24 @@ task intakeWatchDog() {
 int lSpeed = 60;
 int rSpeed = 60;
 
+task flywheelWatchdog() {
+	while(1) {
+		if (flywheelMode >= 1) { //if the flywheel is supposed to be running
+			if (lFly.current == 0 || rFly.current == 0) { //if one side of the flywheel is not moving
+					wait1Msec(275); //wait half a second to see if the flywheel just needs time to start
+					if (lFly.current == 0 || rFly.current == 0) { //if the flywheel is still not moving
+						flywheelMode = 0.5; //stop the flywheel (stopFlywheel task)
+						SensorValue[redLED] = true; //turn on the red LED
+					}
+			}
+		}
+		if ((lFly.current > 0 || rFly.current > 0) && flywheelMode >= 1) { //if the flywheel is moving
+			SensorValue[redLED] = false; //turn off the red LED since the flywheel is OK now
+		}
+		wait1Msec(25);
+	}
+}
+
 task usercontrol()
 {
 	//initalize tasks to control various subsystems that need to run concurrently during driver control
@@ -580,6 +599,7 @@ task usercontrol()
 	startTask(flashLED);
 	startTask(liftController);
 	startTask(stopFlywheel);
+	startTask(flywheelWatchDog);
 	//startTask(autonomous);
 	//startTask(drivetrainController);
 
