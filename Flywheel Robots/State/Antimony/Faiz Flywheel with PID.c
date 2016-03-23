@@ -32,7 +32,7 @@
 
 fw_controller lFly, rFly;
 string str;
-int flywheelMode = 0; //0 - stopped, 1 - close, 2 - center, 3 - purple, 4 - long
+float flywheelMode = 0; //0 - stopped, 0.5 - stopping, 1 - close, 2 - center, 3 - purple, 4 - long
 #define FORWARD 1;
 #define BACKWARD -1;
 
@@ -321,8 +321,55 @@ void initializePIDPurple() {
 	startTask(rightFwControlTask);
 }
 
-//stop flywheel
-void stopFlywheel() {
+task stopFlywheel() {
+	//in order to continuing monitoring RPM after the flywheel is stopped (to prevent balls from being shot when the flywheel is not spinning fast enough to shoot them out of the robot),
+	//  the flywheel is stopped using a special instace of the PIC controller, which will monitor flywheel RPM until it reaches 5 and then shutdown the flywheel motors completely)
+  //  This is structured such that starting the flywheel will immediately override anything this task does.
+	while(1) {
+		if(flywheelMode == 0.5) { //trigger this by changing the value of flywheelMode to 0.5 rather than using a function call
+			//stop the flywheel tasks so we can restart them with our new controllers
+			stopTask(leftFwControlTask);
+			stopTask(rightFwControlTask);
+
+			//create the new controllers.  Both P constants are high so that the motor value ends up being 0 (KpBallShot is the same as KpNorm so that the P constant has a constant value regardless of whether the controller thinks a ball has been shot [or if a ball has actually been shot])
+			tbhInit(lFly, 392, 1, 1, 0, 0, 0, 20); //initialize PID for left side of the flywheel //left side might be able to have a higher P
+			tbhInit(rFly, 392, 1, 1, 0, 0, 0, 20); //initialize PID for right side of the flywheel //x.x481
+
+			//restart the flywheel tasks with these new controllers
+			startTask(leftFwControlTask);
+			startTask(rightFwControlTask);
+			FwVelocitySet(lFly, 0, 0);
+	    FwVelocitySet(rFly, 0, 0);
+
+			//wait for the flywheels to have a velocity <= 5 RPM (for this only one side needs to meet this condition since the sides are mechanically linked)
+			while ((lFly.current > 5 || rFly.current > 5) && flywheelMode == 0.5) {
+				//wait to continue
+				wait1Msec(25);
+			}
+
+			//the above while loop can be exited for one of two reasons:
+			//  1. flywheel velocity on one side drops below 5 RPM
+			//  2. flywheel mode changes (i.e., the user selects a new flywheel mode [close, purple, or long]
+			//In case 1, we can stop the flywheel completely.  In case 2, we need to stop the flywheel stop process and start the flywheel back up (starting the flywheel is
+			//  handled in the usercontrol task).
+			if (flywheelMode == 0.5) { //only shutdown the flywheel if the user hasn't restarted the flywheel
+					//return to open-loop control so we can control the flywheel motor powers
+					stopTask(leftFwControlTask);
+					stopTask(rightFwControlTask);
+
+					//turn off the flywheel motors
+					setLeftFwSpeed(0);
+					setRightFwSpeed(0);
+
+					flywheelMode = 0; //make sure we know that the flywheel is fully stopped
+			}
+		}
+		wait1Msec(25); //don't overload the cpu
+	}
+}
+
+//stop flywheel (note: this function should only be used for autonomous code.  The stopFlywheel *task* handles flywheel stops during driver control
+void stopFlywheelAuton() {
 	//disable PIC control of the flywheels and switch to open-loop control
 	stopTask(leftFwControlTask);
 	stopTask(rightFwControlTask);
@@ -404,7 +451,7 @@ void longShotAuton(bool waitAtStart) {
 	wait1Msec(2000);
 	intakeDistance(300,1,125);
 	wait1Msec(1500);
-	stopFlywheel();
+	stopFlywheelAuton(); //use stopFlywheelAuton() function here since a task is used for flywheel stops during driver control
 }
 
 void closeShotAuton(bool waitAtStart) {
@@ -421,7 +468,7 @@ void closeShotAuton(bool waitAtStart) {
 	setIntakeMotors(115); //turn on the intake to outtake the balls
 	wait1Msec(1750); //wait long enough to shoot all the balls
 	setIntakeMotors(0); //stop the intake
-	stopFlywheel(); //turn off the flywheel
+	stopFlywheelAuton(); //use stopFlywheelAuton() function here since a task is used for flywheel stops during driver control
 }
 
 void programmingSkills() {
@@ -431,7 +478,7 @@ void programmingSkills() {
 	FwVelocitySet(rFly,115,.7);
 	setIntakeMotors(125);
 	wait1Msec(25000);
-	stopFlywheel();
+	stopFlywheelAuton(); //use stopFlywheelAuton() function here since a task is used for flywheel stops during driver control
 	setIntakeMotors(0);
 	rotateDegrees(860,1);
 	wait1Msec(750);
@@ -471,7 +518,7 @@ task closeShootingMacro() {
 			wait1Msec(1750); //wait long enough to shoot all the balls
 			setIntakeMotors(0); //stop the intake
 			userIntakeControl = true; //return intake control to user
-			stopFlywheel(); //turn off the flywheel
+			flywheelMode = 0.5; //turn off the flywheel.  The stopFlywheel task will recognize this value and stop the flywheel
 		}
 		wait1Msec(25); //don't hog the CPU
 	}
@@ -525,11 +572,14 @@ int rSpeed = 60;
 
 task usercontrol()
 {
+	//initalize tasks to control various subsystems that need to run concurrently during driver control
+	//TODO: move the lift controller task into here
 	startTask(closeShootingMacro);
 	startTask(drivetrainController);
 	startTask(intakeWatchDog);
 	startTask(flashLED);
 	startTask(liftController);
+	startTask(stopFlywheel);
 	//startTask(autonomous);
 	//startTask(drivetrainController);
 
@@ -561,9 +611,10 @@ task usercontrol()
 			//FwVelocitySet(lFly,139.12,.7);
 	    //FwVelocitySet(rFly,139.12,.7);
 
-	    //initializePIDShort();
-			//FwVelocitySet(lFly, 103, .5);
-			//FwVelocitySet(rFly, 103, .5);
+	   // initializePIDShort();
+		//	FwVelocitySet(lFly, 103, .5);
+		//	FwVelocitySet(rFly, 103, .5);
+
 			//userIntakeControl = false;
 	    //setIntakeMotors(127);
 	int intakePower;
@@ -587,7 +638,8 @@ task usercontrol()
 		//7U - long, 7R - purple, 7D - short
 		//8R - stop, 8D - if short shooting (flywheel must be on and in short shooting mode), outtake 4 balls and then stop the flywheel automatically
 		if (vexRT[Btn7U] == 1 && flywheelMode != 4) { //second condition prevents reinitialization of long shooting if the flywheel is currently in long shooting mode
-			if (flywheelMode >= 1) { //if the flywheel is currently running (modes 1-4), we need to stop the controller tasks before re-initializing the PID controller
+			//mode 0.5 is for when the flywheel has been shutdown but is still spinning.  Since the control tasks are used for this process, the flywheel tasks need to be restarted.
+			if (flywheelMode >= 0.5) { //if the flywheel is currently running (modes 0.5,1-4), we need to stop the controller tasks before re-initializing the PID controller
 				stopTask(leftFwControlTask);
 				stopTask(rightFwControlTask);
 			}
@@ -602,7 +654,8 @@ task usercontrol()
 			userIntakeControl = false;
 	    setIntakeMotors(127);
 		} else if (vexRT[Btn7R] == 1 && flywheelMode != 3) { //purple shooting
-			if (flywheelMode >= 1) { //if the flywheel is currently running (modes 1-4), we need to stop the controller tasks before re-initializing the PID controller
+			//mode 0.5 is for when the flywheel has been shutdown but is still spinning.  Since the control tasks are used for this process, the flywheel tasks need to be restarted.
+			if (flywheelMode >= 0.5) { //if the flywheel is currently running (modes 0.5,1-4), we need to stop the controller tasks before re-initializing the PID controller
 				stopTask(leftFwControlTask);
 				stopTask(rightFwControlTask);
 				userIntakeControl = true;
@@ -615,7 +668,8 @@ task usercontrol()
 			FwVelocitySet(rFly,118.5,.7);
 
 		} else if (vexRT[Btn7D] == 1 && flywheelMode != 1) { //close shooting
-			if (flywheelMode >= 1) { //if the flywheel is currently running (modes 1-4), we need to stop the controller tasks before re-initializing the PID controller
+			//mode 0.5 is for when the flywheel has been shutdown but is still spinning.  Since the control tasks are used for this process, the flywheel tasks need to be restarted.
+			if (flywheelMode >= 0.5) { //if the flywheel is currently running (modes 0.5,1-4), we need to stop the controller tasks before re-initializing the PID controller
 				stopTask(leftFwControlTask);
 				stopTask(rightFwControlTask);
 				userIntakeControl = true;
@@ -628,8 +682,11 @@ task usercontrol()
 			FwVelocitySet(rFly, 103, .5);
 
 		} else if (vexRT[Btn8R] == 1 && flywheelMode >= 1) { //this is an else statement so that if two buttons are pressed, we won't switch back and forth between starting and stopping the flywheel
+																												 //  flywheelMode needs to be >=1 and not >=0.5 because we don't want to stop the flywheel again if it is currently in the process of the stopping,
+																												 //  although since the value of flywheelMode would not change in that case, it would appear as if nothing happened
 			userIntakeControl = true;
-			stopFlywheel();																		 // flywheelMode needs to be greater than 1 so that we don't run the stopFlywheel function if the flywheel is already stopped
+			//below line triggers flywheel shutdown procedure
+			flywheelMode = 0.5; // flywheelMode needs to be greater than 1 so that we don't run the stopFlywheel function if the flywheel is already stopped
 		}
 
 
