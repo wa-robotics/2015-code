@@ -1,7 +1,7 @@
 #pragma config(I2C_Usage, I2C1, i2cSensors)
 #pragma config(Sensor, in1,    gyro,           sensorGyro)
+#pragma config(Sensor, in2,    intakeBall,     sensorLineFollower)
 #pragma config(Sensor, dgtl9,  redLED,         sensorLEDtoVCC)
-#pragma config(Sensor, dgtl10, sonar,          sensorSONAR_mm)
 #pragma config(Sensor, dgtl12, led,            sensorLEDtoVCC)
 #pragma config(Sensor, I2C_1,  ,               sensorQuadEncoderOnI2CPort,    , AutoAssign )
 #pragma config(Sensor, I2C_2,  ,               sensorQuadEncoderOnI2CPort,    , AutoAssign )
@@ -556,7 +556,7 @@ bool outtakeOnly = false;
 task intakeWatchDog() {
 	while(1) {
 		if(flywheelMode > 0 && lFly.current < 30 && rFly.current < 30) {
-			if((SensorValue[sonar] >= 20 && SensorValue[sonar] <=80) || SensorValue[sonar] == -1 || SensorValue[sonar] >= 200) { //sonar sensor values that indicate the presence of a ball
+			if(SensorValue[intakeBall] < 1500) { //sonar sensor values that indicate the presence of a ball
 				outtakeOnly = true;
 				moveIntakeBack(); //move the intake back so that the ball is not touching the flywheel
 				wait1Msec(300);
@@ -599,7 +599,7 @@ task usercontrol()
 	startTask(flashLED);
 	startTask(liftController);
 	startTask(stopFlywheel);
-	startTask(flywheelWatchDog);
+	startTask(flywheelWatchdog);
 	//startTask(autonomous);
 	//startTask(drivetrainController);
 
