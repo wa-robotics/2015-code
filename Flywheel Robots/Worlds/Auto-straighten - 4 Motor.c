@@ -21,54 +21,74 @@ void setRDriveMotors(float power) {
 }
 
 bool userDriveControl = true;
-float straighteningKpLeft = 0.2, //proportional constant for straightening response for the left side
+float straighteningKpLeft = 0.275, //proportional constant for straightening response for the left side
 straighteningKpRight = 0.2; //proportional constant for straightening response for the right side
 
 task autostraighten() {
 	while(1) {
-	if(vexRT[Ch3] >= 120 && vexRT[Ch2] >= 120) { //if the user is going about full speed and nearly straight
-		userDriveControl = false; //disable user drivetrain control so we can auto-straighten
+		if(vexRT[Ch3] >= 120 && vexRT[Ch2] >= 120 || true) { //if the user is going about full speed and nearly straight
+			userDriveControl = false; //disable user drivetrain control so we can auto-straighten
 
-		//reset encoders
-		nMotorEncoder[rDriveFront] = 0;
-		nMotorEncoder[lDriveFront] = 0;
+			//reset encoders
+			nMotorEncoder[rDriveFront] = 0;
+			nMotorEncoder[lDriveFront] = 0;
 
-		int straighteningError,
-		slewRateLimit = 15;
-		float	power = 127,
-		lPower,
-		rPower,
-		lPowerLast = vexRT[Ch3], //set the initial last power values to whatever the joystick is when auto-straighten is activated
-		rPowerLast = vexRT[Ch2];
+			int straighteningError,
+			slewRateLimit = 15;
+			float	power = 127,
+			lPower,
+			rPower,
+			lPowerLast = vexRT[Ch3], //set the initial last power values to whatever the joystick is when auto-straighten is activated
+			rPowerLast = vexRT[Ch2];
 
-		//adjust the powers sent to each side if the encoder values don't match
-		straighteningError = nMotorEncoder[lDriveFront] - nMotorEncoder[rDriveFront];
+			while (vexRT[Ch3] >= 60 && vexRT[Ch2] >= 60 || true) {
+				//adjust the powers sent to each side if the encoder values don't match
+				straighteningError = nMotorEncoder[lDriveFront] - nMotorEncoder[rDriveFront];
 
-		if (straighteningError > 0) { //left side is ahead, so speed up the right side or slow down the left side
-			rPower = power + straighteningError*straighteningKpLeft;
-			if (rPower > 127) { //if the correction we would apply
-				rPower = rPowerLast;
+				//if (straighteningError > 0) { //left side is ahead, so speed up the right side or slow down the left side
+				//	lPower = power + straighteningError*straighteningKpLeft;
+				//	//if (rPower > 127) { //if the correction we would apply
+				//	//	rPower = power;
+				//	//	lPower = power - straighteningError*straighteningKpLeft;
+				//	//}
+				//} else { //otherwise, just set the right side to the power
+				//	lPower = power;
+				//}
+				//if (straighteningError < 0) { //right side is ahead, so speed up the left side
+				//	rPower = power - straighteningError*straighteningKpRight;
+				//	//if (lPower > 127) {
+				//	//	lPower = power;
+				//	//	rPower = power + straighteningError*straighteningKpRight;
+				//	//}
+				//} else { //otherwise, just set the left side to the power
+				//	lPower = power;
+				//}
+
+			if (straighteningError > 0) { //left side is ahead, so speed up the right side
 				lPower = power - straighteningError*straighteningKpLeft;
-			};
-		} else { //otherwise, just set the right side to the power
-			rPower = power;
-		}
-		if (straighteningError < 0) { //right side is ahead, so speed up the left side
-			lPower = power - straighteningError*straighteningKpRight;
-			if (lPower > 127) {
-				lPower = lPowerLast;
-				rPower = power - straighteningError*straighteningKpRight;
+			} else { //otherwise, just set the right side to the power
+				lPower = power;
 			}
-		} else { //otherwise, just set the left side to the power
-			lPower = power;
+			if (straighteningError < 0) { //right side is ahead, so speed up the left side
+				rPower = power + straighteningError*straighteningKpRight;
+			} else { //otherwise, just set the right side to the power
+				rPower = power;
+			}
+
+				//update last motor powers with new ones
+				lPowerLast = lPower;
+				rPowerLast = rPower;
+
+				//send new motor powers;
+				setLDriveMotors(lPower);
+				setRDriveMotors(rPower);
+				writeDebugStreamLine("%d,%f,%f",nPgmTime, lPower, rPower);
+				wait1Msec(25);
+			}
+			userDriveControl = true;
 		}
-
-		//send new motor powers;
-		setLDriveMotors(lPower);
-		setRDriveMotors(rPower);
-
+		wait1Msec(25);
 	}
-}
 }
 
 task main()
