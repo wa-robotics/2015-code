@@ -5,13 +5,15 @@
 #pragma config(Sensor, I2C_1,  ,               sensorQuadEncoderOnI2CPort,    , AutoAssign )
 #pragma config(Sensor, I2C_2,  ,               sensorQuadEncoderOnI2CPort,    , AutoAssign )
 #pragma config(Sensor, I2C_3,  ,               sensorQuadEncoderOnI2CPort,    , AutoAssign )
+#pragma config(Sensor, I2C_4,  ,               sensorQuadEncoderOnI2CPort,    , AutoAssign )
+#pragma config(Sensor, I2C_5,  ,               sensorQuadEncoderOnI2CPort,    , AutoAssign )
 #pragma config(Motor,  port1,           intakeRoller,  tmotorVex393TurboSpeed_HBridge, openLoop, reversed)
 #pragma config(Motor,  port2,           lFlywheel,     tmotorVex393HighSpeed_MC29, openLoop, encoderPort, I2C_1)
-#pragma config(Motor,  port3,           rDriveFront,   tmotorVex393TurboSpeed_MC29, openLoop)
-#pragma config(Motor,  port4,           rDriveMiddle,  tmotorVex393TurboSpeed_MC29, openLoop)
-#pragma config(Motor,  port5,           rDriveBack,    tmotorVex393TurboSpeed_MC29, openLoop)
+#pragma config(Motor,  port3,           rDriveFront,   tmotorVex393TurboSpeed_MC29, openLoop, reversed)
+#pragma config(Motor,  port4,           rDriveMiddle,  tmotorVex393TurboSpeed_MC29, openLoop, reversed, encoderPort, I2C_4)
+#pragma config(Motor,  port5,           rDriveBack,    tmotorVex393TurboSpeed_MC29, openLoop, reversed)
 #pragma config(Motor,  port6,           lDriveBack,    tmotorVex393TurboSpeed_MC29, openLoop)
-#pragma config(Motor,  port7,           lDriveMiddle,  tmotorVex393TurboSpeed_MC29, openLoop)
+#pragma config(Motor,  port7,           lDriveMiddle,  tmotorVex393TurboSpeed_MC29, openLoop, encoderPort, I2C_5)
 #pragma config(Motor,  port8,           lDriveFront,   tmotorVex393TurboSpeed_MC29, openLoop)
 #pragma config(Motor,  port9,           rFlywheel,     tmotorVex393HighSpeed_MC29, openLoop, encoderPort, I2C_2)
 #pragma config(Motor,  port10,          intakeChain,   tmotorVex393TurboSpeed_HBridge, openLoop, reversed, encoderPort, I2C_3)
@@ -56,7 +58,7 @@ int yellowLEDFlashTime = 0; //the time the flashing yellow LED should stay on or
 task flashLED() {
 	while(1) {
 		if (yellowLEDFlashTime == 0) {
-			Sensorvalue[yellowLED] = false;
+			SensorValue[yellowLED] = false;
 		} else {
 			SensorValue[yellowLED] = true;
 			wait1Msec(yellowLEDFlashTime);
