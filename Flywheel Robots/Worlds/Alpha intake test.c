@@ -1,4 +1,5 @@
 #pragma config(I2C_Usage, I2C1, i2cSensors)
+#pragma config(Sensor, in1,    intakeLineFollower, sensorLineFollower)
 #pragma config(Sensor, dgtl10, intakeLimit,    sensorTouch)
 #pragma config(Sensor, dgtl11, yellowLED,      sensorLEDtoVCC)
 #pragma config(Sensor, dgtl12, redLED,         sensorLEDtoVCC)
@@ -57,23 +58,30 @@ int drive(int n)
 }
 
 task countBallsInIntake() {
+	int numConsecLimitSwitchZeros = 0; //number of consecutive zero values received from limit switch
 	while(1) {
 
 		while(!SensorValue[intakeLimit]) { //wait until the limit switch is pressed
-			wait1Msec(75);
+			wait1Msec(25);
 		}
 
-		while(SensorValue[intakeLimit]) { //wait until the limit switch is released so we only increment/decrement ballsInIntake once per ball in the intake
-			wait1Msec(75);
+		while(SensorValue[intakeLimit] || numConsecLimitSwitchZeros < 1) { //wait until the limit switch is released so we only increment/decrement ballsInIntake once per ball in the intake - allow one stray 0 value in the
+			//below if statement is used to reject "false" 0 values [0 values received even when a ball is under the dangle]
+			if(!SensorValue[intakeLimit]) { //if the limit switch returns 0
+				numConsecLimitSwitchZeros++;	//increase the number of consecutive limit switch zero values received
+			} else {
+				numConsecLimitSwitchZeros = 0; //reset the number of consecutive limit switch zero values received to 0 since a 1 was received
+			}
+			wait1Msec(25);
 		}
 
 		//NOTE: this doesn't account for balls leaving the intake via the flywheel
 		//reach this point once the intake limit switch has been pressed and then released (so balls are counted after they are done passing the dangle)
-		if (vexRT[Btn6U]) { //if the roller is moving forward
-			ballsInIntake++; //increment the number of balls in the intake
-		} else if (vexRT[Btn6D]) { //if the roller is moving backwards
+		//if (vexRT[Btn6U]) { //if the roller is moving forward
+		//	ballsInIntake++; //increment the number of balls in the intake
+		//} else if (vexRT[Btn6D]) { //if the roller is moving backwards
 			ballsInIntake--; //decrement the number of balls in the intake
-		}
+		//}
 
 	}
 }
@@ -99,6 +107,10 @@ task main()
 	startTask(autoIntake);
 	startTask(countBallsInIntake);
 
+	//userIntakeControl = false;
+	//motor[intakeChain] = -127;
+	//motor[intakeRoller] = -127;
+
 	while(1)
 	{
 		if(vexRT[Btn8D] == 1)
@@ -112,6 +124,9 @@ task main()
 				slow = true;
 			}
 		}
+
+		writeDebugStreamLine("%d,%d",SensorValue[intakeLimit],ballsInIntake);
+
 		motor[rDriveFront] =
 		motor[rDriveMiddle] =
 		motor[rDriveBack] =
