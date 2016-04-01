@@ -568,11 +568,6 @@ task usercontrol()
 	startTask(autoIntake);
 	startTask(countBallsInIntake);
 
-	initializePIDLong(); //prepare controller for long shooting
-			//set long shooting velocities
-	FwVelocitySet(lFly,138,.7);
-	FwVelocitySet(rFly,138,.7);
-
 	while (true)
 	{
 		//intake
