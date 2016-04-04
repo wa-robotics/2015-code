@@ -565,8 +565,10 @@ task usercontrol()
 	//startTask(liftController);
 	//startTask(stopFlywheel);
 	//startTask(flywheelWatchdog);
-	startTask(autoIntake);
-	startTask(countBallsInIntake);
+
+	//need to update these with latest versions
+	//startTask(autoIntake);
+	//startTask(countBallsInIntake);
 
 	while (true)
 	{
