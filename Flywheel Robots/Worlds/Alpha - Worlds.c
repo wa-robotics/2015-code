@@ -573,8 +573,8 @@ task usercontrol()
 		  FwVelocitySet(lFly,138,.7);
 	    FwVelocitySet(rFly,138,.7);
 	   userIntakeControl = false;
-	   motor[intakeChain] = 127;
-	   motor[intakeRoller] = 127;
+	   motor[intakeChain] = 40;
+	   motor[intakeRoller] = 40;
 
 	//need to update these with latest versions
 	//startTask(autoIntake);
