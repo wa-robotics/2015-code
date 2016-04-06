@@ -567,15 +567,13 @@ task usercontrol()
 	//startTask(stopFlywheel);
 	//startTask(flywheelWatchdog);
 
-				flywheelMode = 4; //make sure we set the flywheel mode
-			initializePIDLong(); //prepare controller for long shooting
-			//set long shooting velocities
-		  FwVelocitySet(lFly,138,.7);
-	    FwVelocitySet(rFly,138,.7);
-	    yellowLEDFlashTime = 320;
-	   userIntakeControl = false;
-	   motor[intakeChain] = 127;
-	   motor[intakeRoller] = 127;
+		initializePIDShort();
+		FwVelocitySet(lFly, 103, .5);
+		FwVelocitySet(rFly, 103, .5);
+	  yellowLEDFlashTime = 320;
+	  userIntakeControl = false;
+	  motor[intakeChain] = 127;
+	  motor[intakeRoller] = 127;
 
 	//need to update these with latest versions
 	//startTask(autoIntake);
