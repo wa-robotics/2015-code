@@ -572,9 +572,10 @@ task usercontrol()
 			//set long shooting velocities
 		  FwVelocitySet(lFly,138,.7);
 	    FwVelocitySet(rFly,138,.7);
+	    yellowLEDFlashTime = 320;
 	   userIntakeControl = false;
-	   motor[intakeChain] = 40;
-	   motor[intakeRoller] = 40;
+	   motor[intakeChain] = 127;
+	   motor[intakeRoller] = 127;
 
 	//need to update these with latest versions
 	//startTask(autoIntake);
