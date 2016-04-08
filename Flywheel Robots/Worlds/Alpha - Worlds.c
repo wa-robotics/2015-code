@@ -40,7 +40,14 @@ string str;
 float flywheelMode = 0; //0 - stopped, 0.5 - stopping, 1 - close, 2 - center, 3 - purple, 4 - long
 int ballsInIntake = 0,
     rollerState = 0; //-1 - backwards, 0 - stopped, 1 - forward
-bool outtakeOnly = false;
+
+//variables that can affect user intaking
+//userIntakeControl - whether the user can move the intake; false disables joystick control of the intake (use to programmatically control intake); true allow joystick control of intake
+//outtakeOnly - when true, user can only move intake back; when false, user has full control of intake under limits of userIntakeControl
+//overrideAutoIntake - when true, prevents the autoIntake task from setting userIntakeControl to true when userIntakeControl is false
+    //this is used to prevent autoIntake from interfering with other tasks that set userIntakeControl to false in order to have programmatic control of the intake
+bool outtakeOnly = false,
+		 overrideAutoIntake = false;
 
 #define FORWARD 1;
 #define BACKWARD -1;
@@ -334,9 +341,10 @@ task drivetrainController() {
 	}
 }
 
-void intakeChainDistance (int encoderCounts, int direction, float power) {
+void intakeChainDistance (int encoderCounts, int direction, float power, int time) {
 	nMotorEncoder[intakeChain] = 0;
-	while (abs(nMotorEncoder[intakeChain]) < encoderCounts) {
+	time1[T2] = 0;
+	while (abs(nMotorEncoder[intakeChain]) < encoderCounts || time1[T2] < time) {
 		motor[intakeChain] = power*direction;
 	}
 
@@ -425,9 +433,11 @@ task closeShootingMacro() {
 	while (1) {
 		if (vexRT[Btn5U] == 1 && flywheelMode == 1) { //only run this if the flywheel is in the correct operating state (close shooting only), to prevent mishaps resulting from accidental button presses
 			userIntakeControl = false; //prevent user from controlling intake while macro is running
+			overrideAutoIntake = true; //prevent autoIntake from enabling userIntakeControl
 			setIntakeMotors(127); //turn on the intake to outtake the balls
 			wait1Msec(1750); //wait long enough to shoot all the balls
 			setIntakeMotors(0); //stop the intake
+			overrideAutoIntake = false ; //allow autoIntake to set userIntakeControl to true if it needs to
 			userIntakeControl = true; //return intake control to user
 			flywheelMode = 0.5; //turn off the flywheel.  The stopFlywheel task will recognize this value and stop the flywheel
 		}
@@ -454,23 +464,28 @@ task liftController() {
 }
 
 task countBallsInIntake() {
-	int numConsecLimitSwitchZeros = 0; //number of consecutive zero values received from limit switch
+	int numConsecHighLFVals = 0; //number of consecutive values above 1000 received from the line follower
 	while(1) {
 
 		while(SensorValue[lowerIntakeBallLF] > 1000) { //line follower values above 1000 indicate that a ball is not at the bottom of the dangle
 			wait1Msec(25); //wait until a ball approaches the dangle
 		}
 
-		while(SensorValue[lowerIntakeBallLF] <= 1000) { //wait until the ball has passed the line follower sensor
+		while(numConsecHighLFVals < 2) { //wait until the ball has passed the line follower sensor
+			if (SensorValue[lowerIntakeBallLF] > 1000) {
+				numConsecHighLFVals++;
+			}
 			wait1Msec(25);
 		}
+
+		numConsecHighLFVals = 0; //reset to zero once moved
 
 		//NOTE: this doesn't account for balls leaving the intake via the flywheel
 		//reach this point once the intake limit switch has been pressed and then released (so balls are counted after they are done passing the dangle)
 
-		if (vexRT[Btn6U]) { //if the roller is moving forward
+		if (rollerState == 1) { //if the roller is moving forward
 			ballsInIntake++; //increment the number of balls in the intake
-			} else if (rollerState <= 0) { //if the roller is moving backwards or is stopped (indicated by a rollerState value of -1 or 0)
+			} else if (rollerState == -1) { //if the roller is moving backwards (indicated by a rollerState value of -1)
 			ballsInIntake--; //decrement the number of balls in the intake
 		}
 
@@ -523,19 +538,25 @@ task countBallsInIntake() {
 }
 
 task autoIntake() {
-while(1) {
-	if(SensorValue[lowerIntakeBallLF] < 1000 && !vexRT[Btn5D] && ballsInIntake < 3) { //if the intake limit is pressed
-		userIntakeControl = false;
-		intakeChainDistance(330,1,127);
-		userIntakeControl = true;
-		while(SensorValue[lowerIntakeBallLF] < 1000) { //wait until the intake limit switch is no longer pressed so that the moveIntakeChain command doesn't run multiple times
-			wait1Msec(75);
-		}
+	while(1) {
+		if(SensorValue[lowerIntakeBallLF] < 1000 && !vexRT[Btn5D] && ballsInIntake < 3 && rollerState == 1) { //if the intake limit is pressed
+			userIntakeControl = false;
+			intakeChainDistance(320,1,127,1500);
+			userIntakeControl = true;
+			while(SensorValue[lowerIntakeBallLF] < 1000) { //wait until the intake limit switch is no longer pressed so that the moveIntakeChain command doesn't run multiple times
+				wait1Msec(75);
+			}
+		} else if (rollerState == 0 && SensorValue[lowerIntakeBallLF] < 1000 && ballsInIntake == 4) {
+			userIntakeControl = false;
+			while(SensorValue[lowerIntakeBallLF] < 1000) {
+				setIntakeMotors(127);
+			}
+			userIntakeControl = true;
 		} else {
-		userIntakeControl = true;
+			userIntakeControl = (overrideAutoIntake) ? userIntakeControl : true; //only make userIntakeControl true if another automated task isn't running
+		}
+		wait1Msec(25);
 	}
-	wait1Msec(25);
-}
 }
 
 void moveIntakeBack() {
@@ -593,23 +614,23 @@ task usercontrol()
 	// -intakeWatchdog: no line follower on intake
 	// -liftController: actuation mechanisms not finished
 
-	//startTask(closeShootingMacro);
-	//startTask(drivetrainController);
+	startTask(closeShootingMacro);
+	startTask(drivetrainController);
 	//startTask(intakeWatchDog);
-	//startTask(flashLED);
-	//startTask(autoIntake);
-	//startTask(countBallsInIntake);
+	startTask(flashLED);
+	startTask(autoIntake);
+	startTask(countBallsInIntake);
 	//startTask(liftController);
-	//startTask(stopFlywheel);
+	startTask(stopFlywheel);
 	//startTask(flywheelWatchdog);
 
-	initializePIDMid();
-	FwVelocitySet(lFly,114.85,.7);
-	FwVelocitySet(rFly,114.85,.7);
+	//initializePIDMid();
+	//FwVelocitySet(lFly,114.85,.7);
+	//FwVelocitySet(rFly,114.85,.7);
 	//yellowLEDFlashTime = 320;
-	userIntakeControl = false;
-	wait1Msec(2300)
-	setIntakeMotors(127);
+	//userIntakeControl = false;
+	//wait1Msec(2300)
+	//setIntakeMotors(127);
 
 
 	while (true)
