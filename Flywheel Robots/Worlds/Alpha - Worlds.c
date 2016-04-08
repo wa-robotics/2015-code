@@ -218,8 +218,8 @@ void initializePIDShort() {
 void initializePIDMid() {
 	//note the order of the parameters:
 	//(controller, motor ticks per rev, KpNorm, KpBallLaunch, Ki, Kd, constant, RPM drop on ball launch)
-	tbhInit(lFly, 392, 0.1281, 3.745, 0.005002, 0, 43, 27); //initialize PID for left side of the flywheel //left side might be able to have a higher P
-	tbhInit(rFly, 392, 0.1281, 3.745, 0.005002, 0, 43, 27); //initialize PID for right side of the flywheel //x.x481
+	tbhInit(lFly, 392, 0.3291, 3.745, 0.005002, 0, 43, 27); //initialize PID for left side of the flywheel //left side might be able to have a higher P
+	tbhInit(rFly, 392, 0.3291, 3.745, 0.005002, 0, 43, 27); //initialize PID for right side of the flywheel //x.x481
 	startTask(leftFwControlTask);
 	startTask(rightFwControlTask);
 }
@@ -594,22 +594,22 @@ task usercontrol()
 	// -liftController: actuation mechanisms not finished
 
 	//startTask(closeShootingMacro);
-	startTask(drivetrainController);
+	//startTask(drivetrainController);
 	//startTask(intakeWatchDog);
-	startTask(flashLED);
-	startTask(autoIntake);
-	startTask(countBallsInIntake);
+	//startTask(flashLED);
+	//startTask(autoIntake);
+	//startTask(countBallsInIntake);
 	//startTask(liftController);
-	startTask(stopFlywheel);
+	//startTask(stopFlywheel);
 	//startTask(flywheelWatchdog);
 
-	//initializePIDMid();
-	//FwVelocitySet(lFly,114.85,.7);
-	//FwVelocitySet(rFly,114.85,.7);
+	initializePIDMid();
+	FwVelocitySet(lFly,114.85,.7);
+	FwVelocitySet(rFly,114.85,.7);
 	//yellowLEDFlashTime = 320;
-	//userIntakeControl = false;
-	//wait1Msec(2300);
-
+	userIntakeControl = false;
+	wait1Msec(2300)
+	setIntakeMotors(127);
 
 
 	while (true)
