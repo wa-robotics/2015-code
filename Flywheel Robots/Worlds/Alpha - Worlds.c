@@ -38,7 +38,8 @@
 fw_controller lFly, rFly;
 string str;
 float flywheelMode = 0; //0 - stopped, 0.5 - stopping, 1 - close, 2 - center, 3 - purple, 4 - long
-int ballsInIntake = 0;
+int ballsInIntake = 0,
+    rollerState = 0; //-1 - backwards, 0 - stopped, 1 - forward
 bool outtakeOnly = false;
 
 #define FORWARD 1;
@@ -55,9 +56,24 @@ void setRDriveMotors (float power) {
 	motor[rDriveBack] = power;
 }
 
-void setIntakeMotors (float power) {
+void setIntakeChain (float power) {
 	motor[intakeChain] = power;
+}
+
+void setIntakeRoller (float power) {
 	motor[intakeRoller] = power;
+	if (power > 0) {
+		rollerState = 1; //moving forward
+	} else if (power < 0) {
+		rollerState = -1; //moving backwards
+	} else {
+		rollerState = 0;
+	}
+}
+
+void setIntakeMotors (float power) {
+	setIntakeChain(power);
+	setIntakeRoller(power);
 }
 
 int yellowLEDFlashTime = 0; //the time the flashing yellow LED should stay on or off, in milliseconds.  This should be equivalent to half a period.
@@ -192,8 +208,18 @@ void initializePIDLong() {
 void initializePIDShort() {
 	//note the order of the parameters:
 	//(controller, motor ticks per rev, KpNorm, KpBallLaunch, Ki, Kd, constant, RPM drop on ball launch)
-	tbhInit(lFly, 392, .1281/*0.3652*/, 3.03, 0.005181, 0, 43, 20); //initialize PID for left side of the flywheel //left side might be able to have a higher P
-	tbhInit(rFly, 392, .1281/*0.3652*/, 3.03, 0.005181, 0, 43, 20); //initialize PID for right side of the flywheel //x.x481
+	tbhInit(lFly, 392, .1281/*0.3652*/, 3.03, 0.005152, 0, 43, 20); //initialize PID for left side of the flywheel //left side might be able to have a higher P
+	tbhInit(rFly, 392, .1281/*0.3652*/, 3.03, 0.005152, 0, 43, 20); //initialize PID for right side of the flywheel //x.x481
+	startTask(leftFwControlTask);
+	startTask(rightFwControlTask);
+}
+
+//purple shooting (for skills)
+void initializePIDMid() {
+	//note the order of the parameters:
+	//(controller, motor ticks per rev, KpNorm, KpBallLaunch, Ki, Kd, constant, RPM drop on ball launch)
+	tbhInit(lFly, 392, 0.1281, 3.745, 0.005002, 0, 43, 27); //initialize PID for left side of the flywheel //left side might be able to have a higher P
+	tbhInit(rFly, 392, 0.1281, 3.745, 0.005002, 0, 43, 27); //initialize PID for right side of the flywheel //x.x481
 	startTask(leftFwControlTask);
 	startTask(rightFwControlTask);
 }
@@ -441,9 +467,10 @@ task countBallsInIntake() {
 
 		//NOTE: this doesn't account for balls leaving the intake via the flywheel
 		//reach this point once the intake limit switch has been pressed and then released (so balls are counted after they are done passing the dangle)
+
 		if (vexRT[Btn6U]) { //if the roller is moving forward
 			ballsInIntake++; //increment the number of balls in the intake
-			} else if (vexRT[Btn6D]) { //if the roller is moving backwards
+			} else if (rollerState <= 0) { //if the roller is moving backwards or is stopped (indicated by a rollerState value of -1 or 0)
 			ballsInIntake--; //decrement the number of balls in the intake
 		}
 
@@ -566,24 +593,23 @@ task usercontrol()
 	// -intakeWatchdog: no line follower on intake
 	// -liftController: actuation mechanisms not finished
 
-	startTask(closeShootingMacro);
+	//startTask(closeShootingMacro);
 	startTask(drivetrainController);
 	//startTask(intakeWatchDog);
-	//startTask(flashLED);
+	startTask(flashLED);
 	startTask(autoIntake);
 	startTask(countBallsInIntake);
 	//startTask(liftController);
 	startTask(stopFlywheel);
 	//startTask(flywheelWatchdog);
 
-	//initializePIDShort();
-	//FwVelocitySet(lFly, 94, .5);
-	//FwVelocitySet(rFly, 94, .5);
+	//initializePIDMid();
+	//FwVelocitySet(lFly,114.85,.7);
+	//FwVelocitySet(rFly,114.85,.7);
 	//yellowLEDFlashTime = 320;
 	//userIntakeControl = false;
-	//wait1Msec(2000);
-	//motor[intakeChain] = 127;
-	//motor[intakeRoller] = 127;
+	//wait1Msec(2300);
+
 
 
 	while (true)
@@ -594,13 +620,16 @@ task usercontrol()
 			if(vexRT[Btn5U] == 1) { //TODO: need a new button for this command
 				//moveIntakeBack();
 			} else if (!outtakeOnly) { //if the program is not overriding control of the intake
-				motor[intakeChain] = vexRT[Btn5U]*125 - vexRT[Btn5D]*125;
-				motor[intakeRoller] = vexRT[Btn6U]*125 - vexRT[Btn6D]*125;
+				motor[intakeChain] = vexRT[Btn5U]*125 - vexRT[Btn6D]*125;
+			  setIntakeRoller(vexRT[Btn6U]*125 - vexRT[Btn6D]*125);
 			} else if (outtakeOnly) {
-				motor[intakeChain] = -vexRT[Btn5D]*125;
-				motor[intakeRoller] = -vexRT[Btn6D]*125;
+				motor[intakeChain] = -vexRT[Btn6D]*125;
+				setIntakeRoller(-vexRT[Btn6D]*125);
 			}
 		}
+
+		displayLCDPos(0,6);
+		displayNextLCDNumber(SensorValue[lowerIntakeBallLF]);
 
 		//flywheel speed control
 		//7U - long, 7R - purple, 7D - short
