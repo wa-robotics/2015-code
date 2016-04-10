@@ -131,6 +131,8 @@ task flashLED() {
 			wait1Msec(yellowLEDFlashTime);
 			SensorValue[yellowLED] = false;
 			wait1Msec(yellowLEDFlashTime);
+		} else {
+			wait1Msec(150); //since this task isn't doing much, we can run it at a much slower frequency
 		}
 	}
 }
@@ -304,7 +306,7 @@ task stopFlywheel() {
 			//wait for the flywheels to have a velocity <= 5 RPM (for this only one side needs to meet this condition since the sides are mechanically linked)
 			while ((lFly.current > 5 || rFly.current > 5) && flywheelMode == 0.5) {
 				//wait to continue
-				wait1Msec(25);
+				wait1Msec(50);
 			}
 
 			//the above while loop can be exited for one of two reasons:
@@ -324,7 +326,7 @@ task stopFlywheel() {
 				flywheelMode = 0; //make sure we know that the flywheel is fully stopped
 			}
 		}
-		wait1Msec(25); //don't overload the cpu
+		wait1Msec(50); //don't overload the cpu
 	}
 }
 
@@ -481,20 +483,61 @@ task autonomous()
 	}
 }
 
-bool userIntakeControl = true;
-task closeShootingMacro() {
+bool userIntakeControl = true,
+		 btn6UPressed = false,
+		 indirectCloseShootStart = false; //when set to true, will start close shooting, once started, close shooting returns this variable to false
+		 																	//   Important note: Use progStartCloseShooting() to change this variable - don't change the value of this variable directly.
+		 																	//     	This variable will not be set to false until close shooting has been activated.
+		 																	//      If using a joystick button to set this variable to true, make sure that this can only happen
+		 																	//      when close shooting is NOT already running to avoid weird behavior and random close shooting activations
+		 																	//      Example: If you set this to true when the flywheel is already is close shooting mode, the flywheel will
+		 																	//         restart immediately after the shooting mode is changed or the flywheel is turned off.
+
+/*
+* A function to programmatically start close shooting if close shooting is currently not running.
+* Uses the indirectCloseShootStart variable, but controls it to prevent unexpectedly close shooting activation.
+* Use this function in lieu of directly changing the valueof indirectCloseShootStart
+*/
+void progStartCloseShooting() {
+	if (flywheelMode != 1) { //only try to start close shooting if close shooting is not already running; otherwise, do nothing
+		indirectCloseShootStart = true;
+	}
+}
+
+/*
+* Task that manages intake controls.  Decides what button 6U does depending on state of flywheel and balls in intake.
+*/
+task intakeController() {
 	while (1) {
-		if (vexRT[Btn6U] == 1 && flywheelMode == 1) { //only run this if the flywheel is in the correct operating state (close shooting only), to prevent mishaps resulting from accidental button presses
-			overrideAutoIntake = true; //prevent autoIntake from enabling userIntakeControl
-			userIntakeControl = false; //prevent user from controlling intake while macro is running
-			intakeDistance(1500, 1, 127, 2500);
-			//setIntakeMotors(127); //turn on the intake to outtake the balls
-			//wait1Msec(1750); //wait long enough to shoot all the balls
-			//setIntakeMotors(0); //stop the intake
-			userIntakeControl = true; //return intake control to user
-			overrideAutoIntake = false; //allow autoIntake to set userIntakeControl to true if it needs to
-			flywheelMode = 0.5; //turn off the flywheel.  The stopFlywheel task will recognize this value and stop the flywheel
-		}
+		if (userIntakeControl) {
+
+			if (vexRT[Btn6U] == 1 && flywheelMode < 1 && ballsInIntake == 4 && !btn6UPressed) { //flywheel is off, intake is full; start close shooting
+					progStartCloseShooting();
+					btn6UPressed = true;
+			} else if (vexRT[Btn6U] == 1 && flywheelMode == 1 && !btn6UPressed) { //only run this if the flywheel is in the correct operating state (close shooting only), to prevent mishaps resulting from accidental button presses
+					btn6UPressed = true;
+					overrideAutoIntake = true; //prevent autoIntake from enabling userIntakeControl
+					userIntakeControl = false; //prevent user from controlling intake while macro is running
+					intakeDistance(1500, 1, 127, 2500);
+					//setIntakeMotors(127); //turn on the intake to outtake the balls
+					//wait1Msec(1750); //wait long enough to shoot all the balls
+					//setIntakeMotors(0); //stop the intake
+					userIntakeControl = true; //return intake control to user
+					overrideAutoIntake = false; //allow autoIntake to set userIntakeControl to true if it needs to
+					flywheelMode = 0.5; //turn off the flywheel.  The stopFlywheel task will recognize this value and stop the flywheel
+				} else if (!vexRT[Btn6U] && btn6UPressed) {
+					btn6UPressed = false;
+				} else {
+					if (!outtakeOnly) {
+						setIntakeRoller(vexRT[Btn6U]*127-vexRT[Btn6D]*127); //intake roller can generally be run forwards or backwards...
+						if (flywheelMode == 3 || flywheelMode == 4) { //Button 6U also controls intake chain for purple and long shooting
+							setIntakeChain(vexRT[Btn6U]*127-vexRT[Btn6D]*127);
+						}
+					} else {
+						setIntakeMotors(-vexRT[Btn6D]*127); //Button 6D always runs both parts of the intake backwards
+					}
+				}
+			}
 		wait1Msec(25); //don't hog the CPU
 	}
 }
@@ -512,7 +555,7 @@ task liftController() {
 			//motor[fourBarRelease] = 0;
 		}
 
-		wait1Msec(25);
+		wait1Msec(50);
 	}
 }
 
@@ -578,33 +621,33 @@ task countBallsInIntake() {
 
 task autoIntake() {
 	while(1) {
-		if(SensorValue[intakeLimit] && !vexRT[Btn5D] && ballsInIntake < 3 && rollerState == 1) { //if the intake limit switch is pressed
-			userIntakeControl = false;
-			intakeChainDistance(275,1,127,1500); //move the second stage up
-			userIntakeControl = true;
-			while(SensorValue[intakeLimit]) { //wait until the intake limit switch is no longer pressed so that the moveIntakeChain command doesn't run multiple times
-				wait1Msec(75);
+		if (flywheelMode != 3 || flywheelMode != 4) { //don't auto-intake for purple or long shooting
+
+			if(SensorValue[intakeLimit] && !vexRT[Btn5D] && ballsInIntake < 3 && rollerState == 1) { //if the intake limit switch is pressed
+				userIntakeControl = false;
+				intakeChainDistance(275,1,127,1500); //move the second stage up
+				userIntakeControl = true;
+				while(SensorValue[intakeLimit]) { //wait until the intake limit switch is no longer pressed so that the moveIntakeChain command doesn't run multiple times
+					wait1Msec(75);
+				}
+			} else if (!overrideAutoIntake) { //only make userIntakeControl true if another automated task isn't running
+				userIntakeControl = true;
 			}
-		} /*else if (rollerState == 0 && !SensorValue[intakeLimit] && ballsInIntake == 4 ||) {
-			userIntakeControl = false;
-			while(!SensorValue[intakeLimit]) {
-				setIntakeMotors(127);
-			}
-			userIntakeControl = true;
-		}*/ else {
-			userIntakeControl = (overrideAutoIntake) ? userIntakeControl : true; //only make userIntakeControl true if another automated task isn't running
+
+			wait1Msec(25);
 		}
-		wait1Msec(25);
 	}
 }
 
 void moveIntakeBack() {
+	overrideAutoIntake = true;
 	userIntakeControl = false;
 	setIntakeChain(-127);
 	wait10Msec(10);
 	setIntakeChain(0);
 	wait10Msec(20);
 	userIntakeControl = true;
+	overrideAutoIntake = false;
 }
 
 //needs intake line follower sensor
@@ -650,7 +693,7 @@ task usercontrol()
 	// -liftController: actuation mechanisms not finished
 
 	//tasks in use normally.  Comment out to test shooting
-	startTask(closeShootingMacro);
+	startTask(intakeController);
 	startTask(drivetrainController);
 	startTask(flashLED);
 	startTask(autoIntake);
@@ -665,6 +708,7 @@ task usercontrol()
 	//FwVelocitySet(lFly,114.85,.7);
 	//FwVelocitySet(rFly,114.85,.7);
 	//yellowLEDFlashTime = 320;
+	//overrideAutoIntake = true;
 	//userIntakeControl = false;
 	//wait1Msec(2300)
 	//setIntakeMotors(127);
@@ -672,23 +716,6 @@ task usercontrol()
 
 	while (true)
 	{
-		//intake
-		if(userIntakeControl) {
-
-			if(vexRT[Btn5U] == 1) { //TODO: need a new button for this command
-				//moveIntakeBack();
-			} else if (!outtakeOnly) { //if the program is not overriding control of the intake
-				motor[intakeChain] = vexRT[Btn5U]*125 - vexRT[Btn6D]*125;
-			  setIntakeRoller(vexRT[Btn6U]*125 - vexRT[Btn6D]*125);
-			} else if (outtakeOnly) {
-				motor[intakeChain] = -vexRT[Btn6D]*125;
-				setIntakeRoller(-vexRT[Btn6D]*125);
-			}
-
-			if (vexRT[Btn6U] == 1) { //"magic" button - functionality changes depending on state of intake and flywheel
-
-			}
-		}
 
 		if (vexRT[Btn8D]) { //reset (tare) the intake ball count
 			ballsInIntake = 0;
@@ -715,7 +742,7 @@ task usercontrol()
 
 				yellowLEDFlashTime = 320; //flash the yellow LED for pacing
 
-			} else if (vexRT[Btn7R] == 1 && flywheelMode != 3.5) { //field edge shooting
+		} else if (vexRT[Btn7R] == 1 && flywheelMode != 3.5) { //field edge shooting
 				//mode 0.5 is for when the flywheel has been shutdown but is still spinning.  Since the control tasks are used for this process, the flywheel tasks need to be restarted.
 				if (flywheelMode >= 0.5) { //if the flywheel is currently running (modes 0.5,1-4), we need to stop the controller tasks before re-initializing the PID controller
 					stopTask(leftFwControlTask);
@@ -733,7 +760,7 @@ task usercontrol()
 				//FwVelocitySet(lFly,118.5,.7);
 				//FwVelocitySet(rFly,118.5,.7);
 
-			} else if (vexRT[Btn7L] == 1 && flywheelMode != 3) { //purple shooting
+		} else if (vexRT[Btn7L] == 1 && flywheelMode != 3) { //purple shooting
 				//mode 0.5 is for when the flywheel has been shutdown but is still spinning.  Since the control tasks are used for this process, the flywheel tasks need to be restarted.
 				if (flywheelMode >= 0.5) { //if the flywheel is currently running (modes 0.5,1-4), we need to stop the controller tasks before re-initializing the PID controller
 					stopTask(leftFwControlTask);
@@ -749,7 +776,7 @@ task usercontrol()
 				FwVelocitySet(lFly,118.5,.7);
 				FwVelocitySet(rFly,118.5,.7);
 
-			} else if (vexRT[Btn5U] == 1 && flywheelMode != 2) { //center shooting
+		} else if (vexRT[Btn5U] == 1 && flywheelMode != 2) { //center shooting
 				//mode 0.5 is for when the flywheel has been shutdown but is still spinning.  Since the control tasks are used for this process, the flywheel tasks need to be restarted.
 				if (flywheelMode >= 0.5) { //if the flywheel is currently running (modes 0.5,1-4), we need to stop the controller tasks before re-initializing the PID controller
 					stopTask(leftFwControlTask);
@@ -767,13 +794,15 @@ task usercontrol()
 				//FwVelocitySet(lFly,118.5,.7);
 				//FwVelocitySet(rFly,118.5,.7);
 
-			} else if (vexRT[Btn7D] == 1 && flywheelMode != 1) { //close shooting
+		} else if ((vexRT[Btn7D] == 1 || indirectCloseShootStart) && flywheelMode != 1) { //close shooting
 			//mode 0.5 is for when the flywheel has been shutdown but is still spinning.  Since the control tasks are used for this process, the flywheel tasks need to be restarted.
 				if (flywheelMode >= 0.5) { //if the flywheel is currently running (modes 0.5,1-4), we need to stop the controller tasks before re-initializing the PID controller
 					stopTask(leftFwControlTask);
 					stopTask(rightFwControlTask);
 					userIntakeControl = true;
 				}
+
+				indirectCloseShootStart = false; //setting this to true will do the same thing as pressing Btn7D on the joystick.  Once the variable has activated
 
 				moveIntakeBack(); //move the intake back a little before startin the flywheel
 
@@ -785,7 +814,7 @@ task usercontrol()
 				FwVelocitySet(lFly, 94, .5);
 				FwVelocitySet(rFly, 94, .5);
 
-			} else if (vexRT[Btn8R] == 1 && flywheelMode >= 1) { //this is an else statement so that if two buttons are pressed, we won't switch back and forth between starting and stopping the flywheel
+		} else if (vexRT[Btn8R] == 1 && flywheelMode >= 1) { //this is an else statement so that if two buttons are pressed, we won't switch back and forth between starting and stopping the flywheel
 				//  flywheelMode needs to be >=1 and not >=0.5 because we don't want to stop the flywheel again if it is currently in the process of the stopping,
 				//  although since the value of flywheelMode would not change in that case, it would appear as if nothing happened
 				userIntakeControl = true; //make sure the driver can control the intake again
