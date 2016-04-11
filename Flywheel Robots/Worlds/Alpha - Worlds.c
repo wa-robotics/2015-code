@@ -34,6 +34,7 @@
 #include "..\..\Vex_Competition_Includes_No_LCD.c"   //Main competition background code...do not modify!
 #include "..\..\LCD Autonomous Play Selection.c"
 #include "..\State\Global\Simple PID Controller.h"
+//#include "Position PID.c"
 
 fw_controller lFly, rFly;
 string str;
@@ -540,7 +541,7 @@ task intakeController() {
 				} else {
 					if (!outtakeOnly) {
 							setIntakeRoller(vexRT[Btn6U]*127-vexRT[Btn6D]*127); //intake roller can generally be run forwards or backwards...
-						if (flywheelMode == 3 || flywheelMode == 4) { //Button 6U also controls intake chain for purple and long shooting
+						if (flywheelMode >= 3) { //Button 6U also controls intake chain for center, purple and long shooting
 							setIntakeChain(vexRT[Btn6U]*127-vexRT[Btn6D]*127);
 						} else { //can always run intakeChain backwards with button 6D
 							setIntakeChain(-vexRT[Btn6D]*127);
@@ -580,8 +581,8 @@ task countBallsInIntake() {
 			while(!SensorValue[intakeLimit]) { //limit switch indicates that a ball is not at the bottom of the dangle
 				wait1Msec(25); //wait until a ball approaches the dangle
 			}
-			while(SensorValue[intakeLimit]) { //wait until the ball has triggered the limit switch
-				if (!SensorValue[intakeLimit]) { //this implementation is not finished
+			while(numConsecZeros < 2) { //condition: SensorValue[intakeLimit]; wait until the ball has triggered the limit switch
+				if (!SensorValue[intakeLimit]) {
 					numConsecZeros++;
 				}
 				wait1Msec(25);
@@ -590,20 +591,30 @@ task countBallsInIntake() {
 			while(!SensorValue[intakeLimit]) { //limit switch indicates that a ball is not at the bottom of the dangle
 				wait1Msec(25); //wait until a ball approaches the dangle
 			}
-			while(SensorValue[intakeLimit]) { //wait until the ball has triggered the limit switch
+			while(numConsecZeros < 2) { //condition: SensorValue[intakeLimit]; wait until the ball has triggered the limit switch
+				if (!SensorValue[intakeLimit]) {
+					numConsecZeros++;
+				}
 				wait1Msec(25);
 			}
 		} else if (ballsInIntake >= 3 && rollerState == 1) { //limit switch is pressed when there are 4 balls in the intake - do this when the third ball is in the intake, so ballsInIntake = 3
-			while(!SensorValue[intakeLimit]) { //only do this when going forward - this means we are intaking
+			while(numConsecOnes < 2) { //condition: !SensorValue[intakeLimit]; only do this when going forward - this means we are intaking
+				if (SensorValue[intakeLimit]) {
+					numConsecOnes++;
+				}
 				wait1Msec(25);
 			}
 		} else if (ballsInIntake > 3 && rollerState == -1) { //limit switch is pressed when there are 4 balls in the intake - do this when the fourth ball is in the intake, so ballsInIntake = 3
-			while(SensorValue[intakeLimit]) { //only do this when going backward - this means we are releasing balls from the lower end of the intake; the 4th ball keeps the limt switch pressed
-				wait1Msec(25);
-			}
+				while(SensorValue[intakeLimit]) { //only do this when going backward - this means we are releasing balls from the lower end of the intake; the 4th ball keeps the limt switch pressed
+ 					if (!SensorValue[intakeLimit]) {
+						numConsecZeros++;
+					}
+					wait1Msec(25);
+ 				}
 		}
 
-		//numConsecHighLFVals = 0; //reset to zero once moved
+		numConsecZeros = 0; //reset to zero once moved
+		numConsecOnes = 0;
 
 		//NOTE: this doesn't account for balls leaving the intake via the flywheel
 		//reach this point once the intake limit switch has been pressed and then released (so balls are counted after they are done passing the dangle)
@@ -711,26 +722,26 @@ task usercontrol()
 	// -liftController: actuation mechanisms not finished
 
 	//tasks in use normally.  Comment out to test shooting
-	//startTask(intakeController);
-	//startTask(drivetrainController);
-	//startTask(flashLED);
-	//startTask(autoIntake);
-	//startTask(countBallsInIntake);
-	//startTask(stopFlywheel);
-	//startTask(flywheelWatchdog);
+	startTask(intakeController);
+	startTask(drivetrainController);
+	startTask(flashLED);
+	startTask(autoIntake);
+	startTask(countBallsInIntake);
+	startTask(stopFlywheel);
+	startTask(flywheelWatchdog);
 
 	//startTask(intakeWatchDog);
 	//startTask(liftController);
 
-	initializePIDLong(); //prepare controller for long shooting
-	//set long shooting velocities
-	FwVelocitySet(lFly,139,.7);
-	FwVelocitySet(rFly,139,.7);
-	//yellowLEDFlashTime = 320;
-	//overrideAutoIntake = true;
-	userIntakeControl = false;
-	//wait1Msec(2300);
-	setIntakeMotors(127);
+	//initializePIDLong(); //prepare controller for long shooting
+	////set long shooting velocities
+	//FwVelocitySet(lFly,139,.7);
+	//FwVelocitySet(rFly,139,.7);
+	////yellowLEDFlashTime = 320;
+	////overrideAutoIntake = true;
+	//userIntakeControl = false;
+	////wait1Msec(2300);
+	//setIntakeMotors(127);
 
 
 	while (true)
@@ -809,10 +820,10 @@ task usercontrol()
 
 
 				//Uncomment these lines once midfield shooting has been tested
-				//flywheelMode = 2;
-				//initializePIDMid();
-				//FwVelocitySet(lFly,118.5,.7);
-				//FwVelocitySet(rFly,118.5,.7);
+				flywheelMode = 3.5;
+				initializePIDMid();
+				FwVelocitySet(lFly,118.5,.7);
+				FwVelocitySet(rFly,118.5,.7);
 
 		} else if ((vexRT[Btn7D] == 1 || indirectCloseShootStart) && flywheelMode != 1) { //close shooting
 			//mode 0.5 is for when the flywheel has been shutdown but is still spinning.  Since the control tasks are used for this process, the flywheel tasks need to be restarted.
