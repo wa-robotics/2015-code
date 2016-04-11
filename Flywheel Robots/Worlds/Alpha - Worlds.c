@@ -353,6 +353,7 @@ task drivetrainController() {
 	threshold = 15; //the minimum positive or negative motor power to send a value other than 0 to the drivetrain motors
 	bool slowMode = false; //when true, divides all requested drivetrain powers (lYRequested and rYRequested) by 3, then applies the slew rate, then sends motor powers
 	while(true) {
+		slowMode = (vexRT[Btn5D]) ? true : false;
 		lYRequested = (slowMode) ? vexRT[Ch3]/3 : vexRT[Ch3]; //if slow mode is enabled, divide the requested motor power by 3
 		rYRequested = (slowMode) ? vexRT[Ch2]/3 : vexRT[Ch2];
 		if (abs(lYRequested - lYLastSent) > slewRateLimit) { //if the new power requested is greater than the slew rate limit
@@ -532,8 +533,10 @@ task intakeController() {
 						setIntakeRoller(vexRT[Btn6U]*127-vexRT[Btn6D]*127); //intake roller can generally be run forwards or backwards...
 						if (flywheelMode == 3 || flywheelMode == 4) { //Button 6U also controls intake chain for purple and long shooting
 							setIntakeChain(vexRT[Btn6U]*127-vexRT[Btn6D]*127);
+						} else { //can always run intakeChain backwards with button 6D
+							setIntakeChain(-vexRT[Btn6D]*127);
 						}
-					} else {
+					} else { //outtakeOnly
 						setIntakeMotors(-vexRT[Btn6D]*127); //Button 6D always runs both parts of the intake backwards
 					}
 				}
@@ -560,7 +563,8 @@ task liftController() {
 }
 
 task countBallsInIntake() {
-	//int numConsecHighLFVals = 0; //number of consecutive values above 1000 received from the line follower
+	int numConsecZeros = 0, //number of consecutive 0s return by the limit switch
+			numConsecOnes = 0; //number of consecutive 1s return by the limit switch
 	while(1) {
 
 		if (ballsInIntake < 3 && rollerState == 1) { //if there are 2 or fewer balls in the intake, and intaking balls in
@@ -568,6 +572,9 @@ task countBallsInIntake() {
 				wait1Msec(25); //wait until a ball approaches the dangle
 			}
 			while(SensorValue[intakeLimit]) { //wait until the ball has triggered the limit switch
+				if (!SensorValue[intakeLimit]) { //this implementation is not finished
+					numConsecZeros++;
+				}
 				wait1Msec(25);
 			}
 		} else if (ballsInIntake <= 3 && rollerState == -1) { //if there are 3 or fewer balls in the intake and we are outtaking via the roller
@@ -605,12 +612,15 @@ task countBallsInIntake() {
 			ballsInIntake = 0;
 		}
 
-		if (ballsInIntake == 4) {
-			outtakeOnly = true;
-		} else if (ballsInIntake < 4 && outtakeOnly) { //check if we can disable outttake only mode
-			outtakeOnly = false;
+		if (flywheelMode != 3 || flywheelMode != 4) {
+				outtakeOnly = false;
+		} else {
+				if (ballsInIntake == 4) {
+				outtakeOnly = true;
+			} else if (ballsInIntake < 4 && outtakeOnly) { //check if we can disable outttake only mode
+				outtakeOnly = false;
+			}
 		}
-
 		clearLCDLine(0);
 		displayLCDPos(0,0);
 		displayNextLCDNumber(ballsInIntake);
@@ -787,9 +797,10 @@ task usercontrol()
 				ballsInIntake = 0; //reset the intake ball counter for simplicity
 
 				//next 4 lines have to run every time to run flywheel
-				flywheelMode = 2;
 
-				//Uncomment these lines from midfield shooting has been tested
+
+				//Uncomment these lines once midfield shooting has been tested
+				//flywheelMode = 2;
 				//initializePIDMid();
 				//FwVelocitySet(lFly,118.5,.7);
 				//FwVelocitySet(rFly,118.5,.7);
