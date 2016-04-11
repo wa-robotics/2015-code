@@ -399,7 +399,7 @@ void intakeChainDistance (int encoderCounts, int direction, float power, int tim
 void intakeDistance (int encoderCounts, int direction, float power, int time) {
 	nMotorEncoder[intakeChain] = 0;
 	time1[T2] = 0;
-	motor[intakeRoller] = 127;
+	motor[intakeRoller] = 127*direction;
 	while (abs(nMotorEncoder[intakeChain]) < encoderCounts && time1[T2] < time) {
 		motor[intakeChain] = power*direction;
 	}
@@ -515,22 +515,31 @@ task intakeController() {
 			if (vexRT[Btn6U] == 1 && flywheelMode < 1 && ballsInIntake == 4 && !btn6UPressed) { //flywheel is off, intake is full; start close shooting
 					progStartCloseShooting();
 					btn6UPressed = true;
-			} else if (vexRT[Btn6U] == 1 && flywheelMode == 1 && !btn6UPressed) { //only run this if the flywheel is in the correct operating state (close shooting only), to prevent mishaps resulting from accidental button presses
-					btn6UPressed = true;
-					overrideAutoIntake = true; //prevent autoIntake from enabling userIntakeControl
-					userIntakeControl = false; //prevent user from controlling intake while macro is running
-					intakeDistance(1500, 1, 127, 2500);
-					//setIntakeMotors(127); //turn on the intake to outtake the balls
-					//wait1Msec(1750); //wait long enough to shoot all the balls
-					//setIntakeMotors(0); //stop the intake
-					userIntakeControl = true; //return intake control to user
-					overrideAutoIntake = false; //allow autoIntake to set userIntakeControl to true if it needs to
-					flywheelMode = 0.5; //turn off the flywheel.  The stopFlywheel task will recognize this value and stop the flywheel
+			} else if (vexRT[Btn6U] == 1 && (flywheelMode == 1 || indirectCloseShootStart)) { //only run this if the flywheel is in the correct operating state (close shooting only), to prevent mishaps resulting from accidental button presses
+					setIntakeRoller(0); //make sure the roller is stopped
+					while (vexRT[Btn6U] && flywheelMode == 1) { //wait for button 6U to be released; flywheelMode == 1 condition ensures that this exits if the user is no longer close shooting
+						wait1Msec(25);
+					}
+					while (!vexRT[Btn6U] && flywheelMode == 1) { //wait for button 6U to be pressed again.  The purpose of these while loops is to prevent the intake roller from being controlled button 6U is pressed and while 6U is pressed the intake reaches 4 balls in it
+						wait1Msec(25);
+					}
+					if (flywheelMode == 1) { //since the while loops above can also exit if flywheelMode is no longer 1 (provides a way out of this without having to run the close shooting macro), verify that we are still close shooting before running the macro
+						btn6UPressed = true;
+						overrideAutoIntake = true; //prevent autoIntake from enabling userIntakeControl
+						userIntakeControl = false; //prevent user from controlling intake while macro is running
+						intakeDistance(1500, 1, 127, 2500);
+						//setIntakeMotors(127); //turn on the intake to outtake the balls
+						//wait1Msec(1750); //wait long enough to shoot all the balls
+						//setIntakeMotors(0); //stop the intake
+						userIntakeControl = true; //return intake control to user
+						overrideAutoIntake = false; //allow autoIntake to set userIntakeControl to true if it needs to
+						flywheelMode = 0.5; //turn off the flywheel.  The stopFlywheel task will recognize this value and stop the flywheel
+					}
 				} else if (!vexRT[Btn6U] && btn6UPressed) {
 					btn6UPressed = false;
 				} else {
 					if (!outtakeOnly) {
-						setIntakeRoller(vexRT[Btn6U]*127-vexRT[Btn6D]*127); //intake roller can generally be run forwards or backwards...
+							setIntakeRoller(vexRT[Btn6U]*127-vexRT[Btn6D]*127); //intake roller can generally be run forwards or backwards...
 						if (flywheelMode == 3 || flywheelMode == 4) { //Button 6U also controls intake chain for purple and long shooting
 							setIntakeChain(vexRT[Btn6U]*127-vexRT[Btn6D]*127);
 						} else { //can always run intakeChain backwards with button 6D
@@ -652,9 +661,8 @@ task autoIntake() {
 void moveIntakeBack() {
 	overrideAutoIntake = true;
 	userIntakeControl = false;
-	setIntakeChain(-127);
-	wait10Msec(10);
-	setIntakeChain(0);
+	setIntakeRoller(0);
+	intakeChainDistance(75,-1,127,1000);
 	wait10Msec(20);
 	userIntakeControl = true;
 	overrideAutoIntake = false;
