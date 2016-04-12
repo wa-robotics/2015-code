@@ -513,19 +513,16 @@ task intakeController() {
 	while (1) {
 		if (userIntakeControl) {
 
-			if (vexRT[Btn5U] == 1 && flywheelMode < 1 && ballsInIntake == 4 && !btn6UPressed) { //flywheel is off, intake is full; start close shooting
-					progStartCloseShooting();
-					btn6UPressed = true;
-			} else if (flywheelMode == 1 || indirectCloseShootStart) { //only run this if the flywheel is in the correct operating state (close shooting only), to prevent mishaps resulting from accidental button presses
-					setIntakeRoller(0); //make sure the roller is stopped
-					while (vexRT[Btn6U] && flywheelMode == 1) { //wait for button 6U to be released; flywheelMode == 1 condition ensures that this exits if the user is no longer close shooting
-						wait1Msec(25);
-					}
-					while (!vexRT[Btn6U] && flywheelMode == 1) { //wait for button 6U to be pressed again.  The purpose of these while loops is to prevent the intake roller from being controlled button 6U is pressed and while 6U is pressed the intake reaches 4 balls in it
-						wait1Msec(25);
-					}
-					if (flywheelMode == 1) { //since the while loops above can also exit if flywheelMode is no longer 1 (provides a way out of this without having to run the close shooting macro), verify that we are still close shooting before running the macro
-						btn6UPressed = true;
+			if (flywheelMode == 1 && vexRT[Btn6U]) { //only run this if the flywheel is in the correct operating state (close shooting only), to prevent mishaps resulting from accidental button presses
+					//setIntakeRoller(0); //make sure the roller is stopped
+					//while (vexRT[Btn6U] && flywheelMode == 1) { //wait for button 6U to be released; flywheelMode == 1 condition ensures that this exits if the user is no longer close shooting
+					//	wait1Msec(25);
+					//}
+					//while (!vexRT[Btn6U] && flywheelMode == 1) { //wait for button 6U to be pressed again.  The purpose of these while loops is to prevent the intake roller from being controlled button 6U is pressed and while 6U is pressed the intake reaches 4 balls in it
+					//	wait1Msec(25);
+					//}
+					//if (flywheelMode == 1) { //since the while loops above can also exit if flywheelMode is no longer 1 (provides a way out of this without having to run the close shooting macro), verify that we are still close shooting before running the macro
+					//	btn6UPressed = true;
 						overrideAutoIntake = true; //prevent autoIntake from enabling userIntakeControl
 						userIntakeControl = false; //prevent user from controlling intake while macro is running
 						intakeDistance(1500, 1, 127, 2500);
@@ -535,26 +532,21 @@ task intakeController() {
 						userIntakeControl = true; //return intake control to user
 						overrideAutoIntake = false; //allow autoIntake to set userIntakeControl to true if it needs to
 						flywheelMode = 0.5; //turn off the flywheel.  The stopFlywheel task will recognize this value and stop the flywheel
-					}
+					//}
 				} else if (!vexRT[Btn6U] && btn6UPressed) {
 					btn6UPressed = false;
-				}
-
-				if (!outtakeOnly) {
-					setIntakeRoller(vexRT[Btn6U]*127-vexRT[Btn6D]*127); //intake roller can generally be run forwards or backwards...
-					if (flywheelMode >= 3) { //Button 6U also controls intake chain for center, purple and long shooting
-						setIntakeChain(vexRT[Btn6U]*127-vexRT[Btn6D]*127);
-					} else { //can always run intakeChain backwards with button 6D
-						setIntakeChain(-vexRT[Btn6D]*127);
+				} else {
+					if (!outtakeOnly) {
+						setIntakeRoller(vexRT[Btn6U]*127-vexRT[Btn5U]*127); //intake roller can generally be run forwards or backwards...
+						if (flywheelMode >= 3) { //Button 6U also controls intake chain for center, purple and long shooting
+							setIntakeChain(vexRT[Btn6U]*127-vexRT[Btn5U]*127);
+						} else { //can always run intakeChain backwards with button 5U
+							setIntakeChain(-vexRT[Btn5U]*127);
+						}
+					} else { //outtakeOnly
+						setIntakeMotors(-vexRT[Btn5U]*127); //Button 6D always runs both parts of the intake backwards
 					}
-				} else { //outtakeOnly
-					setIntakeMotors(-vexRT[Btn6D]*127); //Button 6D always runs both parts of the intake backwards
 				}
-
-				if (!vexRT[Btn6U]) {
-					outtakeOnly = false;
-				}
-
 			}
 		wait1Msec(25); //don't hog the CPU
 	}
@@ -576,7 +568,7 @@ task liftController() {
 		wait1Msec(50);
 	}
 }
-
+bool overrideAutoOuttakeOnly = false;
 task countBallsInIntake() {
 	int numConsecZeros = 0, //number of consecutive 0s return by the limit switch
 			numConsecOnes = 0; //number of consecutive 1s return by the limit switch
@@ -645,19 +637,26 @@ task countBallsInIntake() {
 			ballsInIntake = 0;
 		}
 
+		/*
+		if (ballsInIntake < 4) {
+			overrideAutoOuttakeOnly = false;
+		}
+
 		if (flywheelMode == 3 || flywheelMode == 4) {
 				outtakeOnly = false;
 		} else {
 			if (ballsInIntake == 4) {
-				if (vexRT[Btn6U]) {
+				if (vexRT[Btn6U] && !overrideAutoOuttakeOnly) {
 					outtakeOnly = true;
 				} else {
 					outtakeOnly = false;
+					overrideAutoOuttakeOnly = true;
 				}
 			} else if (ballsInIntake < 4 && outtakeOnly) { //check if we can disable outttake only mode
 				outtakeOnly = false;
 			}
-		}
+		}*/
+
 		clearLCDLine(0);
 		displayLCDPos(0,0);
 		displayNextLCDNumber(ballsInIntake);
@@ -668,7 +667,12 @@ task countBallsInIntake() {
 
 task autoIntake() {
 	while(1) {
-		if (flywheelMode != 3 || flywheelMode != 4) { //don't auto-intake for purple or long shooting
+		if (vexRT[Btn6D]) {
+				userIntakeControl = false;
+				intakeChainDistance(275,1,127,1500); //move the second stage up
+				userIntakeControl = true;
+		}
+		/*if (flywheelMode != 3 || flywheelMode != 4) { //don't auto-intake for purple or long shooting
 
 			if(SensorValue[intakeLimit] && !vexRT[Btn5D] && ballsInIntake < 3 && rollerState == 1) { //if the intake limit switch is pressed
 				userIntakeControl = false;
@@ -677,12 +681,18 @@ task autoIntake() {
 				while(SensorValue[intakeLimit]) { //wait until the intake limit switch is no longer pressed so that the moveIntakeChain command doesn't run multiple times
 					wait1Msec(75);
 				}
+			} else if (SensorValue[intakeLimit] && rollerState == 0 && ballsInIntake > 0 && ballsInIntake <= 3) {
+					while (SensorValue[intakeLimit]) {
+						userIntakeControl = false;
+						setIntakeMotors(127);
+					}
+					userIntakeControl = true;
 			} else if (!overrideAutoIntake) { //only make userIntakeControl true if another automated task isn't running
 				userIntakeControl = true;
 			}
 
 			wait1Msec(25);
-		}
+		}*/
 	}
 }
 
@@ -776,10 +786,10 @@ task usercontrol()
 	startTask(drivetrainController);
 	startTask(flashLED);
 	startTask(autoIntake);
-	startTask(countBallsInIntake);
+	//startTask(countBallsInIntake);
 	startTask(stopFlywheel);
 	startTask(flywheelWatchdog);
-	startTask(changeBallCount);
+	//startTask(changeBallCount);
 
 	//startTask(intakeWatchDog);
 	//startTask(liftController);
@@ -799,7 +809,7 @@ task usercontrol()
 	{
 
 		//flywheel speed control
-		//7U - long, 7L - purple, 7R - shoot from field edge, 5U - center 7D - short
+		//7U - long, 7L - purple, 8U - shoot from field edge, 7R - center 7D - short
 		//8R - stop
 		if (vexRT[Btn7U] == 1 && flywheelMode != 4) { //second condition prevents reinitialization of long shooting if the flywheel is currently in long shooting mode
 				//mode 0.5 is for when the flywheel has been shutdown but is still spinning.  Since the control tasks are used for this process, the flywheel tasks need to be restarted.
@@ -853,7 +863,7 @@ task usercontrol()
 				FwVelocitySet(lFly,114.85,.7);
 				FwVelocitySet(rFly,114.85,.7);
 
-		} else if (vexRT[Btn5U] == 1 && flywheelMode != 2) { //center shooting
+		} else if (vexRT[Btn7R] == 1 && flywheelMode != 2) { //center shooting
 				//mode 0.5 is for when the flywheel has been shutdown but is still spinning.  Since the control tasks are used for this process, the flywheel tasks need to be restarted.
 				if (flywheelMode >= 0.5) { //if the flywheel is currently running (modes 0.5,1-4), we need to stop the controller tasks before re-initializing the PID controller
 					stopTask(leftFwControlTask);
