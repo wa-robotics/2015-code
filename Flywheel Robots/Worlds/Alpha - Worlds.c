@@ -584,6 +584,8 @@ task countBallsInIntake() {
 			while(numConsecZeros < 2) { //condition: SensorValue[intakeLimit]; wait until the ball has triggered the limit switch
 				if (!SensorValue[intakeLimit]) {
 					numConsecZeros++;
+				} else {
+					numConsecZeros = 0;
 				}
 				wait1Msec(25);
 			}
@@ -594,6 +596,8 @@ task countBallsInIntake() {
 			while(numConsecZeros < 2) { //condition: SensorValue[intakeLimit]; wait until the ball has triggered the limit switch
 				if (!SensorValue[intakeLimit]) {
 					numConsecZeros++;
+				} else {
+					numConsecZeros = 0;
 				}
 				wait1Msec(25);
 			}
@@ -601,6 +605,8 @@ task countBallsInIntake() {
 			while(numConsecOnes < 2) { //condition: !SensorValue[intakeLimit]; only do this when going forward - this means we are intaking
 				if (SensorValue[intakeLimit]) {
 					numConsecOnes++;
+				} else {
+					numConsecOnes = 0;
 				}
 				wait1Msec(25);
 			}
@@ -608,12 +614,14 @@ task countBallsInIntake() {
 				while(SensorValue[intakeLimit]) { //only do this when going backward - this means we are releasing balls from the lower end of the intake; the 4th ball keeps the limt switch pressed
  					if (!SensorValue[intakeLimit]) {
 						numConsecZeros++;
+					} else {
+						numConsecZeros = 0;
 					}
 					wait1Msec(25);
  				}
 		}
 
-		numConsecZeros = 0; //reset to zero once moved
+		numConsecZeros = 0; //reset to zero once limit we move on
 		numConsecOnes = 0;
 
 		//NOTE: this doesn't account for balls leaving the intake via the flywheel
