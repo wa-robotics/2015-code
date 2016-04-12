@@ -21,13 +21,13 @@ void setRDriveMotors(float power) {
 	motor[rDriveBack] = power;
 }
 
-task moveIntakeBack() {
-	nMotorEncoder[intakeChain] = 0;
-	while(abs(nMotorEncoder[intakeChain]) < 106) {
-		motor[intakeChain] = -127;
-	}
-	motor[intakeChain] = 0;
-}
+//task moveIntakeBack() {
+//	nMotorEncoder[intakeChain] = 0;
+//	while(abs(nMotorEncoder[intakeChain]) < 106) {
+//		motor[intakeChain] = -127;
+//	}
+//	motor[intakeChain] = 0;
+//}
 
 void driveDistancePID(int encoderCounts, int direction, int time) {
 	writeDebugStreamLine("nPgmTime,error,nMotorEncoder[lDriveFrontMid], nMotorEncoder[rDriveMiddle],pTerm,iTerm,dTerm,lPower,rPower");
@@ -162,7 +162,7 @@ void driveDistancePID(int encoderCounts, int direction, int time) {
 }
 }
 
-task main()
+task testautonomous()
 {
 	//wait1Msec(5000);
 
