@@ -248,8 +248,8 @@ task rightFwControlTask()
 void initializePIDLong() {
 	//note the order of the parameters:
 	//(controller, motor ticks per rev, KpNorm, KpBallLaunch, Ki, Kd, constant, RPM drop on ball launch)
-	tbhInit(lFly, 392, 0.4912, 3, 0.005481, 0, 70, 20); //initialize PID for left side of the flywheel //left side might be able to have a higher P
-	tbhInit(rFly, 392, 0.4912, 3, 0.005481, 0, 70, 20); //initialize PID for right side of the flywheel //x.x481
+	tbhInit(lFly, 392, .3291/*0.4074*/, 3.2, 0.005381, 0, 70, 24); //initialize PID for left side of the flywheel //left side might be able to have a higher P
+	tbhInit(rFly, 392, .3291/*0.4074*/, 3.2, 0.005381, 0, 70, 24); //initialize PID for right side of the flywheel //x.x481
 	startTask(leftFwControlTask);
 	startTask(rightFwControlTask);
 }
@@ -794,15 +794,15 @@ task usercontrol()
 	//startTask(intakeWatchDog);
 	//startTask(liftController);
 
-	//initializePIDLong(); //prepare controller for long shooting
+	initializePIDLong(); //prepare controller for long shooting
 	////set long shooting velocities
-	//FwVelocitySet(lFly,139,.7);
-	//FwVelocitySet(rFly,139,.7);
+	FwVelocitySet(lFly,136,.7);
+	FwVelocitySet(rFly,136,.7);
 	////yellowLEDFlashTime = 320;
 	////overrideAutoIntake = true;
-	//userIntakeControl = false;
+	userIntakeControl = false;
 	////wait1Msec(2300);
-	//setIntakeMotors(127);
+	setIntakeMotors(127);
 
 
 	while (true)
@@ -880,7 +880,8 @@ task usercontrol()
 				flywheelMode = 3.5;
 				initializePIDMid();
 				FwVelocitySet(lFly,118.5,.7);
-				FwVelocitySet(rFly,118.5,.7);
+				setRightFwSpeed(motor[lFlywheel]);
+				//FwVelocitySet(rFly,118.5,.7);
 
 		} else if ((vexRT[Btn7D] == 1 || indirectCloseShootStart) && flywheelMode != 1) { //close shooting
 			//mode 0.5 is for when the flywheel has been shutdown but is still spinning.  Since the control tasks are used for this process, the flywheel tasks need to be restarted.
