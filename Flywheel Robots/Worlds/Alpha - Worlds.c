@@ -34,7 +34,7 @@
 #include "..\..\Vex_Competition_Includes_No_LCD.c"   //Main competition background code...do not modify!
 #include "..\..\LCD Autonomous Play Selection.c"
 #include "..\State\Global\Simple PID Controller.h"
-//#include "Position PID.c"
+#include "Position PID.c"
 
 fw_controller lFly, rFly;
 string str;
@@ -355,8 +355,8 @@ task drivetrainController() {
 	bool slowMode = false; //when true, divides all requested drivetrain powers (lYRequested and rYRequested) by 3, then applies the slew rate, then sends motor powers
 	while(true) {
 		slowMode = (vexRT[Btn5D]) ? true : false;
-		lYRequested = (slowMode) ? vexRT[Ch3]/3 : vexRT[Ch3]; //if slow mode is enabled, divide the requested motor power by 3
-		rYRequested = (slowMode) ? vexRT[Ch2]/3 : vexRT[Ch2];
+		lYRequested = (slowMode) ? vexRT[Ch3]/2.2 : vexRT[Ch3]; //if slow mode is enabled, divide the requested motor power by 3
+		rYRequested = (slowMode) ? vexRT[Ch2]/2.2 : vexRT[Ch2];
 		if (abs(lYRequested - lYLastSent) > slewRateLimit) { //if the new power requested is greater than the slew rate limit
 			if (lYRequested > lYLastSent) {
 				lY += slewRateLimit; //only increase the power by the max allowed by the slew rate
@@ -513,10 +513,10 @@ task intakeController() {
 	while (1) {
 		if (userIntakeControl) {
 
-			if (vexRT[Btn6U] == 1 && flywheelMode < 1 && ballsInIntake == 4 && !btn6UPressed) { //flywheel is off, intake is full; start close shooting
+			if (vexRT[Btn5U] == 1 && flywheelMode < 1 && ballsInIntake == 4 && !btn6UPressed) { //flywheel is off, intake is full; start close shooting
 					progStartCloseShooting();
 					btn6UPressed = true;
-			} else if (vexRT[Btn6U] == 1 && (flywheelMode == 1 || indirectCloseShootStart)) { //only run this if the flywheel is in the correct operating state (close shooting only), to prevent mishaps resulting from accidental button presses
+			} else if (flywheelMode == 1 || indirectCloseShootStart) { //only run this if the flywheel is in the correct operating state (close shooting only), to prevent mishaps resulting from accidental button presses
 					setIntakeRoller(0); //make sure the roller is stopped
 					while (vexRT[Btn6U] && flywheelMode == 1) { //wait for button 6U to be released; flywheelMode == 1 condition ensures that this exits if the user is no longer close shooting
 						wait1Msec(25);
@@ -538,18 +538,23 @@ task intakeController() {
 					}
 				} else if (!vexRT[Btn6U] && btn6UPressed) {
 					btn6UPressed = false;
-				} else {
-					if (!outtakeOnly) {
-							setIntakeRoller(vexRT[Btn6U]*127-vexRT[Btn6D]*127); //intake roller can generally be run forwards or backwards...
-						if (flywheelMode >= 3) { //Button 6U also controls intake chain for center, purple and long shooting
-							setIntakeChain(vexRT[Btn6U]*127-vexRT[Btn6D]*127);
-						} else { //can always run intakeChain backwards with button 6D
-							setIntakeChain(-vexRT[Btn6D]*127);
-						}
-					} else { //outtakeOnly
-						setIntakeMotors(-vexRT[Btn6D]*127); //Button 6D always runs both parts of the intake backwards
-					}
 				}
+
+				if (!outtakeOnly) {
+					setIntakeRoller(vexRT[Btn6U]*127-vexRT[Btn6D]*127); //intake roller can generally be run forwards or backwards...
+					if (flywheelMode >= 3) { //Button 6U also controls intake chain for center, purple and long shooting
+						setIntakeChain(vexRT[Btn6U]*127-vexRT[Btn6D]*127);
+					} else { //can always run intakeChain backwards with button 6D
+						setIntakeChain(-vexRT[Btn6D]*127);
+					}
+				} else { //outtakeOnly
+					setIntakeMotors(-vexRT[Btn6D]*127); //Button 6D always runs both parts of the intake backwards
+				}
+
+				if (!vexRT[Btn6U]) {
+					outtakeOnly = false;
+				}
+
 			}
 		wait1Msec(25); //don't hog the CPU
 	}
@@ -611,7 +616,7 @@ task countBallsInIntake() {
 				wait1Msec(25);
 			}
 		} else if (ballsInIntake > 3 && rollerState == -1) { //limit switch is pressed when there are 4 balls in the intake - do this when the fourth ball is in the intake, so ballsInIntake = 3
-				while(SensorValue[intakeLimit]) { //only do this when going backward - this means we are releasing balls from the lower end of the intake; the 4th ball keeps the limt switch pressed
+				while(numConsecZeros < 2) { //condition: SensorValue[intakeLimit]; only do this when going backward - this means we are releasing balls from the lower end of the intake; the 4th ball keeps the limt switch pressed
  					if (!SensorValue[intakeLimit]) {
 						numConsecZeros++;
 					} else {
@@ -640,11 +645,15 @@ task countBallsInIntake() {
 			ballsInIntake = 0;
 		}
 
-		if (flywheelMode != 3 || flywheelMode != 4) {
+		if (flywheelMode == 3 || flywheelMode == 4) {
 				outtakeOnly = false;
 		} else {
-				if (ballsInIntake == 4) {
-				outtakeOnly = true;
+			if (ballsInIntake == 4) {
+				if (vexRT[Btn6U]) {
+					outtakeOnly = true;
+				} else {
+					outtakeOnly = false;
+				}
 			} else if (ballsInIntake < 4 && outtakeOnly) { //check if we can disable outttake only mode
 				outtakeOnly = false;
 			}
@@ -708,7 +717,7 @@ task flywheelWatchdog() {
 	while(1) {
 		if (flywheelMode >= 1) { //if the flywheel is supposed to be running
 			if (lFly.current == 0 || rFly.current == 0) { //if one side of the flywheel is not moving
-				wait1Msec(275); //wait half a second to see if the flywheel just needs time to start
+				wait1Msec(500); //wait half a second to see if the flywheel just needs time to start
 				if (lFly.current == 0 || rFly.current == 0) { //if the flywheel is still not moving
 					flywheelMode = 0.5; //stop the flywheel (stopFlywheel task)
 					yellowLEDFlashTime = 125;  //rapidly flash the yellow LED
@@ -719,6 +728,39 @@ task flywheelWatchdog() {
 			yellowLEDFlashTime = 0; //stop flashing the yellow LED since the flywheel is OK now
 		}
 		wait1Msec(25);
+	}
+}
+
+task changeBallCount() {
+	bool button8DPressed = false,
+			 button8LPressed = false;
+	while (1) {
+		if (vexRT[Btn8D] && !button8DPressed) {
+			ballsInIntake--;
+			button8DPressed = true;
+		} else if (vexRT[Btn8L] && !button8LPressed) {
+			ballsInIntake++;
+			button8LPressed = true;
+		}
+
+		if (!vexRT[Btn8D]) {
+			button8DPressed = false;
+		}
+		if (!vexRT[Btn8L]) {
+			button8LPressed = false;
+		}
+
+		if (ballsInIntake > 4) {
+			ballsInIntake = 4;
+		} else if (ballsInIntake < 0) {
+			ballsInIntake = 0;
+		}
+
+		clearLCDLine(0);
+		displayLCDPos(0,0);
+		displayNextLCDNumber(ballsInIntake);
+
+		wait1Msec(100);
 	}
 }
 
@@ -737,6 +779,7 @@ task usercontrol()
 	startTask(countBallsInIntake);
 	startTask(stopFlywheel);
 	startTask(flywheelWatchdog);
+	startTask(changeBallCount);
 
 	//startTask(intakeWatchDog);
 	//startTask(liftController);
@@ -754,10 +797,6 @@ task usercontrol()
 
 	while (true)
 	{
-
-		if (vexRT[Btn8D]) { //reset (tare) the intake ball count
-			ballsInIntake = 0;
-		}
 
 		//flywheel speed control
 		//7U - long, 7L - purple, 7R - shoot from field edge, 5U - center 7D - short
