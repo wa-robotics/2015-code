@@ -271,8 +271,8 @@ task rightFwControlTask()
 void initializePIDLong() {
 	//note the order of the parameters:
 	//(controller, motor ticks per rev, KpNorm, KpBallLaunch, Ki, Kd, constant, RPM drop on ball launch)
-	tbhInit(lFly, 392, .3291/*0.4074*/, 3.2, 0.005381, 0, 70, 24); //initialize PID for left side of the flywheel //left side might be able to have a higher P
-	tbhInit(rFly, 392, .3291/*0.4074*/, 3.2, 0.005381, 0, 70, 24); //initialize PID for right side of the flywheel //x.x481
+	tbhInit(lFly, 392, .3291/*0.4074*/, 3.2, 0.005381, 0, 70, 20); //initialize PID for left side of the flywheel //left side might be able to have a higher P
+	tbhInit(rFly, 392, .3291/*0.4074*/, 3.2, 0.005381, 0, 70, 20); //initialize PID for right side of the flywheel //x.x481
 	startTask(leftFwControlTask);
 	startTask(rightFwControlTask);
 }
@@ -281,8 +281,8 @@ void initializePIDLong() {
 void initializePIDShort() {
 	//note the order of the parameters:
 	//(controller, motor ticks per rev, KpNorm, KpBallLaunch, Ki, Kd, constant, RPM drop on ball launch)
-	tbhInit(lFly, 392, .1281/*0.3652*/, 3.03, 0.005152, 0, 43, 20); //initialize PID for left side of the flywheel //left side might be able to have a higher P
-	tbhInit(rFly, 392, .1281/*0.3652*/, 3.03, 0.005152, 0, 43, 20); //initialize PID for right side of the flywheel //x.x481
+	tbhInit(lFly, 392, .1281/*0.3652*/, 3.23, 0.005152, 0, 43, 20); //initialize PID for left side of the flywheel //left side might be able to have a higher P
+	tbhInit(rFly, 392, .1281/*0.3652*/, 3.23, 0.005152, 0, 43, 20); //initialize PID for right side of the flywheel //x.x481
 	startTask(leftFwControlTask);
 	startTask(rightFwControlTask);
 }
@@ -291,8 +291,8 @@ void initializePIDShort() {
 void initializePIDMid() {
 	//note the order of the parameters:
 	//(controller, motor ticks per rev, KpNorm, KpBallLaunch, Ki, Kd, constant, RPM drop on ball launch)
-	tbhInit(lFly, 392, 0.4011, 3.615, 0.005002, 0, 50, 27); //initialize PID for left side of the flywheel //left side might be able to have a higher P
-	tbhInit(rFly, 392, 0.4011, 3.615, 0.005002, 0, 50, 27); //initialize PID for right side of the flywheel //x.x481
+	tbhInit(lFly, 392, 0.3791, 2.16 /*3.24*/, 0.005552, 0, 63, 15); //initialize PID for left side of the flywheel //left side might be able to have a higher P
+	tbhInit(rFly, 392, 0.3791, 2.16, 0.005552, 0, 63, 15); //initialize PID for right side of the flywheel //x.x481
 	startTask(leftFwControlTask);
 	startTask(rightFwControlTask);
 }
@@ -458,6 +458,8 @@ task intakeController() {
 						setIntakeRoller(vexRT[Btn6U]*127-vexRT[Btn5U]*127); //intake roller can generally be run forwards or backwards...
 						if (flywheelMode >= 3) { //Button 6U also controls intake chain for center, purple and long shooting
 							setIntakeChain(vexRT[Btn6U]*127-vexRT[Btn5U]*127);
+						} else if (flywheelMode == 2) {
+							setIntakeChain(vexRT[Btn6U]*95-vexRT[Btn5U]*95);
 						} else { //can always run intakeChain backwards with button 5U
 							setIntakeChain(-vexRT[Btn5U]*127);
 						}
@@ -716,14 +718,17 @@ task usercontrol()
 	//startTask(intakeWatchDog);
 	//startTask(liftController);
 
-	//initializePIDLong(); //prepare controller for long shooting
+	//initializePIDShort(); //prepare controller for long shooting
+	//set long shooting velocities
+ //make sure we set the flywheel mode
+ //initializePIDLong(); //prepare controller for long shooting
 	////set long shooting velocities
 	//FwVelocitySet(lFly,136,.7);
 	//FwVelocitySet(rFly,136,.7);
-	////yellowLEDFlashTime = 320;
-	////overrideAutoIntake = true;
+
+	//yellowLEDFlashTime = 320; //flash the yellow LED for pacing
 	//userIntakeControl = false;
-	////wait1Msec(2300);
+	//wait1Msec(2000);
 	//setIntakeMotors(127);
 
 
@@ -751,7 +756,7 @@ task usercontrol()
 
 				yellowLEDFlashTime = 320; //flash the yellow LED for pacing
 
-		} else if (vexRT[Btn7R] == 1 && flywheelMode != 3.5) { //field edge shooting
+		} else if (vexRT[Btn8U] == 1 && flywheelMode != 3.5) { //field edge shooting
 				//mode 0.5 is for when the flywheel has been shutdown but is still spinning.  Since the control tasks are used for this process, the flywheel tasks need to be restarted.
 				if (flywheelMode >= 0.5) { //if the flywheel is currently running (modes 0.5,1-4), we need to stop the controller tasks before re-initializing the PID controller
 					stopTask(leftFwControlTask);
@@ -769,7 +774,7 @@ task usercontrol()
 				//FwVelocitySet(lFly,118.5,.7);
 				//FwVelocitySet(rFly,118.5,.7);
 
-		} else if (vexRT[Btn7L] == 1 && flywheelMode != 3) { //purple shooting
+		} else if (vexRT[Btn7R] == 1 && flywheelMode != 3) { //purple shooting
 				//mode 0.5 is for when the flywheel has been shutdown but is still spinning.  Since the control tasks are used for this process, the flywheel tasks need to be restarted.
 				if (flywheelMode >= 0.5) { //if the flywheel is currently running (modes 0.5,1-4), we need to stop the controller tasks before re-initializing the PID controller
 					stopTask(leftFwControlTask);
@@ -785,7 +790,7 @@ task usercontrol()
 				FwVelocitySet(lFly,117.8,.7);
 				FwVelocitySet(rFly,117.8,.7);
 
-		} else if (vexRT[Btn7R] == 1 && flywheelMode != 2) { //center shooting
+		} else if (vexRT[Btn7L] == 1 && flywheelMode != 2) { //center shooting
 				//mode 0.5 is for when the flywheel has been shutdown but is still spinning.  Since the control tasks are used for this process, the flywheel tasks need to be restarted.
 				if (flywheelMode >= 0.5) { //if the flywheel is currently running (modes 0.5,1-4), we need to stop the controller tasks before re-initializing the PID controller
 					stopTask(leftFwControlTask);
@@ -801,8 +806,8 @@ task usercontrol()
 				//Uncomment these lines once midfield shooting has been tested
 				flywheelMode = 3.5;
 				initializePIDMid();
-				FwVelocitySet(lFly,119,.7);
-				FwVelocitySet(rFly,119,.7);
+				FwVelocitySet(lFly,71.25,.7);
+				FwVelocitySet(rFly,71.25,.7);
 
 				//FwVelocitySet(rFly,118.5,.7);
 
@@ -823,8 +828,8 @@ task usercontrol()
 				//next 4 lines have to run every time to run flywheel
 				flywheelMode = 1;
 				initializePIDShort();
-				FwVelocitySet(lFly, 94, .5);
-				FwVelocitySet(rFly, 94, .5);
+				FwVelocitySet(lFly, 79.28, .5);
+				FwVelocitySet(rFly, 79.28, .5);
 
 		} else if (vexRT[Btn8R] == 1 && flywheelMode >= 1) { //this is an else statement so that if two buttons are pressed, we won't switch back and forth between starting and stopping the flywheel
 				//  flywheelMode needs to be >=1 and not >=0.5 because we don't want to stop the flywheel again if it is currently in the process of the stopping,
@@ -837,7 +842,7 @@ task usercontrol()
 		}
 
 
-		//writeDebugStreamLine("%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d",nPgmTime,lFly.current, lFly.motor_drive, lFly.p, lFly.i, lFly.d, lFly.constant, 50*lFly.postBallLaunch, rFly.current, rFly.motor_drive, rFly.p, rFly.i, rFly.d, rFly.constant, 60*rFly.postBallLaunch);
+		writeDebugStreamLine("%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d",nPgmTime,lFly.current, lFly.motor_drive, lFly.p, lFly.i, lFly.d, lFly.constant, 50*lFly.postBallLaunch, rFly.current, rFly.motor_drive, rFly.p, rFly.i, rFly.d, rFly.constant, 60*rFly.postBallLaunch);
 
 		wait1Msec(25); //don't overload the CPU
 	}
