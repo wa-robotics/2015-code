@@ -34,7 +34,7 @@
 #include "..\..\Vex_Competition_Includes_No_LCD.c"   //Main competition background code...do not modify!
 #include "..\..\LCD Autonomous Play Selection.c"
 #include "..\State\Global\Simple PID Controller.h"
-#include "Position PID.c"
+
 
 fw_controller lFly, rFly;
 string str;
@@ -85,6 +85,29 @@ void setIntakeRoller (float power) {
 void setIntakeMotors (float power) {
 	setIntakeChain(power);
 	setIntakeRoller(power);
+}
+
+
+void intakeChainDistance (int encoderCounts, int direction, float power, int time) {
+	nMotorEncoder[intakeChain] = 0;
+	time1[T2] = 0;
+	while (abs(nMotorEncoder[intakeChain]) < encoderCounts && time1[T2] < time) {
+		motor[intakeChain] = power*direction;
+	}
+
+	motor[intakeChain] = 0;
+}
+
+//run the intake chain for a distance, and keep the roller running while doing it
+void intakeDistance (int encoderCounts, int direction, float power, int time) {
+	nMotorEncoder[intakeChain] = 0;
+	time1[T2] = 0;
+	motor[intakeRoller] = 127*direction;
+	while (abs(nMotorEncoder[intakeChain]) < encoderCounts && time1[T2] < time) {
+		motor[intakeChain] = power*direction;
+	}
+
+	setIntakeMotors(0);
 }
 
 int yellowLEDFlashTime = 0; //the time the flashing yellow LED should stay on or off, in milliseconds.  This should be equivalent to half a period.
@@ -331,17 +354,7 @@ task stopFlywheel() {
 	}
 }
 
-//stop flywheel (note: this function should only be used for autonomous code.  The stopFlywheel *task* handles flywheel stops during driver control
-void stopFlywheelAuton() {
-	//disable PIC control of the flywheels and switch to open-loop control
-	stopTask(leftFwControlTask);
-	stopTask(rightFwControlTask);
-	//turn off the flywheel motors
-	setLeftFwSpeed(0);
-	setRightFwSpeed(0);
 
-	flywheelMode = 0; //make sure we know that the flywheel is stopped
-}
 
 task drivetrainController() {
 	int lYRequested,
@@ -386,104 +399,9 @@ task drivetrainController() {
 	}
 }
 
-void intakeChainDistance (int encoderCounts, int direction, float power, int time) {
-	nMotorEncoder[intakeChain] = 0;
-	time1[T2] = 0;
-	while (abs(nMotorEncoder[intakeChain]) < encoderCounts && time1[T2] < time) {
-		motor[intakeChain] = power*direction;
-	}
 
-	motor[intakeChain] = 0;
-}
 
-//run the intake chain for a distance, and keep the roller running while doing it
-void intakeDistance (int encoderCounts, int direction, float power, int time) {
-	nMotorEncoder[intakeChain] = 0;
-	time1[T2] = 0;
-	motor[intakeRoller] = 127*direction;
-	while (abs(nMotorEncoder[intakeChain]) < encoderCounts && time1[T2] < time) {
-		motor[intakeChain] = power*direction;
-	}
 
-	setIntakeMotors(0);
-}
-
-//needs to be revised
-void longShotAuton(bool waitAtStart) {
-	//if(waitAtStart) {
-	//	wait1Msec(3000);
-	//}
-	//initializePIDLong();
-	//FwVelocitySet(lFly,132.5,.7);
-	//FwVelocitySet(rFly,132.5,.7);
-	//wait1Msec(2000);
-	//intakeDistance(150,1,125);
-	//wait1Msec(2000);
-	//intakeDistance(150,1,125);
-	//wait1Msec(2000);
-	//intakeDistance(300,1,125);
-	//wait1Msec(2000);
-	//intakeDistance(300,1,125);
-	//wait1Msec(1500);
-	//stopFlywheelAuton(); //use stopFlywheelAuton() function here since a task is used for flywheel stops during driver control
-}
-
-//needs to be revised
-void closeShotAuton(bool waitAtStart) {
-	if(waitAtStart) {
-		wait1Msec(3000);
-	}
-	initializePIDShort();
-	FwVelocitySet(lFly, 97.75, .5);
-	FwVelocitySet(rFly, 97.75, .5);
-	//driveDistance(3350, 1, 85);
-	wait1Msec(500);
-	//rotate(0,1);
-	wait1Msec(250);
-	setIntakeMotors(115); //turn on the intake to outtake the balls
-	wait1Msec(1750); //wait long enough to shoot all the balls
-	setIntakeMotors(0); //stop the intake
-	stopFlywheelAuton(); //use stopFlywheelAuton() function here since a task is used for flywheel stops during driver control
-}
-
-//needs to be revised
-void programmingSkills() {
-	startTask(flashLED);
-	initializePIDPurple();
-	FwVelocitySet(lFly,115,.7);
-	FwVelocitySet(rFly,115,.7);
-	setIntakeMotors(125);
-	wait1Msec(25000);
-	stopFlywheelAuton(); //use stopFlywheelAuton() function here since a task is used for flywheel stops during driver control
-	setIntakeMotors(0);
-	//rotateDegrees(860,1);
-	wait1Msec(750);
-	//driveDistance(3375, -1, 85);
-	setIntakeMotors(125);
-	initializePIDPurple();
-	FwVelocitySet(lFly,115,.7);
-	FwVelocitySet(rFly,115,.7);
-	wait1Msec(750);
-	//rotateDegrees(895,-1);
-	wait1Msec(500);
-	setIntakeMotors(125);
-	wait1Msec(25000);
-}
-
-task autonomous()
-{
-	if (pgmToRun == "R Side Long" || pgmToRun == "R Back Long"
-		|| pgmToRun == "B Side Long"
-	|| pgmToRun == "B Back Long") {
-		longShotAuton(delayStart);
-	} else if (pgmToRun == "B Side Close" || pgmToRun == "B Back Close"
-		|| pgmToRun == "R Side Close"
-	|| pgmToRun == "R Back Close") {
-		closeShotAuton(delayStart);
-		} else if (pgmToRun == "Prog. skills") {
-		programmingSkills();
-	}
-}
 
 bool userIntakeControl = true,
 		 btn6UPressed = false,
@@ -774,8 +692,12 @@ task changeBallCount() {
 	}
 }
 
+#include "Position PID.c" //include this here so that it can use drivetrain/intake utility functions
+
 task usercontrol()
 {
+	//startTask(autonomous);
+	//stopTask(usercontrol);
 	//initalize tasks to control various subsystems that need to run concurrently during driver control
 	//some tasks below have not been tested yet and/or lack necessary hardware or sensors.  That's why they are commented out:
 	// -intakeWatchdog: values need to be tuned
@@ -794,15 +716,15 @@ task usercontrol()
 	//startTask(intakeWatchDog);
 	//startTask(liftController);
 
-	initializePIDLong(); //prepare controller for long shooting
+	//initializePIDLong(); //prepare controller for long shooting
 	////set long shooting velocities
-	FwVelocitySet(lFly,136,.7);
-	FwVelocitySet(rFly,136,.7);
+	//FwVelocitySet(lFly,136,.7);
+	//FwVelocitySet(rFly,136,.7);
 	////yellowLEDFlashTime = 320;
 	////overrideAutoIntake = true;
-	userIntakeControl = false;
+	//userIntakeControl = false;
 	////wait1Msec(2300);
-	setIntakeMotors(127);
+	//setIntakeMotors(127);
 
 
 	while (true)

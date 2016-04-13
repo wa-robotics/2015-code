@@ -1,8 +1,8 @@
 float positionKp = .345,//.36, //proportional constant for positional PID
-			straighteningKpLeft = 0.4,//0.2,//.43,//.195, //proportional constant for straightening response for the left side
-			straighteningKpRight = 0.4,//0.2,//.22,//.16, //proportional constant for straightening response for the right side
-			straighteningKpLeftTurn = 0,//.4,//.43,//.195, //proportional constant for straightening response for the left side when turning
-			straighteningKpRightTurn = 0,//.4,//.22,//.16, //proportional constant for straightening response for the right side when turning
+			straighteningKpLeft = 0.5,//0.2,//.43,//.195, //proportional constant for straightening response for the left side
+			straighteningKpRight = 0.5,//0.2,//.22,//.16, //proportional constant for straightening response for the right side
+			straighteningKpLeftTurn = 0.4,//.4,//.43,//.195, //proportional constant for straightening response for the left side when turning
+			straighteningKpRightTurn = 0.4,//.4,//.22,//.16, //proportional constant for straightening response for the right side when turning
 			positionKi = 0.000150,//0.000350, //integral constant
 			positionKd = 2.80;//4; //derivative constant
 
@@ -10,24 +10,6 @@ static int STRAIGHT = 2; //the 2 here shouldn't matter as long as no variables a
 static int ROTATE_LEFT = -1;
 static int ROTATE_RIGHT = 1;
 
-void setLDriveMotors(float power) {
-	motor[lDriveFrontMid] = power;
-	motor[lDriveBack] = power;
-}
-
-void setRDriveMotors(float power) {
-	motor[rDriveFront] = power;
-	motor[rDriveMiddle] = power;
-	motor[rDriveBack] = power;
-}
-
-//task moveIntakeBack() {
-//	nMotorEncoder[intakeChain] = 0;
-//	while(abs(nMotorEncoder[intakeChain]) < 106) {
-//		motor[intakeChain] = -127;
-//	}
-//	motor[intakeChain] = 0;
-//}
 
 void driveDistancePID(int encoderCounts, int direction, int time) {
 	writeDebugStreamLine("nPgmTime,error,nMotorEncoder[lDriveFrontMid], nMotorEncoder[rDriveMiddle],pTerm,iTerm,dTerm,lPower,rPower");
@@ -81,7 +63,7 @@ void driveDistancePID(int encoderCounts, int direction, int time) {
 			}
 
 			//adjust the powers sent to each side if the encoder values don't match
-			straighteningError = nMotorEncoder[lDriveFrontMid] - nMotorEncoder[rDriveMiddle];
+			straighteningError = (abs(power) > 25) ? nMotorEncoder[lDriveFrontMid] - nMotorEncoder[rDriveMiddle] : 0; //only straighten at higher powers so that robot doesn't turn because of straightening "correction" at low speeds
 
 			/*if (straighteningError > 0) { //left side is ahead, so speed up the right side
 				rPower = power + straighteningError*straighteningKpLeft;
@@ -93,6 +75,7 @@ void driveDistancePID(int encoderCounts, int direction, int time) {
 			} else { //otherwise, just set the right side to the power
 				lPower = power;
 			}*/
+
 			if (straighteningError < 0) { //left side is behind, so slow down the right side
 				rPower = power + straighteningError*straighteningKpLeft;
 			} else { //otherwise, just set the right side to the power
@@ -160,6 +143,112 @@ void driveDistancePID(int encoderCounts, int direction, int time) {
 			wait1Msec(25);
 	}
 }
+}
+
+//stop flywheel (note: this function should only be used for autonomous code.  The stopFlywheel *task* handles flywheel stops during driver control
+void stopFlywheelAuton() {
+	//disable PIC control of the flywheels and switch to open-loop control
+	stopTask(leftFwControlTask);
+	stopTask(rightFwControlTask);
+	//turn off the flywheel motors
+	setLeftFwSpeed(0);
+	setRightFwSpeed(0);
+
+	flywheelMode = 0; //make sure we know that the flywheel is stopped
+}
+
+//needs to be revised
+void longShotAuton(bool waitAtStart) {
+	//if(waitAtStart) {
+	//	wait1Msec(3000);
+	//}
+	//initializePIDLong();
+	//FwVelocitySet(lFly,132.5,.7);
+	//FwVelocitySet(rFly,132.5,.7);
+	//wait1Msec(2000);
+	//intakeDistance(150,1,125);
+	//wait1Msec(2000);
+	//intakeDistance(150,1,125);
+	//wait1Msec(2000);
+	//intakeDistance(300,1,125);
+	//wait1Msec(2000);
+	//intakeDistance(300,1,125);
+	//wait1Msec(1500);
+	//stopFlywheelAuton(); //use stopFlywheelAuton() function here since a task is used for flywheel stops during driver control
+}
+
+//needs to be revised
+void closeShotAuton(bool waitAtStart) {
+	//if(waitAtStart) {
+	//	wait1Msec(3000);
+	//}
+	//initializePIDShort();
+	//FwVelocitySet(lFly, 97.75, .5);
+	//FwVelocitySet(rFly, 97.75, .5);
+	////driveDistance(3350, 1, 85);
+	//wait1Msec(500);
+	////rotate(0,1);
+	//wait1Msec(250);
+	//setIntakeMotors(115); //turn on the intake to outtake the balls
+	//wait1Msec(1750); //wait long enough to shoot all the balls
+	//setIntakeMotors(0); //stop the intake
+	//stopFlywheelAuton(); //use stopFlywheelAuton() function here since a task is used for flywheel stops during driver control
+
+  driveDistancePID(2900, STRAIGHT, 4000); //move forward from tile
+  setLDriveMotors(0);
+	setRDriveMotors(0);
+  wait1Msec(500);
+  driveDistancePID(125, ROTATE_LEFT, 500); //point towards goal
+  setLDriveMotors(0);
+	setRDriveMotors(0);
+	initializePIDShort();
+	FwVelocitySet(lFly, 94, .5);
+	FwVelocitySet(rFly, 94, .5);
+	wait1Msec(1500);
+	setIntakeMotors(127);
+	wait1Msec(2500);
+	stopFlywheelAuton();
+	setIntakeMotors(0);
+}
+
+//needs to be revised
+void programmingSkills() {
+	startTask(flashLED);
+	initializePIDPurple();
+	FwVelocitySet(lFly,115,.7);
+	FwVelocitySet(rFly,115,.7);
+	setIntakeMotors(125);
+	wait1Msec(25000);
+	stopFlywheelAuton(); //use stopFlywheelAuton() function here since a task is used for flywheel stops during driver control
+	setIntakeMotors(0);
+	//rotateDegrees(860,1);
+	wait1Msec(750);
+	//driveDistance(3375, -1, 85);
+	setIntakeMotors(125);
+	initializePIDPurple();
+	FwVelocitySet(lFly,115,.7);
+	FwVelocitySet(rFly,115,.7);
+	wait1Msec(750);
+	//rotateDegrees(895,-1);
+	wait1Msec(500);
+	setIntakeMotors(125);
+	wait1Msec(25000);
+}
+
+task autonomous()
+{
+	/*if (pgmToRun == "R Side Long" || pgmToRun == "R Back Long"
+		|| pgmToRun == "B Side Long"
+	|| pgmToRun == "B Back Long") {
+		longShotAuton(delayStart);
+	} else if (pgmToRun == "B Side Close" || pgmToRun == "B Back Close"
+		|| pgmToRun == "R Side Close"
+	|| pgmToRun == "R Back Close") {
+		closeShotAuton(delayStart);
+		} else if (pgmToRun == "Prog. skills") {
+		programmingSkills();
+	}*/
+	closeShotAuton(false);
 }
 
 task testautonomous()
