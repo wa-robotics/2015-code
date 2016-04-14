@@ -200,6 +200,8 @@ task leftFwControlTask()
 		FwCalculateSpeed(fw);
 
 		// Set current speed for the tbh calculation code
+
+		fw->v_current = getMotorVelocity(lFlywheel);
 		fw->current = fw->v_current;
 
 		// Do the velocity TBH calculations
@@ -213,14 +215,14 @@ task leftFwControlTask()
 		if( fw->motor_drive < -127 ) fw->motor_drive = -127;
 
 		// and finally set the motor control value
+		//if(fw->current < fw->target - 20) {
+		//	setLeftFwSpeed( 70 );
+		//} else
 		setLeftFwSpeed(fw->motor_drive);
-
-		//output debug info on the LCD
 		str = sprintf( str, "%4d %4d  %5.2f", fw->target,  fw->current, nImmediateBatteryLevel/1000.0 );
 		displayLCDString(0, 0, str );
 		str = sprintf( str, "%4.2f %4.2f ", fw->drive, fw->drive_at_zero );
 		displayLCDString(1, 0, str );
-
 		// Run at somewhere between 20 and 50mS
 		wait1Msec( FW_LOOP_SPEED );
 	}
@@ -260,6 +262,9 @@ task rightFwControlTask()
 		if( fw->motor_drive < -127 ) fw->motor_drive = -127;
 
 		// and finally set the motor control value
+		//if(fw->current < fw->target - 20) {
+		//	setRightFwSpeed( 70 );
+		//} else
 		setRightFwSpeed( fw->motor_drive );
 
 		// Run at somewhere between 20 and 50mS
@@ -723,20 +728,18 @@ task usercontrol()
 	//initializePIDLong(); //prepare controller for long shooting
 	//set long shooting velocities
  	//make sure we set the flywheel mode
- 	initializePIDLong(); //prepare controller for long shooting
+
 	////set long shooting velocities
  	//note the order of the parameters:
 	//(controller, motor ticks per rev, KpNorm, KpBallLaunch, Ki, Kd, constant, RPM drop on ball launch)
-	tbhInit(lFly, 392, 0, 0, 0.5, 0, 0, 20); //initialize PID for left side of the flywheel //left side might be able to have a higher P
-	tbhInit(rFly, 392, 0, 0, 0.5, 0, 0, 20); //initialize PID for right side of the flywheel //x.x481
+	tbhInit(lFly, 392, .4/*0.4074*/, 2, 0.005381, 0, 70, 21); //initialize PID for left side of the flywheel //left side might be able to have a higher P
+	tbhInit(rFly, 392, .4/*0.4074*/, 2, 0.005381, 0, 70, 21); //initialize PID for right side of the flywheel //x.x481
 	//tbhInit(lFly, 392, 0.3881, .6000, 0.006481, 0, 75, 20); //initialize PID for left side of the flywheel //left side might be able to have a higher P
 	//tbhInit(rFly, 392, 0.3881, .6000, 0.006481, 0, 75, 20); //initialize PID for right side of the flywheel //x.x481
 	startTask(leftFwControlTask);
 	startTask(rightFwControlTask);
-	FwVelocitySet(lFly,120,.7);
-	FwVelocitySet(rFly,120,.7);
-	userIntakeControl = false;
-	setIntakeMotors(127);
+					FwVelocitySet(lFly,133,.7);
+				FwVelocitySet(rFly,133,.7);
 	/*while(1)
 	{
 	setLeftFwSpeed(motor[rFlyBottom]);
