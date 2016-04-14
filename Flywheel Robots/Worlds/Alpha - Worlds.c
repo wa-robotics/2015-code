@@ -276,8 +276,8 @@ task rightFwControlTask()
 void initializePIDLong() {
 	//note the order of the parameters:
 	//(controller, motor ticks per rev, KpNorm, KpBallLaunch, Ki, Kd, constant, RPM drop on ball launch)
-	tbhInit(lFly, 392, .2391/*0.4074*/, 2.8, 0.005381, 0, 50, 21); //initialize PID for left side of the flywheel //left side might be able to have a higher P
-	tbhInit(rFly, 392, .2391/*0.4074*/, 2.8, 0.005381, 0, 50, 21); //initialize PID for right side of the flywheel //x.x481
+	tbhInit(lFly, 392, .1691/*0.4074*/, .4581/*2.8*/, 0.005381, 0, 50, 21); //initialize PID for left side of the flywheel //left side might be able to have a higher P
+	tbhInit(rFly, 392, .1691/*0.4074*/, .4581, 0.005381, 0, 50, 21); //initialize PID for right side of the flywheel //x.x481
 	//tbhInit(lFly, 392, 0.3881, .6000, 0.006481, 0, 75, 20); //initialize PID for left side of the flywheel //left side might be able to have a higher P
 	//tbhInit(rFly, 392, 0.3881, .6000, 0.006481, 0, 75, 20); //initialize PID for right side of the flywheel //x.x481
 	startTask(leftFwControlTask);
@@ -732,14 +732,11 @@ task usercontrol()
 	////set long shooting velocities
  	//note the order of the parameters:
 	//(controller, motor ticks per rev, KpNorm, KpBallLaunch, Ki, Kd, constant, RPM drop on ball launch)
-	tbhInit(lFly, 392, .4/*0.4074*/, 2, 0.005381, 0, 70, 21); //initialize PID for left side of the flywheel //left side might be able to have a higher P
-	tbhInit(rFly, 392, .4/*0.4074*/, 2, 0.005381, 0, 70, 21); //initialize PID for right side of the flywheel //x.x481
-	//tbhInit(lFly, 392, 0.3881, .6000, 0.006481, 0, 75, 20); //initialize PID for left side of the flywheel //left side might be able to have a higher P
-	//tbhInit(rFly, 392, 0.3881, .6000, 0.006481, 0, 75, 20); //initialize PID for right side of the flywheel //x.x481
-	startTask(leftFwControlTask);
-	startTask(rightFwControlTask);
-					FwVelocitySet(lFly,133,.7);
-				FwVelocitySet(rFly,133,.7);
+	initializePIDLong();
+	FwVelocitySet(lFly,128,.7);
+	FwVelocitySet(rFly,128,.7);
+	userIntakeControl = false;
+	setIntakeMotors(127);
 	/*while(1)
 	{
 	setLeftFwSpeed(motor[rFlyBottom]);
