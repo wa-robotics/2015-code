@@ -732,9 +732,10 @@ task usercontrol()
 	////set long shooting velocities
  	//note the order of the parameters:
 	//(controller, motor ticks per rev, KpNorm, KpBallLaunch, Ki, Kd, constant, RPM drop on ball launch)
-	initializePIDLong();
-	FwVelocitySet(lFly,128,.7);
-	FwVelocitySet(rFly,128,.7);
+	initializePIDShort();
+	FwVelocitySet(lFly, 75.98, .5);
+	FwVelocitySet(rFly, 75.98, .5);
+	wait10Msec(250);
 	userIntakeControl = false;
 	setIntakeMotors(127);
 	/*while(1)
