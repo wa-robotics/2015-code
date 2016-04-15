@@ -187,9 +187,33 @@ void closeShotAuton(bool waitAtStart) {
 	initializePIDShort();
 	FwVelocitySet(lFly, 83, .5);
 	FwVelocitySet(rFly, 83, .5);
-	driveDistance(3450, 1, 125);
+	driveDistance(3300, 1, 122);
 	wait1Msec(500);
+
 	setIntakeMotors(122);
+	wait1Msec(525);
+	setIntakeMotors(0);
+	wait1Msec(750);
+
+	setIntakeMotors(122);
+	wait1Msec(525);
+	setIntakeMotors(0);
+	wait1Msec(750);
+
+	setIntakeMotors(122);
+	wait1Msec(525);
+	setIntakeMotors(0);
+	wait1Msec(750);
+
+	setIntakeMotors(122);
+	wait1Msec(525);
+	setIntakeMotors(0);
+	wait1Msec(750);
+
+	wait1Msec(1000);
+	stopFlywheel();
+	//wait1Msec(500);
+	//setIntakeMotors(110); //previously 122
 }
 
 void longShotAuton(bool waitAtStart) {
@@ -292,9 +316,9 @@ task testautonomous()
 	//wait1Msec(7000);
 
 	//HERE.  LOOK HERE - this is the testing code, commented out so nothing runs accidentally
-  driveDistancePID(1000, STRAIGHT, 5000); //move forward from tile
-  setLDriveMotors(0);
-	setRDriveMotors(0);
+ // driveDistancePID(1000, STRAIGHT, 5000); //move forward from tile
+ // setLDriveMotors(0);
+	//setRDriveMotors(0);
 
 
   //driveDistancePID(285,ROTATE_RIGHT, 750); //turn towards blue net
