@@ -713,13 +713,14 @@ task usercontrol()
 	// -liftController: actuation mechanisms not finished
 
 	//tasks in use normally.  Comment out to test shooting
-	//startTask(intakeController);
-	//startTask(drivetrainController);
-	//startTask(flashLED);
-	//startTask(autoIntake);
+	//Use tasks intakeController, drivetrainController, flashLED, autoIntake, stopFlywheel, flywheelWatchdog
+	startTask(intakeController);
+	startTask(drivetrainController);
+	startTask(flashLED);
+	startTask(autoIntake);
 	//startTask(countBallsInIntake);
-	//startTask(stopFlywheel);
-	//startTask(flywheelWatchdog);
+	startTask(stopFlywheel);
+	startTask(flywheelWatchdog);
 	//startTask(changeBallCount);
 
 	//startTask(intakeWatchDog);
@@ -732,25 +733,22 @@ task usercontrol()
 	////set long shooting velocities
  	//note the order of the parameters:
 	//(controller, motor ticks per rev, KpNorm, KpBallLaunch, Ki, Kd, constant, RPM drop on ball launch)
-	initializePIDShort();
-	FwVelocitySet(lFly, 75.98, .5);
-	FwVelocitySet(rFly, 75.98, .5);
-	wait10Msec(250);
-	userIntakeControl = false;
-	setIntakeMotors(127);
-	/*while(1)
-	{
-	setLeftFwSpeed(motor[rFlyBottom]);
-	}*/
+	//initializePIDShort();
+	//FwVelocitySet(lFly, 7.98, .5);
+	//FwVelocitySet(rFly, 75.98, .5);
+	//wait10Msec(250);
+	//userIntakeControl = false;
+	//setIntakeMotors(127);
+	///*while(1)
 
 	//yellowLEDFlashTime = 320; //flash the yellow LED for pacing
-	while(1) {
-				writeDebugStreamLine("%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d",nPgmTime,lFly.current, 50*lFly.postBallLaunch, rFly.current, 60*rFly.postBallLaunch);
-			wait1Msec(25);
-				}
+	//while(1) {
+	//			writeDebugStreamLine("%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d",nPgmTime,lFly.current, 50*lFly.postBallLaunch, rFly.current, 60*rFly.postBallLaunch);
+	//		wait1Msec(25);
+	//			}
 
 
-	while (false)
+	while (true)
 	{
 
 		//flywheel speed control
