@@ -4,13 +4,14 @@
 #pragma config(Sensor, I2C_2,  ,               sensorQuadEncoderOnI2CPort,    , AutoAssign )
 #pragma config(Sensor, I2C_3,  ,               sensorQuadEncoderOnI2CPort,    , AutoAssign )
 #pragma config(Sensor, I2C_4,  ,               sensorQuadEncoderOnI2CPort,    , AutoAssign )
+#pragma config(Sensor, I2C_5,  ,               sensorQuadEncoderOnI2CPort,    , AutoAssign )
 #pragma config(Motor,  port1,           intakeRoller,  tmotorVex393TurboSpeed_HBridge, openLoop)
 #pragma config(Motor,  port2,           rFlyTop,       tmotorVex393HighSpeed_MC29, openLoop)
 #pragma config(Motor,  port3,           rFlyBottom,    tmotorVex393HighSpeed_MC29, openLoop, reversed, encoderPort, I2C_2)
 #pragma config(Motor,  port4,           rDriveFront,   tmotorVex393HighSpeed_MC29, openLoop, reversed, encoderPort, I2C_4)
 #pragma config(Motor,  port5,           intakeChain,   tmotorVex393HighSpeed_MC29, openLoop, reversed, encoderPort, I2C_3)
 #pragma config(Motor,  port6,           lDriveBack,    tmotorVex393HighSpeed_MC29, openLoop)
-#pragma config(Motor,  port7,           lDriveFront,   tmotorVex393HighSpeed_MC29, openLoop)
+#pragma config(Motor,  port7,           lDriveFront,   tmotorVex393HighSpeed_MC29, openLoop, encoderPort, I2C_5)
 #pragma config(Motor,  port8,           lFlyTop,       tmotorVex393HighSpeed_MC29, openLoop, reversed)
 #pragma config(Motor,  port9,           lFlyBottom,    tmotorVex393HighSpeed_MC29, openLoop, encoderPort, I2C_1)
 #pragma config(Motor,  port10,          rDriveBack,    tmotorVex393TurboSpeed_HBridge, openLoop, reversed)
@@ -249,99 +250,8 @@ void stopFlywheel() {
 	setRightFwSpeed(0);
 }
 
-void intakeDistance (int encoderCounts, int direction, float power) {
-	int encoderGoal = nMotorEncoder[intakeChain] - encoderCounts*direction; //intake encoder counts down for forward
-	if (direction == 1) {
-		while (nMotorEncoder[intakeChain] > encoderGoal) {
-			setIntakeMotors(power*direction);
-		}
-	} else {
-		while (nMotorEncoder[intakeChain] < encoderGoal) {
-			setIntakeMotors(power*direction);
-		}
-	}
 
-	setIntakeMotors(0);
-}
-
-/*void longShotAuton(bool waitAtStart) {
-	if(waitAtStart) {
-		wait1Msec(3000);
-	}
-	initializePIDLong();
-	FwVelocitySet(lFly,132,.7);
-	FwVelocitySet(rFly,132,.7);
-	wait1Msec(1700);
-	intakeDistance(150,1,125);
-	wait1Msec(750);
-	intakeDistance(150,1,125);
-	wait1Msec(750);
-	intakeDistance(300,1,125);
-	wait1Msec(750);
-	intakeDistance(300,1,125);
-	wait1Msec(1000);
-	stopFlywheel();
-}*/
-
-void closeShotAuton(bool waitAtStart) {
-	if(waitAtStart) {
-		wait1Msec(3000);
-	}
-	initializePIDShort();
-	FwVelocitySet(lFly, 83, .5);
-	FwVelocitySet(rFly, 83, .5);
-	driveDistance(3450, 1, 125);
-	wait1Msec(500);
-	setIntakeMotors(122);
-}
-
-void longShotAuton(bool waitAtStart) {
-	if(waitAtStart) {
-		wait1Msec(5000);
-	}
-	initializePIDPurple();
-	FwVelocitySet(lFly, 120, .5);
-	FwVelocitySet(rFly, 120, .5);
-	driveDistance(1775, 1, 125);
-	wait1Msec(500);
-	setIntakeMotors(125);
-}
-
-void programmingSkills() {
-	initializePIDPurple();
-	setIntakeMotors(127);
-	FwVelocitySet(lFly,115,.7);
-	FwVelocitySet(rFly,115,.7);
-	wait1Msec(25000);
-	rotate(850,-1);
-	motor[intakeChain] = 127;
-	motor[intakeRoller] = 0;
-	wait1Msec(750);
-	driveDistance(3275, 1, 60);
-	wait1Msec(750);
-	rotate(780,1);
-	motor[intakeRoller] = 127;
-	wait1Msec(30000);
-}
-
-
-task autonomous()
-{
-	//testing
-	//pgmToRun = "Prog. Skills";
-	//delayStart = false;
-	if (pgmToRun == "R Side Long" || pgmToRun == "R Back Long"
-			|| pgmToRun == "B Side Long"
-			|| pgmToRun == "B Back Long") {
-			longShotAuton(delayStart);
-	} else if (pgmToRun == "B Side Close" || pgmToRun == "B Back Close"
-			|| pgmToRun == "R Side Close"
-			|| pgmToRun == "R Back Close") {
-			closeShotAuton(delayStart);
-	} else if (pgmToRun == "Prog. skills") {
-			programmingSkills();
-	}
-}
+#include "Position PID - Tungsten.c";
 
 int lSpeed = 55; //Added For Short Shot Test -- Crawford
 int rSpeed = 55; //Added For Short Shot Test -- Crawford
@@ -350,6 +260,8 @@ int rSpeed = 55; //Added For Short Shot Test -- Crawford
 int flywheelWorking = 0;
 task usercontrol()
 {
+	//startTask(testautonomous);
+	//stopTask(usercontrol);
 	//startTask(autonomous);
 	//writeDebugStreamLine("nPgmTime,lFly.current, lFly.motor_drive, lFly.p, lFly.i, lFly.d, lFly.constant, 50*lFly.postBallLaunch, rFly.current, rFly.motor_drive, rFly.p, rFly.i, rFly.d, rFly.constant, 60*rFly.postBallLaunch");
 	//setLeftFwSpeed(lSpeed);
