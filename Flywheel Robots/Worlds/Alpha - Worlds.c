@@ -291,8 +291,8 @@ void initializePIDLong() {
 void initializePIDShort() {
 	//note the order of the parameters:
 	//(controller, motor ticks per rev, KpNorm, KpBallLaunch, Ki, Kd, constant, RPM drop on ball launch)
-	tbhInit(lFly, 392, .1281/*0.3652*/, 3.23, 0.005152, 0, 43, 20); //initialize PID for left side of the flywheel //left side might be able to have a higher P
-	tbhInit(rFly, 392, .1281/*0.3652*/, 3.23, 0.005152, 0, 43, 20); //initialize PID for right side of the flywheel //x.x481
+	tbhInit(lFly, 392, .12891/*.2958 0.3652*/, 3.037 /*1.0981 9.5*/, .005252, 0, 31.501, 15); //initialize PID for left side of the flywheel //left side might be able to have a higher P
+	tbhInit(rFly, 392, .1291/*0.3652*/, 3.037 /*1.943 9.5*/, .005252, 0, 31.501, 15); //initialize PID for right side of the flywheel //x.x481
 	startTask(leftFwControlTask);
 	startTask(rightFwControlTask);
 }
@@ -452,7 +452,7 @@ task intakeController() {
 					//	btn6UPressed = true;
 						overrideAutoIntake = true; //prevent autoIntake from enabling userIntakeControl
 						userIntakeControl = false; //prevent user from controlling intake while macro is running
-						intakeDistance(1500, 1, 127, 2500);
+						intakeDistance(1500, 1, 110, 2500);
 						//setIntakeMotors(127); //turn on the intake to outtake the balls
 						//wait1Msec(1750); //wait long enough to shoot all the balls
 						//setIntakeMotors(0); //stop the intake
@@ -751,21 +751,23 @@ task usercontrol()
 
 	//note the order of the parameters:
 	//(controller, motor ticks per rev, KpNorm, KpBallLaunch, Ki, Kd, constant, RPM drop on ball launch)
-	flywheelMode = 1;
-	tbhInit(lFly, 392, .12891/*.2958 0.3652*/, 3.037 /*1.0981 9.5*/, .005252, 0, 31.501, 15); //initialize PID for left side of the flywheel //left side might be able to have a higher P
-	tbhInit(rFly, 392, .1291/*0.3652*/, 3.037 /*1.943 9.5*/, .005252, 0, 31.501, 15); //initialize PID for right side of the flywheel //x.x481
+	flywheelMode = 4;
+	tbhInit(lFly, 390.4, .1291/*0.4074*/, .6381/*2.8*/, 0.005381, 0, 65, 20); //initialize PID for left side of the flywheel //left side might be able to have a higher P
+	tbhInit(rFly, 392, .1291/*0.4074*/, .6381, 0.005381, 0, 65, 20); //initialize PID for right side of the flywheel //x.x481
 	startTask(leftFwControlTask);
 	startTask(rightFwControlTask);
-	FwVelocitySet(lFly, 62.9999,.5);
-	FwVelocitySet(rFly, 62.9999,.5);
+	FwVelocitySet(lFly,143,.7);
+	FwVelocitySet(rFly,143,.7);
+
+	yellowLEDFlashTime = 320; //flash the yellow LED for pacing
 	int power = 31;
 	//motor[lFlyTop] = power;
 	//motor[lFlyBottom] = power;
 	//motor[rFlyTop] = power;
 	//motor[rFlyBottom] = power;
-	wait1Msec(2000);
+	wait1Msec(500);
 	userIntakeControl = false;
-	setIntakeMotors(110);
+	setIntakeMotors(127); //110 for close shooting
 	//setLeftFwSpeed(50);
 	//setRightFwSpeed(50);
 
@@ -865,8 +867,8 @@ task usercontrol()
 				//next 4 lines have to run every time to run flywheel
 				flywheelMode = 1;
 				initializePIDShort();
-				FwVelocitySet(lFly, 79.28, .5);
-				FwVelocitySet(rFly, 79.28, .5);
+				FwVelocitySet(lFly, 62.9999,.5);
+				FwVelocitySet(rFly, 62.9999,.5);
 
 		} else if (vexRT[Btn8R] == 1 && flywheelMode >= 1) { //this is an else statement so that if two buttons are pressed, we won't switch back and forth between starting and stopping the flywheel
 				//  flywheelMode needs to be >=1 and not >=0.5 because we don't want to stop the flywheel again if it is currently in the process of the stopping,
