@@ -12,10 +12,10 @@ static int ROTATE_RIGHT = 1;
 
 
 void driveDistancePID(int encoderCounts, int direction, int time) {
-	writeDebugStreamLine("nPgmTime,error,nMotorEncoder[lDriveFrontMid], nMotorEncoder[rDriveMiddle],pTerm,iTerm,dTerm,lPower,rPower");
+	writeDebugStreamLine("nPgmTime,error,nMotorEncoder[lDriveMiddle], nMotorEncoder[rDriveMiddle],pTerm,iTerm,dTerm,lPower,rPower");
 	//reset encoder values
 	nMotorEncoder[rDriveMiddle] = 0;
-	nMotorEncoder[lDriveFrontMid] = 0;
+	nMotorEncoder[lDriveMiddle] = 0;
 
 	int error = 0,
 	straighteningError = 0,
@@ -36,7 +36,7 @@ void driveDistancePID(int encoderCounts, int direction, int time) {
 	if (direction == STRAIGHT) {
 		while (time1[T1] < time) {
 			//update error terms
-			error = target - (nMotorEncoder[lDriveFrontMid] + nMotorEncoder[rDriveMiddle])/2.0;
+			error = target - (nMotorEncoder[lDriveMiddle] + nMotorEncoder[rDriveMiddle])/2.0;
 			errorSum += error;
 
 			pTerm = error * (float) positionKp;
@@ -63,7 +63,7 @@ void driveDistancePID(int encoderCounts, int direction, int time) {
 			}
 
 			//adjust the powers sent to each side if the encoder values don't match
-			straighteningError = (abs(power) > 25) ? nMotorEncoder[lDriveFrontMid] - nMotorEncoder[rDriveMiddle] : 0; //only straighten at higher powers so that robot doesn't turn because of straightening "correction" at low speeds
+			straighteningError = (abs(power) > 25) ? nMotorEncoder[lDriveMiddle] - nMotorEncoder[rDriveMiddle] : 0; //only straighten at higher powers so that robot doesn't turn because of straightening "correction" at low speeds
 
 			/*if (straighteningError > 0) { //left side is ahead, so speed up the right side
 				rPower = power + straighteningError*straighteningKpLeft;
@@ -88,7 +88,7 @@ void driveDistancePID(int encoderCounts, int direction, int time) {
 			}
 
 			lastPower = power; //update the last power
-			writeDebugStreamLine("%d,%f,%f,%f,%f,%f,%f,%f,%f",nPgmTime,error,nMotorEncoder[lDriveFrontMid], nMotorEncoder[rDriveMiddle],pTerm,iTerm,dTerm,lPower,rPower);
+			writeDebugStreamLine("%d,%f,%f,%f,%f,%f,%f,%f,%f",nPgmTime,error,nMotorEncoder[lDriveMiddle], nMotorEncoder[rDriveMiddle],pTerm,iTerm,dTerm,lPower,rPower);
 			setLDriveMotors(lPower);
 			setRDriveMotors(rPower);
 			wait1Msec(25);
@@ -96,7 +96,7 @@ void driveDistancePID(int encoderCounts, int direction, int time) {
 	} else if (direction == ROTATE_LEFT || direction == ROTATE_RIGHT) {
 		while (time1[T1] < time) {
 			//update error terms
-			error = target - (abs(nMotorEncoder[lDriveFrontMid]) + abs(nMotorEncoder[rDriveMiddle]))/2; //need to use absolute values here because one of
+			error = target - (abs(nMotorEncoder[lDriveMiddle]) + abs(nMotorEncoder[rDriveMiddle]))/2; //need to use absolute values here because one of
 			errorSum += error;
 
 			pTerm = error * (float) positionKp;
@@ -123,7 +123,7 @@ void driveDistancePID(int encoderCounts, int direction, int time) {
 			}
 
 			//adjust the powers sent to each side if the encoder values don't match
-			straighteningError = abs(nMotorEncoder[lDriveFrontMid]) - abs(nMotorEncoder[rDriveMiddle]);
+			straighteningError = abs(nMotorEncoder[lDriveMiddle]) - abs(nMotorEncoder[rDriveMiddle]);
 
 			if (straighteningError > 0) { //left side is ahead, so speed up the right side
 				rPower = power + straighteningError*straighteningKpLeftTurn;
@@ -137,7 +137,7 @@ void driveDistancePID(int encoderCounts, int direction, int time) {
 			}
 
 			lastPower = power; //update the last power
-			writeDebugStreamLine("%d,%f,%f,%f,%f,%f,%f,%f,%f",nPgmTime,error,nMotorEncoder[lDriveFrontMid], nMotorEncoder[rDriveMiddle],pTerm,iTerm,dTerm,lPower,rPower);
+			writeDebugStreamLine("%d,%f,%f,%f,%f,%f,%f,%f,%f",nPgmTime,error,nMotorEncoder[lDriveMiddle], nMotorEncoder[rDriveMiddle],pTerm,iTerm,dTerm,lPower,rPower);
 			setLDriveMotors(lPower * direction); //for a left turn, ROTATE_LEFT = -1 so this moves the left side backwards for a left turn. For a right turn will go forward since ROTATE_RIGHT = 1
 			setRDriveMotors(rPower * -1 * direction); //same idea as for a left turn, except this side needs to go the opposite way as the left side in order to turn, hence the * -1 in the calculation
 			wait1Msec(25);
