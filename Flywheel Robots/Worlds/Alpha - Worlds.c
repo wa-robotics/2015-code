@@ -291,8 +291,8 @@ void initializePIDLong() {
 void initializePIDShort() {
 	//note the order of the parameters:
 	//(controller, motor ticks per rev, KpNorm, KpBallLaunch, Ki, Kd, constant, RPM drop on ball launch)
-	tbhInit(lFly, 392, .12891/*.2958 0.3652*/, 3.037 /*1.0981 9.5*/, .005252, 0, 31.501, 15); //initialize PID for left side of the flywheel //left side might be able to have a higher P
-	tbhInit(rFly, 392, .1291/*0.3652*/, 3.037 /*1.943 9.5*/, .005252, 0, 31.501, 15); //initialize PID for right side of the flywheel //x.x481
+	tbhInit(lFly, 392, .12891/* .12891.2958 0.3652*/, 2.78 /*3.037 1.0981 9.5*/, .005252, 0, 31.501, 15); //initialize PID for left side of the flywheel //left side might be able to have a higher P
+	tbhInit(rFly, 392, .1291/*.1291 0.3652*/, 2.78 /*3.037 1.943 9.5*/, .005252, 0, 31.501, 15); //initialize PID for right side of the flywheel //x.x481
 	startTask(leftFwControlTask);
 	startTask(rightFwControlTask);
 }
@@ -752,20 +752,23 @@ task usercontrol()
 	//note the order of the parameters:
 	//(controller, motor ticks per rev, KpNorm, KpBallLaunch, Ki, Kd, constant, RPM drop on ball launch)
 	flywheelMode = 4;
-	tbhInit(lFly, 390.4, .1291/*0.4074*/, .6381/*2.8*/, 0.005381, 0, 65, 20); //initialize PID for left side of the flywheel //left side might be able to have a higher P
-	tbhInit(rFly, 392, .1291/*0.4074*/, .6381, 0.005381, 0, 65, 20); //initialize PID for right side of the flywheel //x.x481
-	startTask(leftFwControlTask);
-	startTask(rightFwControlTask);
-	FwVelocitySet(lFly,143,.7);
-	FwVelocitySet(rFly,143,.7);
+	//tbhInit(lFly, 390.4, .3091/*0.4074*/, 2.69881/*2.8*/, 0.005381, 0, 58, 20); //initialize PID for left side of the flywheel //left side might be able to have a higher P
+	//tbhInit(rFly, 392, .3091/*0.4074*/, 2.69881, 0.005381, 0, 58, 20); //initialize PID for right side of the flywheel //x.x481
+	//startTask(leftFwControlTask);
+	//startTask(rightFwControlTask);
+	//FwVelocitySet(lFly,146,.7);
+	//FwVelocitySet(rFly,146,.7);
+	initializePIDShort();
+	FwVelocitySet(lFly, 80,.5);
+	FwVelocitySet(rFly, 80,.5);
 
-	yellowLEDFlashTime = 320; //flash the yellow LED for pacing
+	//yellowLEDFlashTime = 320; //flash the yellow LED for pacing
 	int power = 31;
 	//motor[lFlyTop] = power;
 	//motor[lFlyBottom] = power;
 	//motor[rFlyTop] = power;
 	//motor[rFlyBottom] = power;
-	wait1Msec(500);
+	wait1Msec(1750);
 	userIntakeControl = false;
 	setIntakeMotors(127); //110 for close shooting
 	//setLeftFwSpeed(50);
