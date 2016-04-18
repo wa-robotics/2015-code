@@ -413,7 +413,7 @@ task drivetrainController() {
 
 
 bool userIntakeControl = true,
-		 btn6UPressed = false,
+		 btn6DPressed = false,
 		 indirectCloseShootStart = false; //when set to true, will start close shooting, once started, close shooting returns this variable to false
 		 																	//   Important note: Use progStartCloseShooting() to change this variable - don't change the value of this variable directly.
 		 																	//     	This variable will not be set to false until close shooting has been activated.
@@ -440,7 +440,7 @@ task intakeController() {
 	while (1) {
 		if (userIntakeControl) {
 
-			if (flywheelMode == 1 && vexRT[Btn6U]) { //only run this if the flywheel is in the correct operating state (close shooting only), to prevent mishaps resulting from accidental button presses
+			if (flywheelMode == 1 && vexRT[Btn6D]) { //only run this if the flywheel is in the correct operating state (close shooting only), to prevent mishaps resulting from accidental button presses
 					//setIntakeRoller(0); //make sure the roller is stopped
 					//while (vexRT[Btn6U] && flywheelMode == 1) { //wait for button 6U to be released; flywheelMode == 1 condition ensures that this exits if the user is no longer close shooting
 					//	wait1Msec(25);
@@ -460,19 +460,19 @@ task intakeController() {
 						overrideAutoIntake = false; //allow autoIntake to set userIntakeControl to true if it needs to
 						flywheelMode = 0.5; //turn off the flywheel.  The stopFlywheel task will recognize this value and stop the flywheel
 					//}
-				} else if (!vexRT[Btn6U] && btn6UPressed) {
-					btn6UPressed = false;
+				} else if (!vexRT[Btn6D] && btn6DPressed) {
+					btn6DPressed = false;
 				} else {
 					if (!outtakeOnly) {
 						 //intake roller can generally be run forwards or backwards...
 						if (flywheelMode == 4) { //Button 6U also controls intake chain for center, purple and long shooting
-							setIntakeMotors(vexRT[Btn6U]*100-vexRT[Btn5U]*100);
+							setIntakeMotors(vexRT[Btn6D]*100-vexRT[Btn5U]*100);
 						} else if (flywheelMode == 3) { //Button 6U also controls intake chain for center, purple and long shooting
-							setIntakeMotors(vexRT[Btn6U]*127-vexRT[Btn5U]*127);
+							setIntakeMotors(vexRT[Btn6D]*127-vexRT[Btn5U]*127);
 						} else if (flywheelMode == 2) {
-							setIntakeMotors(vexRT[Btn6U]*95-vexRT[Btn5U]*95);
+							setIntakeMotors(vexRT[Btn6D]*95-vexRT[Btn5U]*95);
 						} else { //can always run intakeChain backwards with button 5U
-							setIntakeRoller(vexRT[Btn6U]*127-vexRT[Btn5U]*127);
+							setIntakeRoller(vexRT[Btn6D]*127-vexRT[Btn5U]*127);
 							setIntakeChain(-vexRT[Btn5U]*127);
 						}
 					} else { //outtakeOnly
@@ -599,16 +599,20 @@ task countBallsInIntake() {
 
 task autoIntake() {
 	while(1) {
-		if (vexRT[Btn6D]) {
+		if (((SensorValue[fwBallLF] > 1800 && SensorValue[lowerIntakeBallLF] < 1000)) && rollerState = 1){
 				userIntakeControl = false;
-				intakeChainDistance(275,1,127,1500); //move the second stage up
+				intakeChainDistance(340,1,127,1000); //move the second stage up
 				userIntakeControl = true;
+		} else if(SensorValue[fwBallLF] <= 1800){
+		outtakeOnly = true;
+	  } else if(SensorValue[fwBallLF] > 1800){
+		outtakeOnly = false;
 		}
 		/*if (flywheelMode != 3 || flywheelMode != 4) { //don't auto-intake for purple or long shooting
 
 			if(SensorValue[intakeLimit] && !vexRT[Btn5D] && ballsInIntake < 3 && rollerState == 1) { //if the intake limit switch is pressed
 				userIntakeControl = false;
-				intakeChainDistance(275,1,127,1500); //move the second stage up
+				intakeChainDistance(340,1,127,1000); //move the second stage up
 				userIntakeControl = true;
 				while(SensorValue[intakeLimit]) { //wait until the intake limit switch is no longer pressed so that the moveIntakeChain command doesn't run multiple times
 					wait1Msec(75);
