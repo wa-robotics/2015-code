@@ -793,7 +793,7 @@ task usercontrol()
 
 				//yellowLEDFlashTime = 320; //flash the yellow LED for pacing
 
-		} else if (vexRT[Btn8U] == 1 && flywheelMode != 3.5) { //field edge shooting
+		} else if (vexRT[Btn7D] == 1 && flywheelMode != 3.5) { //field edge shooting
 				//mode 0.5 is for when the flywheel has been shutdown but is still spinning.  Since the control tasks are used for this process, the flywheel tasks need to be restarted.
 				if (flywheelMode >= 0.5) { //if the flywheel is currently running (modes 0.5,1-4), we need to stop the controller tasks before re-initializing the PID controller
 					stopTask(leftFwControlTask);
