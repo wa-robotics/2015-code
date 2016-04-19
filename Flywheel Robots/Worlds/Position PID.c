@@ -1,6 +1,6 @@
 float positionKp = .345,//.36, //proportional constant for positional PID
-			straighteningKpLeft = 0.5,//0.2,//.43,//.195, //proportional constant for straightening response for the left side
-			straighteningKpRight = 0.5,//0.2,//.22,//.16, //proportional constant for straightening response for the right side
+			straighteningKpLeft = 0.075,//0.2,//.43,//.195, //proportional constant for straightening response for the left side
+			straighteningKpRight = 0.15,//0.2,//.22,//.16, //proportional constant for straightening response for the right side
 			straighteningKpLeftTurn = 0.4,//.4,//.43,//.195, //proportional constant for straightening response for the left side when turning
 			straighteningKpRightTurn = 0.4,//.4,//.22,//.16, //proportional constant for straightening response for the right side when turning
 			positionKi = 0.000150,//0.000350, //integral constant
@@ -199,13 +199,9 @@ void closeShotAuton(bool waitAtStart) {
   driveDistancePID(2900, STRAIGHT, 4000); //move forward from tile
   setLDriveMotors(0);
 	setRDriveMotors(0);
-  wait1Msec(500);
-  driveDistancePID(125, ROTATE_LEFT, 500); //point towards goal
-  setLDriveMotors(0);
-	setRDriveMotors(0);
 	initializePIDShort();
-	FwVelocitySet(lFly, 94, .5);
-	FwVelocitySet(rFly, 94, .5);
+	FwVelocitySet(lFly, 83.5,.5);
+	FwVelocitySet(rFly, 83.5,.5);
 	wait1Msec(1500);
 	setIntakeMotors(127);
 	wait1Msec(2500);
@@ -250,7 +246,7 @@ task autonomous()
 		} else if (pgmToRun == "Prog. skills") {
 		programmingSkills();
 	}*/
-	longShotAuton(false);
+	closeShotAuton(false);
 }
 
 task testautonomous()

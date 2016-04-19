@@ -301,8 +301,8 @@ void initializePIDShort() {
 void initializePIDMid() {
 	//note the order of the parameters:
 	//(controller, motor ticks per rev, KpNorm, KpBallLaunch, Ki, Kd, constant, RPM drop on ball launch)
-	tbhInit(lFly, 392, .1281, 2 /*3.24*/, 0.005052, 0, 42, 23); //initialize PID for left side of the flywheel //left side might be able to have a higher P
-	tbhInit(rFly, 392, .1281/*0.3791*/, 2, 0.005052, 0, 42, 23); //initialize PID for right side of the flywheel //x.x481
+	tbhInit(lFly, 392, .1281, 1.83 /*3.24*/, 0.005052, 0, 37, 20); //initialize PID for left side of the flywheel //left side might be able to have a higher P
+	tbhInit(rFly, 392, .1281/*0.3791*/, 1.83, 0.005052, 0, 37, 20); //initialize PID for right side of the flywheel //x.x481
 	startTask(leftFwControlTask);
 	startTask(rightFwControlTask);
 }
@@ -747,6 +747,18 @@ task changeBallCount() {
 //autonomous plays are in Position PID.c; use View > User Include Files to access
 task usercontrol()
 {
+	bool testMode = true;
+	if (testMode) {
+		//startTask(autonomous);
+		//stopTask(usercontrol);
+		flywheelMode = 3;
+		initializePIDMid();
+		FwVelocitySet(lFly,112,.7);
+		FwVelocitySet(rFly,112,.7);
+		wait1Msec(1500);
+		userIntakeControl = false;
+		setIntakeMotors(115);
+	}
 
 	//initalize tasks to control various subsystems that need to run concurrently during driver control
 
