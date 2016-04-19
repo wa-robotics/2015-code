@@ -747,7 +747,7 @@ task changeBallCount() {
 //autonomous plays are in Position PID.c; use View > User Include Files to access
 task usercontrol()
 {
-	bool testMode = true;
+	bool testMode = false;
 	if (testMode) {
 		//startTask(autonomous);
 		//stopTask(usercontrol);
