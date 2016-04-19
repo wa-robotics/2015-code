@@ -157,24 +157,26 @@ void stopFlywheelAuton() {
 	flywheelMode = 0; //make sure we know that the flywheel is stopped
 }
 
-//needs to be revised
+
 void longShotAuton(bool waitAtStart) {
-	//if(waitAtStart) {
-	//	wait1Msec(3000);
-	//}
-	//initializePIDLong();
-	//FwVelocitySet(lFly,132.5,.7);
-	//FwVelocitySet(rFly,132.5,.7);
-	//wait1Msec(2000);
-	//intakeDistance(150,1,125);
-	//wait1Msec(2000);
-	//intakeDistance(150,1,125);
-	//wait1Msec(2000);
-	//intakeDistance(300,1,125);
-	//wait1Msec(2000);
-	//intakeDistance(300,1,125);
-	//wait1Msec(1500);
-	//stopFlywheelAuton(); //use stopFlywheelAuton() function here since a task is used for flywheel stops during driver control
+	if(waitAtStart) {
+		wait1Msec(3000);
+	}
+	initializePIDLong();
+	startTask(leftFwControlTask);
+	startTask(rightFwControlTask);
+	FwVelocitySet(lFly,139.75,.7);
+	FwVelocitySet(rFly,139.75,.7);
+	wait10Msec(173.5);
+	intakeDistance(400,1,127,1000); //move the intake up
+	wait10Msec(58);
+	intakeDistance(400,1,127,1000); //move the intake up
+	wait10Msec(50);
+	intakeDistance(400,1,127,1000); //move the intake up
+	wait10Msec(50);
+	intakeDistance(400,1,127,1000); //move the intake up
+	wait1Msec(1000);
+	stopFlywheelAuton();
 }
 
 //needs to be revised
@@ -248,7 +250,7 @@ task autonomous()
 		} else if (pgmToRun == "Prog. skills") {
 		programmingSkills();
 	}*/
-	closeShotAuton(false);
+	longShotAuton(false);
 }
 
 task testautonomous()

@@ -12,7 +12,7 @@
 #pragma config(Sensor, I2C_3,  ,               sensorQuadEncoderOnI2CPort,    , AutoAssign )
 #pragma config(Sensor, I2C_4,  ,               sensorQuadEncoderOnI2CPort,    , AutoAssign )
 #pragma config(Sensor, I2C_5,  ,               sensorQuadEncoderOnI2CPort,    , AutoAssign )
-#pragma config(Motor,  port1,           intakeRoller,  tmotorVex393TurboSpeed_HBridge, openLoop, reversed)
+#pragma config(Motor,  port1,           intakeRoller,  tmotorVex393TurboSpeed_HBridge, openLoop)
 #pragma config(Motor,  port2,           rFlyTop,       tmotorVex393HighSpeed_MC29, openLoop, reversed)
 #pragma config(Motor,  port3,           rFlyBottom,    tmotorVex393HighSpeed_MC29, openLoop, reversed, encoderPort, I2C_2)
 #pragma config(Motor,  port4,           lDriveMiddle,  tmotorVex393TurboSpeed_MC29, openLoop, encoderPort, I2C_5)
@@ -279,8 +279,8 @@ task rightFwControlTask()
 void initializePIDLong() {
 	//note the order of the parameters:
 	//(controller, motor ticks per rev, KpNorm, KpBallLaunch, Ki, Kd, constant, RPM drop on ball launch)
-	tbhInit(lFly, 390.4, .3091/*0.4074*/, 2.99881/*2.69881 2.8*/, 0.005381, 0, 58, 20); //initialize PID for left side of the flywheel //left side might be able to have a higher P
-	tbhInit(rFly, 392, .3091/*0.4074*/, 2.99881, 0.005381, 0, 58, 20); //initialize PID for right side of the flywheel //x.x481
+	tbhInit(lFly, 390.4, .1821/*0.4074*/, 3.64113/*2.69881 2.8*/, 0.005381, 0, 50, 20); //initialize PID for left side of the flywheel //left side might be able to have a higher P
+	tbhInit(rFly, 392, .1821/*0.4074*/, 3.64113, 0.005381, 0, 50, 20); //initialize PID for right side of the flywheel //x.x481
 	//tbhInit(lFly, 392, 0.3881, .6000, 0.006481, 0, 75, 20); //initialize PID for left side of the flywheel //left side might be able to have a higher P
 	//tbhInit(rFly, 392, 0.3881, .6000, 0.006481, 0, 75, 20); //initialize PID for right side of the flywheel //x.x481
 	startTask(leftFwControlTask);
@@ -438,6 +438,36 @@ void progStartCloseShooting() {
 */
 task intakeController() {
 	while (1) {
+		if(userIntakeControl)
+		{
+		if(flywheelMode < 1 && SensorValue[lowerIntakeBallLF] < 1850 && SensorValue[fwBallLF] < 1800)
+		{
+			setIntakeMotors(-vexRT[Btn5U]*127);
+		}
+		else if (flywheelMode < 1 && SensorValue[fwBallLF] < 1800)
+		{
+			setIntakeRoller(vexRT[Btn6D]*127-vexRT[Btn5U]*127);
+			setIntakeChain(-vexRT[Btn5U]*127);
+		} else if (flywheelMode == 1 && vexRT[Btn6D]) { //since the while loops above can also exit if flywheelMode is no longer 1 (provides a way out of this without having to run the close shooting macro), verify that we are still close shooting before running the macro
+						overrideAutoIntake = true; //prevent autoIntake from enabling userIntakeControl
+						userIntakeControl = false; //prevent user from controlling intake while macro is running
+						intakeDistance(1500, 1, 127, 2500);
+						userIntakeControl = true; //return intake control to user
+						flywheelMode = 0.5; //turn off the flywheel.  The stopFlywheel task will recognize this value and stop the flywheel
+		} else if (flywheelMode < 1&& rollerState == 1 && SensorValue[lowerIntakeBallLF] < 1500 && SensorValue[fwBallLF] > 1800) {
+			userIntakeControl = false;
+			intakeChainDistance(340,1,127,900); //move the second stage up
+			userIntakeControl = true;
+		} else {
+			setIntakeRoller(vexRT[Btn6D]*127-vexRT[Btn5U]*127);
+			setIntakeChain(-vexRT[Btn5U]*127);
+		}
+		wait1Msec(25);
+	 }
+	}
+}
+/*task intakeController() {
+	while (1) {
 		if (userIntakeControl) {
 
 			if (flywheelMode == 1 && vexRT[Btn6D]) { //only run this if the flywheel is in the correct operating state (close shooting only), to prevent mishaps resulting from accidental button presses
@@ -482,7 +512,7 @@ task intakeController() {
 			}
 		wait1Msec(25); //don't hog the CPU
 	}
-}
+}*/
 
 task liftController() {
 	while(1) {
@@ -599,7 +629,7 @@ task countBallsInIntake() {
 
 task autoIntake() {
 	while(1) {
-		if (((SensorValue[fwBallLF] > 1800 && SensorValue[lowerIntakeBallLF] < 1000)) && rollerState = 1){
+		if (((SensorValue[fwBallLF] > 1800 && SensorValue[lowerIntakeBallLF] < 1000)) && rollerState == 1){
 				userIntakeControl = false;
 				intakeChainDistance(340,1,127,1000); //move the second stage up
 				userIntakeControl = true;
@@ -712,79 +742,35 @@ task changeBallCount() {
 
 #include "Position PID.c" //include this here so that it can use drivetrain/intake utility functions
 
+//autonomous plays are in Position PID.c; use View > User Include Files to access
 task usercontrol()
 {
-	//startTask(autonomous);
-	//stopTask(usercontrol);
+
 	//initalize tasks to control various subsystems that need to run concurrently during driver control
-	//some tasks below have not been tested yet and/or lack necessary hardware or sensors.  That's why they are commented out:
-	// -intakeWatchdog: values need to be tuned
-	// -liftController: actuation mechanisms not finished
 
 	//tasks in use normally.  Comment out to test shooting
-	//Use tasks intakeController, drivetrainController, flashLED, autoIntake, stopFlywheel, flywheelWatchdog
+	//Use tasks intakeController, drivetrainController, flashLED, stopFlywheel
 	startTask(intakeController);
 	startTask(drivetrainController);
 	startTask(flashLED);
-	startTask(autoIntake);
-	//startTask(countBallsInIntake);
 	startTask(stopFlywheel);
-	//startTask(flywheelWatchdog);
-	//startTask(changeBallCount);
 
-	//startTask(intakeWatchDog);
-	//startTask(liftController);
-
-	//initializePIDLong(); //prepare controller for long shooting
-	//set long shooting velocities
- 	//make sure we set the flywheel mode
-
-	////set long shooting velocities
- 	//note the order of the parameters:
-	//(controller, motor ticks per rev, KpNorm, KpBallLaunch, Ki, Kd, constant, RPM drop on ball launch)
-	//initializePIDShort();
-	//FwVelocitySet(lFly, 7.98, .5);
-	//FwVelocitySet(rFly, 75.98, .5);
-	//wait10Msec(250);
-	//userIntakeControl = false;
-	//setIntakeMotors(127);
-	///*while(1)
-
-	//yellowLEDFlashTime = 320; //flash the yellow LED for pacing
-	//while(1) {
-	//			writeDebugStreamLine("%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d",nPgmTime,lFly.current, 50*lFly.postBallLaunch, rFly.current, 60*rFly.postBallLaunch);
-	//		wait1Msec(25);
-	//			}
-
-	//note the order of the parameters:
-	//(controller, motor ticks per rev, KpNorm, KpBallLaunch, Ki, Kd, constant, RPM drop on ball launch)
-	//flywheelMode = 4;
-	//tbhInit(lFly, 390.4, .3091/*0.4074*/, 2.99881/*2.69881 2.8*/, 0.005381, 0, 58, 20); //initialize PID for left side of the flywheel //left side might be able to have a higher P
-	//tbhInit(rFly, 392, .3091/*0.4074*/, 2.99881, 0.005381, 0, 58, 20); //initialize PID for right side of the flywheel //x.x481
-	//startTask(leftFwControlTask);
-	//startTask(rightFwControlTask);
-	//FwVelocitySet(lFly,139.75,.7);
-	//FwVelocitySet(rFly,139.75,.7);
-	//initializePIDShort();
-	//FwVelocitySet(lFly, 80.5,.5);
-	//FwVelocitySet(rFly, 80.5,.5);
-
-	//yellowLEDFlashTime = 320; //flash the yellow LED for pacing
-	int power = 31;
-	//motor[lFlyTop] = power;
-	//motor[lFlyBottom] = power;
-	//motor[rFlyTop] = power;
-	//motor[rFlyBottom] = power;
-	//wait1Msec(1750);
-	//userIntakeControl = false;
-	//setIntakeMotors(100);
-
-	//setIntakeMotors(127); //110 for close shooting
-	//setLeftFwSpeed(50);
-	//setRightFwSpeed(50);
 
 	while (true)
 	{
+
+		//controls lift actuation
+		//important: make sure to set a flywheelMode when testing the flywheel to ensure that this doesn't interfere
+		if (vexRT[Btn8L] && vexRT[Btn8U] && flywheelMode == 0) { //release hammer; to prevent damage to flywheel motors, make sure flywheel not going forwards before going backwards
+		 setLeftFwSpeed(-60);
+		 setRightFwSpeed(-60);
+		} else if (vexRT[Btn8L] && vexRT[Btn8D] && flywheelMode == 0) { //release 4-bar
+		  setLeftFwSpeed(-127);
+		 setRightFwSpeed(-127);
+		} else if  (flywheelMode == 0) { //if the flywheel is not running, then give turn off the flywheel motors; otherwise, give precedence to PIC
+		 setLeftFwSpeed(0);
+		 setRightFwSpeed(0);
+		}
 
 		//flywheel speed control
 		//7U - long, 7L - purple, 8U - shoot from field edge, 7R - center 7D - short
@@ -862,7 +848,7 @@ task usercontrol()
 
 				//FwVelocitySet(rFly,118.5,.7);
 
-		} else if ((vexRT[Btn7D] == 1 || indirectCloseShootStart) && flywheelMode != 1) { //close shooting
+		} else if ((vexRT[Btn5D] == 1 || indirectCloseShootStart) && flywheelMode != 1) { //close shooting
 			//mode 0.5 is for when the flywheel has been shutdown but is still spinning.  Since the control tasks are used for this process, the flywheel tasks need to be restarted.
 				if (flywheelMode >= 0.5) { //if the flywheel is currently running (modes 0.5,1-4), we need to stop the controller tasks before re-initializing the PID controller
 					stopTask(leftFwControlTask);
