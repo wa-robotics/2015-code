@@ -301,8 +301,8 @@ void initializePIDShort() {
 void initializePIDMid() {
 	//note the order of the parameters:
 	//(controller, motor ticks per rev, KpNorm, KpBallLaunch, Ki, Kd, constant, RPM drop on ball launch)
-	tbhInit(lFly, 392, .1451, 1.77 /*3.24*/, 0.005052, 0, 39, 20); //initialize PID for left side of the flywheel //left side might be able to have a higher P
-	tbhInit(rFly, 392, .1451/*0.3791*/, 1.77, 0.005052, 0, 39, 20); //initialize PID for right side of the flywheel //x.x481
+	tbhInit(lFly, 392, .1451, 1.70 /*3.24*/, 0.005052, 0, 39, 20); //initialize PID for left side of the flywheel //left side might be able to have a higher P
+	tbhInit(rFly, 392, .1451/*0.3791*/, 1.70, 0.005052, 0, 39, 20); //initialize PID for right side of the flywheel //x.x481
 	startTask(leftFwControlTask);
 	startTask(rightFwControlTask);
 }
@@ -448,15 +448,21 @@ task intakeController() {
 		{
 			setIntakeRoller(vexRT[Btn6D]*127-vexRT[Btn5U]*127);
 			setIntakeChain(-vexRT[Btn5U]*127);
-		}else if ((flywheelMode == 1 || flywheelMode == 3) && vexRT[Btn6D]) { //since the while loops above can also exit if flywheelMode is no longer 1 (provides a way out of this without having to run the close shooting macro), verify that we are still close shooting before running the macro
+		}else if (flywheelMode == 1 && vexRT[Btn6D]) { //macro for close shooting
 						overrideAutoIntake = true; //prevent autoIntake from enabling userIntakeControl
 						userIntakeControl = false; //prevent user from controlling intake while macro is running
-						intakeDistance(1850, 1, 127, 2100);
+						intakeDistance(2000, 1, 127, 2100);
 						userIntakeControl = true; //return intake control to user
 						flywheelMode = 0.5; //turn off the flywheel.  The stopFlywheel task will recognize this value and stop the flywheel
-		}else if (flywheelMode == 4) { //Button 6U also controls intake chain for center, purple and long shooting
+		}/* else if (flywheelMode == 2 && vexRT[Btn6D]) { //macro for center shooting
+						//overrideAutoIntake = true; //prevent autoIntake from enabling userIntakeControl
+						//userIntakeControl = false; //prevent user from controlling intake while macro is running
+						//intakeDistance(2000, 1, 100, 2100);
+						//userIntakeControl = true; //return intake control to user
+						//flywheelMode = 0.5; //turn off the flywheel.  The stopFlywheel task will recognize this value and stop the flywheel
+		} */ else if (flywheelMode == 4 || flywheelMode == 2) { //Button 6U also controls intake chain for center, purple and long shooting
 							setIntakeMotors(vexRT[Btn6D]*127-vexRT[Btn5U]*127);
-	}else if (flywheelMode < 1&& rollerState == 1 && SensorValue[lowerIntakeBallLF] < 1500 && SensorValue[fwBallLF] > 1800) {
+	} else if (flywheelMode < 1&& rollerState == 1 && SensorValue[lowerIntakeBallLF] < 1500 && SensorValue[fwBallLF] > 1800) {
 			userIntakeControl = false;
 			intakeChainDistance(340,1,127,900); //move the second stage up
 			userIntakeControl = true;
@@ -747,17 +753,17 @@ task changeBallCount() {
 //autonomous plays are in Position PID.c; use View > User Include Files to access
 task usercontrol()
 {
-	bool testMode = true;
+	bool testMode = false;
 	if (testMode) {
 		//startTask(autonomous);
 		//stopTask(usercontrol);
 		flywheelMode = 3;
 		initializePIDMid();
-		FwVelocitySet(lFly,113.5,.7);
-		FwVelocitySet(rFly,113.5,.7);
+		FwVelocitySet(lFly,112.5,.7);
+		FwVelocitySet(rFly,112.5,.7);
 		wait1Msec(1500);
 		userIntakeControl = false;
-		setIntakeMotors(115);
+		setIntakeMotors(100);
 	}
 
 	//initalize tasks to control various subsystems that need to run concurrently during driver control
@@ -840,13 +846,14 @@ task usercontrol()
 				FwVelocitySet(lFly,117.8,.7);
 				FwVelocitySet(rFly,117.8,.7);
 
-		} /*else if (vexRT[Btn7L] == 1 && flywheelMode != 2) { //center shooting
+		} else if (vexRT[Btn7L] == 1 && flywheelMode != 2) { //center shooting
 				//mode 0.5 is for when the flywheel has been shutdown but is still spinning.  Since the control tasks are used for this process, the flywheel tasks need to be restarted.
 				if (flywheelMode >= 0.5) { //if the flywheel is currently running (modes 0.5,1-4), we need to stop the controller tasks before re-initializing the PID controller
 					stopTask(leftFwControlTask);
 					stopTask(rightFwControlTask);
 					userIntakeControl = true;
 				}
+				moveIntakeBack();
 
 				ballsInIntake = 0; //reset the intake ball counter for simplicity
 
@@ -854,14 +861,12 @@ task usercontrol()
 
 
 				//Uncomment these lines once midfield shooting has been tested
-				flywheelMode = 3.5;
+				flywheelMode = 2;
 				initializePIDMid();
-				FwVelocitySet(lFly,71.25,.7);
-				FwVelocitySet(rFly,71.25,.7);
+				FwVelocitySet(lFly,112.5,.7);
+			FwVelocitySet(rFly,112.5,.7);
 
-				//FwVelocitySet(rFly,118.5,.7);
-
-		}*/ else if ((vexRT[Btn5D] == 1 || indirectCloseShootStart) && flywheelMode != 1) { //close shooting
+		} else if ((vexRT[Btn5D] == 1 || indirectCloseShootStart) && flywheelMode != 1) { //close shooting
 			//mode 0.5 is for when the flywheel has been shutdown but is still spinning.  Since the control tasks are used for this process, the flywheel tasks need to be restarted.
 				if (flywheelMode >= 0.5) { //if the flywheel is currently running (modes 0.5,1-4), we need to stop the controller tasks before re-initializing the PID controller
 					stopTask(leftFwControlTask);
