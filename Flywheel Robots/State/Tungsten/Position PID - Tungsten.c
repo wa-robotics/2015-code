@@ -1,10 +1,10 @@
-float positionKp = .345,//.36, //proportional constant for positional PID
-			straighteningKpLeft = 0.5,//0.2,//.43,//.195, //proportional constant for straightening response for the left side
-			straighteningKpRight = 0.5,//0.2,//.22,//.16, //proportional constant for straightening response for the right side
+float positionKp = .4,//.36, //proportional constant for positional PID
+			straighteningKpLeft = 0.545,//0.2,//.43,//.195, //proportional constant for straightening response for the left side
+			straighteningKpRight = 0.545,//0.2,//.22,//.16, //proportional constant for straightening response for the right side
 			straighteningKpLeftTurn = 0.4,//.4,//.43,//.195, //proportional constant for straightening response for the left side when turning
 			straighteningKpRightTurn = 0.4,//.4,//.22,//.16, //proportional constant for straightening response for the right side when turning
 			positionKi = 0.000150,//0.000350, //integral constant
-			positionKd = 2.80;//4; //derivative constant
+			positionKd = 2.9;//4; //derivative constant
 
 static int STRAIGHT = 2; //the 2 here shouldn't matter as long as no variables are multiplied by 'direction' in driveDistancePID
 static int ROTATE_LEFT = -1;
@@ -12,10 +12,10 @@ static int ROTATE_RIGHT = 1;
 
 
 void driveDistancePID(int encoderCounts, int direction, int time) {
-	writeDebugStreamLine("nPgmTime,error,nMotorEncoder[lDriveMiddle], nMotorEncoder[rDriveMiddle],pTerm,iTerm,dTerm,lPower,rPower");
+	writeDebugStreamLine("nPgmTime,error,nMotorEncoder[lDriveFront], nMotorEncoder[rDriveMiddle],pTerm,iTerm,dTerm,lPower,rPower");
 	//reset encoder values
-	nMotorEncoder[rDriveMiddle] = 0;
-	nMotorEncoder[lDriveMiddle] = 0;
+	nMotorEncoder[rDriveFront] = 0;
+	nMotorEncoder[lDriveFront] = 0;
 
 	int error = 0,
 	straighteningError = 0,
@@ -36,7 +36,7 @@ void driveDistancePID(int encoderCounts, int direction, int time) {
 	if (direction == STRAIGHT) {
 		while (time1[T1] < time) {
 			//update error terms
-			error = target - (nMotorEncoder[lDriveMiddle] + nMotorEncoder[rDriveMiddle])/2.0;
+			error = target - (nMotorEncoder[lDriveFront] + nMotorEncoder[rDriveFront])/2.0;
 			errorSum += error;
 
 			pTerm = error * (float) positionKp;
@@ -63,7 +63,7 @@ void driveDistancePID(int encoderCounts, int direction, int time) {
 			}
 
 			//adjust the powers sent to each side if the encoder values don't match
-			straighteningError = (abs(power) > 25) ? nMotorEncoder[lDriveMiddle] - nMotorEncoder[rDriveMiddle] : 0; //only straighten at higher powers so that robot doesn't turn because of straightening "correction" at low speeds
+			straighteningError = (abs(power) > 25) ? nMotorEncoder[lDriveFront] - nMotorEncoder[rDriveFront] : 0; //only straighten at higher powers so that robot doesn't turn because of straightening "correction" at low speeds
 
 			/*if (straighteningError > 0) { //left side is ahead, so speed up the right side
 				rPower = power + straighteningError*straighteningKpLeft;
@@ -88,7 +88,7 @@ void driveDistancePID(int encoderCounts, int direction, int time) {
 			}
 
 			lastPower = power; //update the last power
-			writeDebugStreamLine("%d,%f,%f,%f,%f,%f,%f,%f,%f",nPgmTime,error,nMotorEncoder[lDriveMiddle], nMotorEncoder[rDriveMiddle],pTerm,iTerm,dTerm,lPower,rPower);
+			writeDebugStreamLine("%d,%f,%f,%f,%f,%f,%f,%f,%f",nPgmTime,error,nMotorEncoder[lDriveFront], nMotorEncoder[rDriveFront],pTerm,iTerm,dTerm,lPower,rPower);
 			setLDriveMotors(lPower);
 			setRDriveMotors(rPower);
 			wait1Msec(25);
@@ -96,7 +96,7 @@ void driveDistancePID(int encoderCounts, int direction, int time) {
 	} else if (direction == ROTATE_LEFT || direction == ROTATE_RIGHT) {
 		while (time1[T1] < time) {
 			//update error terms
-			error = target - (abs(nMotorEncoder[lDriveMiddle]) + abs(nMotorEncoder[rDriveMiddle]))/2; //need to use absolute values here because one of
+			error = target - (abs(nMotorEncoder[lDriveFront]) + abs(nMotorEncoder[rDriveFront]))/2; //need to use absolute values here because one of
 			errorSum += error;
 
 			pTerm = error * (float) positionKp;
@@ -123,7 +123,7 @@ void driveDistancePID(int encoderCounts, int direction, int time) {
 			}
 
 			//adjust the powers sent to each side if the encoder values don't match
-			straighteningError = abs(nMotorEncoder[lDriveMiddle]) - abs(nMotorEncoder[rDriveMiddle]);
+			straighteningError = abs(nMotorEncoder[lDriveFront]) - abs(nMotorEncoder[rDriveFront]);
 
 			if (straighteningError > 0) { //left side is ahead, so speed up the right side
 				rPower = power + straighteningError*straighteningKpLeftTurn;
@@ -137,7 +137,7 @@ void driveDistancePID(int encoderCounts, int direction, int time) {
 			}
 
 			lastPower = power; //update the last power
-			writeDebugStreamLine("%d,%f,%f,%f,%f,%f,%f,%f,%f",nPgmTime,error,nMotorEncoder[lDriveMiddle], nMotorEncoder[rDriveMiddle],pTerm,iTerm,dTerm,lPower,rPower);
+			writeDebugStreamLine("%d,%f,%f,%f,%f,%f,%f,%f,%f",nPgmTime,error,nMotorEncoder[lDriveFront], nMotorEncoder[rDriveFront],pTerm,iTerm,dTerm,lPower,rPower);
 			setLDriveMotors(lPower * direction); //for a left turn, ROTATE_LEFT = -1 so this moves the left side backwards for a left turn. For a right turn will go forward since ROTATE_RIGHT = 1
 			setRDriveMotors(rPower * -1 * direction); //same idea as for a left turn, except this side needs to go the opposite way as the left side in order to turn, hence the * -1 in the calculation
 			wait1Msec(25);
@@ -145,113 +145,126 @@ void driveDistancePID(int encoderCounts, int direction, int time) {
 }
 }
 
-//stop flywheel (note: this function should only be used for autonomous code.  The stopFlywheel *task* handles flywheel stops during driver control
-void stopFlywheelAuton() {
-	//disable PIC control of the flywheels and switch to open-loop control
-	stopTask(leftFwControlTask);
-	stopTask(rightFwControlTask);
-	//turn off the flywheel motors
-	setLeftFwSpeed(0);
-	setRightFwSpeed(0);
 
-	flywheelMode = 0; //make sure we know that the flywheel is stopped
+void intakeDistance (int encoderCounts, int direction, float power) {
+	int encoderGoal = nMotorEncoder[intakeChain] - encoderCounts*direction; //intake encoder counts down for forward
+	if (direction == 1) {
+		while (nMotorEncoder[intakeChain] > encoderGoal) {
+			setIntakeMotors(power*direction);
+		}
+	} else {
+		while (nMotorEncoder[intakeChain] < encoderGoal) {
+			setIntakeMotors(power*direction);
+		}
+	}
+
+	setIntakeMotors(0);
 }
 
-
-void longShotAuton(bool waitAtStart) {
+/*void longShotAuton(bool waitAtStart) {
 	if(waitAtStart) {
 		wait1Msec(3000);
 	}
 	initializePIDLong();
-	startTask(leftFwControlTask);
-	startTask(rightFwControlTask);
-	FwVelocitySet(lFly,139.75,.7);
-	FwVelocitySet(rFly,139.75,.7);
-	wait10Msec(173.5);
-	intakeDistance(400,1,127,1000); //move the intake up
-	wait10Msec(58);
-	intakeDistance(400,1,127,1000); //move the intake up
-	wait10Msec(50);
-	intakeDistance(400,1,127,1000); //move the intake up
-	wait10Msec(50);
-	intakeDistance(400,1,127,1000); //move the intake up
+	FwVelocitySet(lFly,132,.7);
+	FwVelocitySet(rFly,132,.7);
+	wait1Msec(1700);
+	intakeDistance(150,1,125);
+	wait1Msec(750);
+	intakeDistance(150,1,125);
+	wait1Msec(750);
+	intakeDistance(300,1,125);
+	wait1Msec(750);
+	intakeDistance(300,1,125);
 	wait1Msec(1000);
-	stopFlywheelAuton();
-}
+	stopFlywheel();
+}*/
 
-//needs to be revised
 void closeShotAuton(bool waitAtStart) {
-	//if(waitAtStart) {
-	//	wait1Msec(3000);
-	//}
-	//initializePIDShort();
-	//FwVelocitySet(lFly, 97.75, .5);
-	//FwVelocitySet(rFly, 97.75, .5);
-	////driveDistance(3350, 1, 85);
-	//wait1Msec(500);
-	////rotate(0,1);
-	//wait1Msec(250);
-	//setIntakeMotors(115); //turn on the intake to outtake the balls
-	//wait1Msec(1750); //wait long enough to shoot all the balls
-	//setIntakeMotors(0); //stop the intake
-	//stopFlywheelAuton(); //use stopFlywheelAuton() function here since a task is used for flywheel stops during driver control
-
-  driveDistancePID(2900, STRAIGHT, 4000); //move forward from tile
-  setLDriveMotors(0);
-	setRDriveMotors(0);
-  wait1Msec(500);
-  driveDistancePID(125, ROTATE_LEFT, 500); //point towards goal
-  setLDriveMotors(0);
-	setRDriveMotors(0);
+	if(waitAtStart) {
+		wait1Msec(3000);
+	}
 	initializePIDShort();
-	FwVelocitySet(lFly, 94, .5);
-	FwVelocitySet(rFly, 94, .5);
-	wait1Msec(1500);
-	setIntakeMotors(127);
-	wait1Msec(2500);
-	stopFlywheelAuton();
+	FwVelocitySet(lFly, 83, .5);
+	FwVelocitySet(rFly, 83, .5);
+	driveDistance(3300, 1, 122);
+	wait1Msec(500);
+
+	setIntakeMotors(122);
+	wait1Msec(525);
 	setIntakeMotors(0);
+	wait1Msec(750);
+
+	setIntakeMotors(122);
+	wait1Msec(525);
+	setIntakeMotors(0);
+	wait1Msec(750);
+
+	setIntakeMotors(122);
+	wait1Msec(525);
+	setIntakeMotors(0);
+	wait1Msec(750);
+
+	setIntakeMotors(122);
+	wait1Msec(525);
+	setIntakeMotors(0);
+	wait1Msec(750);
+
+	wait1Msec(1000);
+	stopFlywheel();
+	//wait1Msec(500);
+	//setIntakeMotors(110); //previously 122
 }
 
-//needs to be revised
-void programmingSkills() {
-	startTask(flashLED);
+void longShotAuton(bool waitAtStart) {
+	if(waitAtStart) {
+		wait1Msec(5000);
+	}
 	initializePIDPurple();
-	FwVelocitySet(lFly,115,.7);
-	FwVelocitySet(rFly,115,.7);
-	setIntakeMotors(125);
-	wait1Msec(25000);
-	stopFlywheelAuton(); //use stopFlywheelAuton() function here since a task is used for flywheel stops during driver control
-	setIntakeMotors(0);
-	//rotateDegrees(860,1);
-	wait1Msec(750);
-	//driveDistance(3375, -1, 85);
-	setIntakeMotors(125);
-	initializePIDPurple();
-	FwVelocitySet(lFly,115,.7);
-	FwVelocitySet(rFly,115,.7);
-	wait1Msec(750);
-	//rotateDegrees(895,-1);
+	FwVelocitySet(lFly, 120, .5);
+	FwVelocitySet(rFly, 120, .5);
+	driveDistance(1775, 1, 125);
 	wait1Msec(500);
 	setIntakeMotors(125);
-	wait1Msec(25000);
 }
+
+void programmingSkills() {
+	initializePIDPurple();
+	setIntakeMotors(127);
+	FwVelocitySet(lFly,115,.7);
+	FwVelocitySet(rFly,115,.7);
+	wait1Msec(25000);
+	rotate(850,-1);
+	motor[intakeChain] = 127;
+	motor[intakeRoller] = 0;
+	wait1Msec(750);
+	driveDistance(3275, 1, 60);
+	wait1Msec(750);
+	rotate(780,1);
+	motor[intakeRoller] = 127;
+	wait1Msec(30000);
+}
+
 
 task autonomous()
 {
-	/*if (pgmToRun == "R Side Long" || pgmToRun == "R Back Long"
-		|| pgmToRun == "B Side Long"
-	|| pgmToRun == "B Back Long") {
-		longShotAuton(delayStart);
+	//testing
+	//pgmToRun = "Prog. Skills";
+	//delayStart = false;
+	if (pgmToRun == "R Side Long" || pgmToRun == "R Back Long"
+			|| pgmToRun == "B Side Long"
+			|| pgmToRun == "B Back Long") {
+			longShotAuton(delayStart);
 	} else if (pgmToRun == "B Side Close" || pgmToRun == "B Back Close"
-		|| pgmToRun == "R Side Close"
-	|| pgmToRun == "R Back Close") {
-		closeShotAuton(delayStart);
-		} else if (pgmToRun == "Prog. skills") {
-		programmingSkills();
-	}*/
-	longShotAuton(false);
+			|| pgmToRun == "R Side Close"
+			|| pgmToRun == "R Back Close") {
+			closeShotAuton(delayStart);
+	} else if (pgmToRun == "Prog. skills") {
+			programmingSkills();
+	}
 }
+
+
 
 task testautonomous()
 {
@@ -281,7 +294,9 @@ task testautonomous()
 
 	//starting from red back tile
 	//motor[intake] = 127;
-	//driveDistancePID(450, FORWARD, 1250); //drive forward from the tile
+	//driveDistancePID(450, STRAIGHT, 1250); //drive forward from the tile
+	//setLDriveMotors(0);
+	//setRDriveMotors(0);
 	//wait1Msec(250); //wait a bit to let things settle out before turning
 	//rotateDegrees(500,1); //turn left to face the blue side wall
 	//wait1Msec(250);
@@ -301,9 +316,9 @@ task testautonomous()
 	//wait1Msec(7000);
 
 	//HERE.  LOOK HERE - this is the testing code, commented out so nothing runs accidentally
-  driveDistancePID(3000, STRAIGHT, 10000); //move forward from tile
-  setLDriveMotors(0);
-	setRDriveMotors(0);
+ // driveDistancePID(1000, STRAIGHT, 5000); //move forward from tile
+ // setLDriveMotors(0);
+	//setRDriveMotors(0);
 
 
   //driveDistancePID(285,ROTATE_RIGHT, 750); //turn towards blue net

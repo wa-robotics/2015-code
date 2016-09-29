@@ -623,6 +623,7 @@ task usercontrol()
 	//intake power 125
 
 	//testing
+<<<<<<< HEAD
 	//userIntakeControl = false;
 	//setIntakeMotors(125);
 
@@ -631,6 +632,16 @@ task usercontrol()
 
 		  //FwVelocitySet(lFly,138,.7);
 	    //FwVelocitySet(rFly,138,.7);
+=======
+//	userIntakeControl = false;
+//	setIntakeMotors(125);
+
+	//		initializePIDLong(); //prepare controller for long shooting
+			//set long shooting velocities
+
+	//	  FwVelocitySet(lFly,138,.7);
+	  //  FwVelocitySet(rFly,138,.7);
+>>>>>>> origin/master
 
 	   // initializePIDShort();
 		//	FwVelocitySet(lFly, 103, .5);

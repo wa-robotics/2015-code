@@ -128,7 +128,7 @@ void tbhInit (fw_controller *fw, float MOTOR_TPR, float KpNorm, float KpBallLaun
 	fw->encoder_timestamp_last = 0;
 	fw->e_last = 0;
 	fw->last_error = 0;
-	fw->last_RPM_average = 0;
+	fw->last_rpm_average = 0;
 	fw->older_125ms_rpm = 0;
 	fw->v_last = 0;
 	fw->errorSum = 0;
